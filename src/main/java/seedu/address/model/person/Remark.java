@@ -9,6 +9,9 @@ import static java.util.Objects.requireNonNull;
 public class Remark {
     public final String value;
 
+    /**
+     * Creates a {@code Remark} containing the specified text.
+     */
     public Remark(String remark) {
         requireNonNull(remark);
         value = remark;
