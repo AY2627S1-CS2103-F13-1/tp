@@ -287,7 +287,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `Byline` and the **Actor** is the `user`, unless specified otherwise)
 
 **Use case: Delete a person**
 
@@ -311,6 +311,118 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
     * 3a1. AddressBook shows an error message.
 
       Use case resumes at step 2.
+
+**Use case: Add a contact**
+
+**MSS**
+
+1.  User requests to add a contact, providing the contact's name, phone number, email, and optionally an address and tags
+2.  AddressBook adds the contact and shows the details of the added contact
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. A compulsory detail (name, phone number or email) is missing.
+
+    * 1a1. AddressBook shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. One or more of the given details is invalid (e.g. the phone number contains non-digit characters).
+
+    * 1b1. AddressBook shows an error message describing the valid format of that detail.
+
+      Use case resumes at step 1.
+
+* 1c. No address is given.
+
+    * 1d1. AddressBook records the address as "NA" and shows a warning that no address was given.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact is added only if all given details are valid.
+
+**Use case: List all contacts**
+
+**MSS**
+
+1.  User requests to list all contacts
+2.  AddressBook shows the list of all contacts
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. There are no contacts.
+
+    * 2a1. AddressBook shows a message that there are no contacts.
+
+      Use case ends.
+
+**Use case: Tag a contact**
+
+**MSS**
+
+1.  User requests to list contacts
+2.  AddressBook shows a list of contacts
+3.  User requests to add one or more tags to a specific contact in the list
+4.  AddressBook adds the tags to the contact and shows the updated contact
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given index is invalid.
+
+    * 3a1. AddressBook shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. A given tag contains non-alphanumeric characters.
+
+    * 3b1. AddressBook shows an error message stating that tags must be alphanumeric.
+
+      Use case resumes at step 2.
+
+* 3c. The contact already has one of the given tags (ignoring upper/lower case).
+
+    * 3c1. AddressBook does not add the duplicate tag and informs the user that the contact already has it.
+
+      Use case resumes at step 4 for the remaining tags.
+
+**Guarantees**
+
+* A contact never has two tags that differ only in upper/lower case.
+
+**Use case: Search for contacts**
+
+**MSS**
+
+1.  User requests to search for contacts, giving one or more search criteria (name, phone number, email, address and/or tag)
+2.  AddressBook shows the contacts that match all the given criteria
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No search criteria are given.
+
+    * 1a1. AddressBook shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 2a. No contacts match all the given criteria.
+
+    * 2a1. AddressBook shows an empty list and a message that no contacts were found.
+
+      Use case ends.
 
 *{More to be added}*
 
