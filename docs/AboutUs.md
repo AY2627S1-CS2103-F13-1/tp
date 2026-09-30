@@ -9,46 +9,35 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Ryan Ng
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/ryannzz2205.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/RyanNZZ2205)]
 
-* Role: Project Advisor
+* Role: Scheduling and Tracking
+* Responsibilities: Defining, assigning and tracking project tasks
 
-### Jane Doe
+### Cheryl Chow
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/cywez.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/Cywez)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Documentation
+* Responsibilities: Ensure all documentation of the application is sorted and of acceptable quality
 
-### Johnny Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
-
-* Role: Developer
-* Responsibilities: Data
-
-### Jean Doe
+### Yang Joonwon
 
 <img src="images/johndoe.png" width="200px">
 
 [[github](http://github.com/johndoe)]
 [[portfolio](team/johndoe.md)]
 
-* Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Role: Testing
+* Responsibilities: Ensure testing of project is done properly and on time
 
-### James Doe
+### Chia Kei Pei
 
 <img src="images/johndoe.png" width="200px">
 
@@ -67,3 +56,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Product & Integration Lead
 * Responsibilities: Product requirements, feature specifications, UX consistency, and integration of team contributions.
+=======
+* Role: Code Quality
+* Responsibilities: Ensure adherence to coding standards, look after code quality
