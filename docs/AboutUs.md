@@ -29,10 +29,9 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Yang Joonwon
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/sheeppocket.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/sheeppocket)]
 
 * Role: Testing
 * Responsibilities: Ensure testing of project is done properly and on time
