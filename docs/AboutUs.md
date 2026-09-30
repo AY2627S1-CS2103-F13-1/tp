@@ -30,9 +30,9 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Cheryl Chow
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/cywez.png" width="200px">
 
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](http://github.com/Cywez)]
 
 * Role: Documentation
 * Responsibilities: Ensure all documentation of the application is sorted and of acceptable quality
