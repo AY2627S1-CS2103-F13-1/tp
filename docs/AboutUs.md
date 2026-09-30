@@ -57,3 +57,13 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: UI
+
+### Renfred Lee
+
+<img src="images/lzxrenfred.png" width="200px">
+
+[[github](https://github.com/lzxrenfred)]
+[[portfolio](team/lzxrenfred.md)]
+
+* Role: Product & Integration Lead
+* Responsibilities: Product requirements, feature specifications, UX consistency, and integration of team contributions.
