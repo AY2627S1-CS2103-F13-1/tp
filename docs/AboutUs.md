@@ -18,16 +18,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Scheduling and Tracking
 * Responsibilities: Defining, assigning and tracking project tasks
 
-### Renfred Lee
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Integration
-* Responsibilities: Versioning the code, maintaining code repository and integrating various parts of the software
-
 ### Cheryl Chow
 
 <img src="images/cywez.png" width="200px">
@@ -54,5 +44,18 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/johndoe)]
 [[portfolio](team/johndoe.md)]
 
+* Role: Developer
+* Responsibilities: UI
+
+### Renfred Lee
+
+<img src="images/lzxrenfred.png" width="200px">
+
+[[github](https://github.com/lzxrenfred)]
+[[portfolio](team/lzxrenfred.md)]
+
+* Role: Product & Integration Lead
+* Responsibilities: Product requirements, feature specifications, UX consistency, and integration of team contributions.
+=======
 * Role: Code Quality
 * Responsibilities: Ensure adherence to coding standards, look after code quality
