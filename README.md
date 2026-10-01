@@ -2,7 +2,7 @@
 
 **Byline** is a desktop contact manager for journalists. It helps journalists identify relevant contacts and keep track of interviewees for their reporting work.
 
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
+[![CI Status](https://github.com/AY2627S1-CS2103-F13-1/tp/workflows/Java%20CI/badge.svg)](https://github.com/AY2627S1-CS2103-F13-1/tp/actions)
 
 ![Ui](docs/images/Ui.png)
 
