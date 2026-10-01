@@ -34,3 +34,7 @@ Byline is designed for **journalists who manage numerous professional contacts**
   e.g. `edit 1 t/politics t/source`
 * **Search contacts**: Find contacts by name, phone, email, address or tag. Name, phone, email and address can match on part of the text, while tags must match exactly. When you give several conditions, only contacts that match all of them are shown.<br>
   e.g. `find n/Tan t/economist`
+
+## Acknowledgement of AB3
+
+This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
