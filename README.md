@@ -2,13 +2,31 @@
 
 ![Ui](docs/images/Ui.png)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+## About Byline
+
+Journalists work with a large and constantly growing network of sources, experts and interviewees, often across several stories at once. These contacts usually end up scattered across notebooks, message threads and phone records, making it hard to find the right person when a story breaks.
+
+Byline brings all of these contacts into one place. Journalists can record each contact's details, categorise them with tags (for example by expertise), and quickly search through their contact list to find people they might need. Byline is optimised for users who type fast and prefer typing over other means of input.
+
+## Target Users
+
+Byline is designed for **journalists who manage numerous professional contacts** with varying relationship strengths and areas of expertise, and who:
+
+* juggle multiple stories at the same time
+* need to quickly find the right source or interviewee for a story
+* prefer typing commands over clicking through menus
+
+**Example user:** Kimberly is an experienced journalist working on several stories at once. Her contacts are spread across scattered notes, messages and phone records, and she needs a single place to organise them and find the right person quickly.
+
+## Main Features
+
+* **Add a contact**: Record a contact's name, phone number, email and address, with optional tags.<br>
+  e.g. `add n/Jane Tan p/91234567 e/jane@example.com a/12 Kent Ridge Road t/economist`
+* **List contacts**: View all the contacts stored in Byline.<br>
+  e.g. `list`
+* **Delete a contact**: Remove a contact using its index in the displayed list.<br>
+  e.g. `delete 2`
+* **Tag contacts**: Categorise contacts with tags such as their area of expertise, so related contacts are easy to group.<br>
+  e.g. `edit 1 t/politics t/source`
+* **Search contacts**: Find contacts by name, phone, email, address or tag. Name, phone, email and address can match on part of the text, while tags must match exactly. When you give several conditions, only contacts that match all of them are shown.<br>
+  e.g. `find n/Tan t/economist`
