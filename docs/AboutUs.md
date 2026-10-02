@@ -38,13 +38,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Chia Kei Pei
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/chia_kei_pei.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/Chia-Kei-Pei)]
 
-* Role: Developer
-* Responsibilities: UI
+* Role: Code Quality
+* Responsibilities: Ensure adherence to coding standards, look after code quality
 
 ### Renfred Lee
 
@@ -55,6 +54,3 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Product & Integration Lead
 * Responsibilities: Product requirements, feature specifications, UX consistency, and integration of team contributions.
-=======
-* Role: Code Quality
-* Responsibilities: Ensure adherence to coding standards, look after code quality
