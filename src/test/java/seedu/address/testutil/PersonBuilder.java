@@ -24,6 +24,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private Remark remark = new Remark("");
     private Email email;
     private Address address;
     private Set<Tag> tags;
@@ -45,6 +46,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        remark = personToCopy.getRemark();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
@@ -75,6 +77,14 @@ public class PersonBuilder {
     }
 
     /**
+     * Sets the {@code Remark} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withRemark(String remark) {
+        this.remark = new Remark(remark);
+        return this;
+    }
+
+    /**
      * Sets the {@code Phone} of the {@code Person} that we are building.
      */
     public PersonBuilder withPhone(String phone) {
@@ -91,7 +101,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, address, new Remark(""), tags);
+        return new Person(name, phone, email, address, remark, tags);
     }
 
 }
