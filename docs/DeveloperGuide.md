@@ -261,13 +261,15 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
+This product is for journalists who have many valuable contacts to keep track of. They may not have close ties with all of their contacts.
+
 * has a need to manage a significant number of contacts
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Journalists have the problem of not knowing who in their contacts to ask for help for their stories that they are currently writing. Our app helps journalists identify relevant contacts and keep track of interviewees to contact them for follow-up.
 
 
 ### User stories
