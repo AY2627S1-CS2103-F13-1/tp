@@ -76,4 +76,22 @@ public class RemarkCommandTest {
         assertThrows(CommandException.class,
                 MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> command.execute(model));
     }
+
+    @Test
+    public void equals() {
+        RemarkCommand firstCommand =
+                new RemarkCommand(INDEX_FIRST_PERSON, new Remark("First remark"));
+        RemarkCommand firstCommandCopy =
+                new RemarkCommand(INDEX_FIRST_PERSON, new Remark("First remark"));
+        RemarkCommand secondIndexCommand =
+                new RemarkCommand(INDEX_SECOND_PERSON, new Remark("First remark"));
+        RemarkCommand differentRemarkCommand =
+                new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Different remark"));
+
+        assertEquals(firstCommand, firstCommandCopy);
+        assertEquals(firstCommand, firstCommand);
+        org.junit.jupiter.api.Assertions.assertNotEquals(firstCommand, secondIndexCommand);
+        org.junit.jupiter.api.Assertions.assertNotEquals(firstCommand, differentRemarkCommand);
+        org.junit.jupiter.api.Assertions.assertNotEquals(firstCommand, null);
+    }
 }

@@ -24,5 +24,16 @@ public class RemarkTest {
 
         assertEquals(remark, remark);
         assertEquals(remark, new Remark("Technology source"));
+        org.junit.jupiter.api.Assertions.assertNotEquals(remark, new Remark("Different source"));
+        org.junit.jupiter.api.Assertions.assertNotEquals(remark, null);
+        org.junit.jupiter.api.Assertions.assertNotEquals(remark, "Technology source");
+    }
+
+    @Test
+    public void hashCode_sameValue_sameHashCode() {
+        Remark first = new Remark("Technology source");
+        Remark second = new Remark("Technology source");
+
+        assertEquals(first.hashCode(), second.hashCode());
     }
 }
