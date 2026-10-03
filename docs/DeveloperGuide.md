@@ -287,16 +287,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
-
-**Use case: Delete a person**
+**System:** Byline<br>
+**Use case:** UC01 - Delete a person<br>
+**Actor:** Journalist
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  Journalist requests to list persons
+2.  Byline shows a list of persons
+3.  Journalist requests to delete a specific person in the list
+4.  Byline deletes the person
 
     Use case ends.
 
@@ -308,9 +308,129 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 3a. The given index is invalid.
 
-    * 3a1. AddressBook shows an error message.
+    * 3a1. Byline shows an error message.
 
       Use case resumes at step 2.
+
+**System:** Byline<br>
+**Use case:** UC02 - Add a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to add a contact, providing the contact's name, phone number, email, and optionally an address and tags
+2.  Byline adds the contact and shows the details of the added contact
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. A compulsory detail (name, phone number or email) is missing.
+
+    * 1a1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. One or more of the given details is invalid (e.g. the phone number contains non-digit characters).
+
+    * 1b1. Byline shows an error message describing the valid format of that detail.
+
+      Use case resumes at step 1.
+
+* 1c. No address is given.
+
+    * 1c1. Byline records the address as "NA" and shows a warning that no address was given.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact is added only if all given details are valid.
+
+**System:** Byline<br>
+**Use case:** UC03 - List all contacts<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list all contacts
+2.  Byline shows the list of all contacts
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. There are no contacts.
+
+    * 2a1. Byline shows a message that there are no contacts.
+
+      Use case ends.
+
+**System:** Byline<br>
+**Use case:** UC04 - Tag a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list contacts
+2.  Byline shows a list of contacts
+3.  Journalist requests to add one or more tags to a specific contact in the list
+4.  Byline adds the tags to the contact and shows the updated contact
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given index is invalid.
+
+    * 3a1. Byline shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. A given tag contains non-alphanumeric characters.
+
+    * 3b1. Byline shows an error message stating that tags must be alphanumeric.
+
+      Use case resumes at step 2.
+
+* 3c. The contact already has one of the given tags (ignoring upper/lower case).
+
+    * 3c1. Byline does not add the duplicate tag and informs the journalist that the contact already has it.
+
+      Use case resumes at step 4 for the remaining tags.
+
+**Guarantees**
+
+* A contact never has two tags that differ only in upper/lower case.
+
+**System:** Byline<br>
+**Use case:** UC05 - Search for contacts<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to search for contacts, giving one or more search criteria (name, phone number, email, address and/or tag)
+2.  Byline shows the contacts that match all the given criteria
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No search criteria are given.
+
+    * 1a1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 2a. No contacts match all the given criteria.
+
+    * 2a1. Byline shows an empty list and a message that no contacts were found.
+
+      Use case ends.
 
 *{More to be added}*
 
