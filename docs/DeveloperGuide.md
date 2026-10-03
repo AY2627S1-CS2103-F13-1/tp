@@ -287,15 +287,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is `Byline` and the **Actor** is the `user`, unless specified otherwise)
-
-**Use case: Delete a person**
+**System:** Byline<br>
+**Use case:** UC01 - Delete a person<br>
+**Actor:** Journalist
 
 **MSS**
 
-1.  User requests to list persons
+1.  Journalist requests to list persons
 2.  Byline shows a list of persons
-3.  User requests to delete a specific person in the list
+3.  Journalist requests to delete a specific person in the list
 4.  Byline deletes the person
 
     Use case ends.
@@ -312,11 +312,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 2.
 
-**Use case: Add a contact**
+**System:** Byline<br>
+**Use case:** UC02 - Add a contact<br>
+**Actor:** Journalist
 
 **MSS**
 
-1.  User requests to add a contact, providing the contact's name, phone number, email, and optionally an address and tags
+1.  Journalist requests to add a contact, providing the contact's name, phone number, email, and optionally an address and tags
 2.  Byline adds the contact and shows the details of the added contact
 
     Use case ends.
@@ -337,7 +339,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1c. No address is given.
 
-    * 1d1. Byline records the address as "NA" and shows a warning that no address was given.
+    * 1c1. Byline records the address as "NA" and shows a warning that no address was given.
 
       Use case resumes at step 2.
 
@@ -345,11 +347,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * The contact is added only if all given details are valid.
 
-**Use case: List all contacts**
+**System:** Byline<br>
+**Use case:** UC03 - List all contacts<br>
+**Actor:** Journalist
 
 **MSS**
 
-1.  User requests to list all contacts
+1.  Journalist requests to list all contacts
 2.  Byline shows the list of all contacts
 
     Use case ends.
@@ -362,13 +366,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
-**Use case: Tag a contact**
+**System:** Byline<br>
+**Use case:** UC04 - Tag a contact<br>
+**Actor:** Journalist
 
 **MSS**
 
-1.  User requests to list contacts
+1.  Journalist requests to list contacts
 2.  Byline shows a list of contacts
-3.  User requests to add one or more tags to a specific contact in the list
+3.  Journalist requests to add one or more tags to a specific contact in the list
 4.  Byline adds the tags to the contact and shows the updated contact
 
     Use case ends.
@@ -393,7 +399,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 3c. The contact already has one of the given tags (ignoring upper/lower case).
 
-    * 3c1. Byline does not add the duplicate tag and informs the user that the contact already has it.
+    * 3c1. Byline does not add the duplicate tag and informs the journalist that the contact already has it.
 
       Use case resumes at step 4 for the remaining tags.
 
@@ -401,11 +407,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * A contact never has two tags that differ only in upper/lower case.
 
-**Use case: Search for contacts**
+**System:** Byline<br>
+**Use case:** UC05 - Search for contacts<br>
+**Actor:** Journalist
 
 **MSS**
 
-1.  User requests to search for contacts, giving one or more search criteria (name, phone number, email, address and/or tag)
+1.  Journalist requests to search for contacts, giving one or more search criteria (name, phone number, email, address and/or tag)
 2.  Byline shows the contacts that match all the given criteria
 
     Use case ends.
