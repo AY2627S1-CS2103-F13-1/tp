@@ -274,16 +274,17 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …​ | I want to …​ | So that I can…​ |
+| -------- | -------- | ------------ | ---------------- |
+| `* * *` | new user | see usage instructions | refer to instructions when I forget how to use ByLine |
+| `* * *` | journalist | add a new contact | keep track of people who may be useful for my reporting |
+| `* * *` | journalist | list my contacts | see the contacts I have saved |
+| `* * *` | journalist | delete a contact | remove contacts that I no longer need |
+| `* * *` | journalist | search for contacts by their details | quickly locate relevant contacts without going through the entire list |
+| `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
+| `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
+| `* *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
+| `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
 
 ### Use cases
 
