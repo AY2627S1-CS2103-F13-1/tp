@@ -7,16 +7,22 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
 
 public class ModelManagerTest {
+
+    private static final Comparator<Person> NAME_COMPARATOR =
+            Comparator.comparing(person -> person.getName().fullName);
 
     private ModelManager modelManager = new ModelManager();
 
@@ -71,6 +77,84 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void sortFilteredPersonList_comparator_changesDisplayedOrder() {
+        modelManager = new ModelManager(
+                new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(), new UserPrefs());
+
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+
+        assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void sortFilteredPersonList_comparator_doesNotChangeStoredOrder() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+
+        assertEquals(List.of(ALICE, BENSON), modelManager.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void sortFilteredPersonList_filteredList_preservesFilteredSubset() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.updateFilteredPersonList(person -> !person.equals(BENSON));
+
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+
+        assertEquals(List.of(CARL, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateFilteredPersonList_sortedList_clearsSort() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+
+        modelManager.updateFilteredPersonList(person -> !person.equals(CARL));
+
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateFilteredPersonList_showAllPersons_restoresStoredOrder() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.updateFilteredPersonList(person -> !person.equals(BENSON));
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+
+        assertEquals(List.of(ALICE, BENSON, CARL), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void clearFilteredPersonListSort_sortedList_restoresStoredOrder() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+
+        modelManager.clearFilteredPersonListSort();
+
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void sortFilteredPersonList_emptyAndSinglePersonLists_doesNotFail() {
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR);
+        assertTrue(modelManager.getFilteredPersonList().isEmpty());
+
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(ALICE).build(), new UserPrefs());
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR);
+        assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
     }
 
     @Test
