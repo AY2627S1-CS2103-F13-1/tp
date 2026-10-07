@@ -36,6 +36,21 @@ public class AddressBookTest {
     }
 
     @Test
+    public void constructor_nextPersonId_assignsIdsFromNextPersonId() {
+        AddressBook addressBookWithCounter = new AddressBook(5);
+        assertEquals(List.of(), addressBookWithCounter.getPersonList());
+        assertEquals(5, addressBookWithCounter.getNextPersonId());
+
+        addressBookWithCounter.addPerson(HOON);
+        assertEquals(new PersonId("C5"), addressBookWithCounter.getPersonList().get(0).getId().get());
+    }
+
+    @Test
+    public void constructor_nonPositiveNextPersonId_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new AddressBook(0));
+    }
+
+    @Test
     public void resetData_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> addressBook.resetData(null));
     }
@@ -140,6 +155,28 @@ public class AddressBookTest {
     @Test
     public void getPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> addressBook.getPersonList().remove(0));
+    }
+
+    @Test
+    public void equals() {
+        AddressBook typicalAddressBook = getTypicalAddressBook();
+
+        // same values -> returns true
+        AddressBook typicalAddressBookCopy = getTypicalAddressBook();
+        assertTrue(typicalAddressBook.equals(typicalAddressBookCopy));
+        assertEquals(typicalAddressBook.hashCode(), typicalAddressBookCopy.hashCode());
+
+        // same object -> returns true
+        assertTrue(typicalAddressBook.equals(typicalAddressBook));
+
+        // null -> returns false
+        assertFalse(typicalAddressBook.equals(null));
+
+        // different type -> returns false
+        assertFalse(typicalAddressBook.equals(5));
+
+        // different persons -> returns false
+        assertFalse(typicalAddressBook.equals(addressBook));
     }
 
     @Test
