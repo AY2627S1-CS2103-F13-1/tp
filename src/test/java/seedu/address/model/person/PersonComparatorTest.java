@@ -1,6 +1,7 @@
 package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.person.PersonComparator.getComparator;
 import static seedu.address.model.person.SortField.ADDRESS;
 import static seedu.address.model.person.SortField.EMAIL;
@@ -112,6 +113,17 @@ public class PersonComparatorTest {
 
         assertOrder(persons, getComparator(TAG, ASCENDING), alpha, zulu, untagged);
         assertOrder(persons, getComparator(TAG, DESCENDING), zulu, alpha, untagged);
+    }
+
+    @Test
+    public void getComparator_firstPersonUntagged_placesUntaggedLastAndUsesNameTieBreaker() {
+        Person alphaUntagged = personWithName("Alpha");
+        Person zuluUntagged = personWithName("Zulu");
+        Person tagged = personWithNameAndTags("Tagged", "friend");
+        Comparator<Person> comparator = getComparator(TAG, ASCENDING);
+
+        assertTrue(comparator.compare(alphaUntagged, tagged) > 0);
+        assertTrue(comparator.compare(alphaUntagged, zuluUntagged) < 0);
     }
 
     @Test
