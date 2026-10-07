@@ -439,11 +439,30 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+These requirements define the quality targets and operating constraints for ByLine.
 
-*{More to be added}*
+1. **Keyboard usability:** After launch, journalists should be able to add, list, edit, delete, tag,
+   and search contacts using only the keyboard.
+2. **Error guidance:** Invalid command syntax or contact details should produce a visible error
+   message explaining the accepted command format or the relevant field constraint.
+3. **Capacity and performance:** ByLine should support 1,000 contacts. With that dataset, adding,
+   listing, editing, deleting, tagging, and searching contacts should each display a result within
+   one second on a machine with at least a dual-core 2 GHz processor, 8 GB RAM, local SSD storage,
+   and Java 25, with no other resource-intensive applications running. This target applies to
+   contact records of at most 1 KB each and excludes application startup.
+4. **Platform compatibility:** ByLine should run as a desktop application on Windows, macOS,
+   and Linux with a compatible Java 25 runtime, without requiring an IDE.
+5. **Offline operation:** After installation, managing contacts and saving or loading contact data
+   should work without an internet connection or an external database service.
+6. **Persistent local storage:** Contact data should be stored locally in JSON format. When the
+   configured data location is writable, each successfully completed command that changes contacts
+   should save the updated data without a separate save action. Restarting ByLine should restore
+   the saved contact details and tags.
+7. **Input reliability:** A command rejected because of invalid syntax, invalid field values, or
+   an invalid contact index should leave existing contact records unchanged and allow the user
+   to enter another command without restarting ByLine.
+8. **Storage failure reporting:** If saving contact data fails, ByLine should show a visible error
+   indicating that the save failed, rather than reporting the command as successfully completed.
 
 ### Glossary
 
