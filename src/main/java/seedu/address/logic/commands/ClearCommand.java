@@ -17,7 +17,8 @@ public class ClearCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.setAddressBook(new AddressBook());
+        // keep the ID counter so that IDs of cleared persons are not reused
+        model.setAddressBook(new AddressBook(model.getAddressBook().getNextPersonId()));
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }

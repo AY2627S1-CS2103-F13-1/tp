@@ -1,0 +1,22 @@
+{
+  "_comment": "C3 was the highest ID and has been deleted, so the next ID is still 4",
+  "nextPersonId" : 4,
+  "persons" : [
+    {
+      "id" : "C1",
+      "name" : "Alice Pauline",
+      "phone" : "94351253",
+      "email" : "alice@example.com",
+      "address" : "123, Jurong West Ave 6, #08-111",
+      "tags" : [ ]
+    },
+    {
+      "id" : "C2",
+      "name" : "Benson Meier",
+      "phone" : "98765432",
+      "email" : "johnd@example.com",
+      "address" : "311, Clementi Ave 2, #02-25",
+      "tags" : [ ]
+    }
+  ]
+}

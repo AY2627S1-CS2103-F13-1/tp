@@ -36,6 +36,21 @@ public class AddressBookTest {
     }
 
     @Test
+    public void constructor_nextPersonId_assignsIdsFromNextPersonId() {
+        AddressBook addressBookWithCounter = new AddressBook(5);
+        assertEquals(List.of(), addressBookWithCounter.getPersonList());
+        assertEquals(5, addressBookWithCounter.getNextPersonId());
+
+        addressBookWithCounter.addPerson(HOON);
+        assertEquals(new PersonId("C5"), addressBookWithCounter.getPersonList().get(0).getId().get());
+    }
+
+    @Test
+    public void constructor_nonPositiveNextPersonId_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new AddressBook(0));
+    }
+
+    @Test
     public void resetData_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> addressBook.resetData(null));
     }

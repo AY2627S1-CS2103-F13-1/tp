@@ -28,6 +28,14 @@ public class AddressBook implements ReadOnlyAddressBook {
     public AddressBook() {}
 
     /**
+     * Creates an empty AddressBook that assigns IDs starting from {@code nextPersonId}.
+     */
+    public AddressBook(int nextPersonId) {
+        checkArgument(nextPersonId >= 1, PersonId.MESSAGE_CONSTRAINTS);
+        this.nextPersonId = nextPersonId;
+    }
+
+    /**
      * Creates an AddressBook using the Persons in the {@code toBeCopied}
      */
     public AddressBook(ReadOnlyAddressBook toBeCopied) {

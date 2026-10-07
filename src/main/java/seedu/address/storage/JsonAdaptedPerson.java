@@ -14,6 +14,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -24,6 +25,7 @@ class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
 
+    private final String id;
     private final String name;
     private final String phone;
     private final String email;
@@ -34,9 +36,10 @@ class JsonAdaptedPerson {
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
     @JsonCreator
-    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+    public JsonAdaptedPerson(@JsonProperty("id") String id, @JsonProperty("name") String name,
+            @JsonProperty("phone") String phone, @JsonProperty("email") String email,
+            @JsonProperty("address") String address, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+        this.id = id;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -50,6 +53,7 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        id = source.getId().map(PersonId::toString).orElse(null);
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -60,7 +64,15 @@ class JsonAdaptedPerson {
     }
 
     /**
+     * Returns true if this person has an ID. Persons saved before IDs were introduced do not.
+     */
+    boolean hasId() {
+        return id != null;
+    }
+
+    /**
      * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
+     * A person without an ID is returned without one, to be assigned an ID by the address book.
      *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
@@ -103,7 +115,15 @@ class JsonAdaptedPerson {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+
+        if (id == null) {
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        }
+        if (!PersonId.isValidPersonId(id)) {
+            throw new IllegalValueException(PersonId.MESSAGE_CONSTRAINTS);
+        }
+        final PersonId modelId = new PersonId(id);
+        return new Person(modelId, modelName, modelPhone, modelEmail, modelAddress, modelTags);
     }
 
 }
