@@ -3,7 +3,11 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -111,7 +115,15 @@ public class ModelManager implements Model {
     @Override
     public void sortFilteredPersonList(Comparator<Person> comparator) {
         requireNonNull(comparator);
-        sortedPersons.setComparator(comparator);
+        List<Person> displayedPersons = new ArrayList<>(sortedPersons);
+        Map<Person, Integer> displayedPositions = new HashMap<>();
+        for (int i = 0; i < displayedPersons.size(); i++) {
+            displayedPositions.put(displayedPersons.get(i), i);
+        }
+
+        Comparator<Person> stableComparator = comparator.thenComparingInt(
+                person -> displayedPositions.getOrDefault(person, Integer.MAX_VALUE));
+        sortedPersons.setComparator(stableComparator);
     }
 
     @Override

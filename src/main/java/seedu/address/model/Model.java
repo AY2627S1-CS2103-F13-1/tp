@@ -66,6 +66,7 @@ public interface Model {
 
     /**
      * Sorts the filtered person list using the given {@code comparator}.
+     * Contacts that compare equally retain their current displayed order.
      *
      * @throws NullPointerException if {@code comparator} is null.
      */

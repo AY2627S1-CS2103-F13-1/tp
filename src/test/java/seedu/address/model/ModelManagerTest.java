@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
+import static seedu.address.model.person.PersonComparator.getComparator;
+import static seedu.address.model.person.SortField.ADDRESS;
+import static seedu.address.model.person.SortField.EMAIL;
+import static seedu.address.model.person.SortOrder.ASCENDING;
+import static seedu.address.model.person.SortOrder.DESCENDING;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -18,6 +23,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
 
@@ -155,6 +161,42 @@ public class ModelManagerTest {
         modelManager = new ModelManager(new AddressBookBuilder().withPerson(ALICE).build(), new UserPrefs());
         modelManager.sortFilteredPersonList(NAME_COMPARATOR);
         assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void sortFilteredPersonList_completeTies_preservesPreviousDisplayedOrder() {
+        Person upperCaseAmy = new PersonBuilder()
+                .withName("Amy")
+                .withEmail("same@example.com")
+                .withAddress("Alpha street")
+                .build();
+        Person lowerCaseAmy = new PersonBuilder()
+                .withName("amy")
+                .withEmail("SAME@example.com")
+                .withAddress("Zulu street")
+                .build();
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(upperCaseAmy).withPerson(lowerCaseAmy).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        Person displayedUpperCaseAmy = modelManager.getFilteredPersonList().get(0);
+        Person displayedLowerCaseAmy = modelManager.getFilteredPersonList().get(1);
+        modelManager.sortFilteredPersonList(getComparator(ADDRESS, DESCENDING));
+
+        modelManager.sortFilteredPersonList(getComparator(EMAIL, ASCENDING));
+
+        assertEquals(List.of(displayedLowerCaseAmy, displayedUpperCaseAmy),
+                modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void sortFilteredPersonList_personComparator_changesOnlyDisplayedOrder() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        modelManager.sortFilteredPersonList(getComparator(EMAIL, DESCENDING));
+
+        assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredPersonList());
+        assertEquals(List.of(ALICE, BENSON), modelManager.getAddressBook().getPersonList());
     }
 
     @Test
