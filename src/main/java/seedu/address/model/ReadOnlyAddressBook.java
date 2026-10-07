@@ -14,4 +14,9 @@ public interface ReadOnlyAddressBook {
      */
     ObservableList<Person> getPersonList();
 
+    /**
+     * Returns the number that will be used for the ID of the next person added without an ID.
+     */
+    int getNextPersonId();
+
 }
