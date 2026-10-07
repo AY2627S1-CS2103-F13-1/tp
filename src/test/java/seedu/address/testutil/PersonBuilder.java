@@ -7,6 +7,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
@@ -21,6 +22,7 @@ public class PersonBuilder {
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
+    private PersonId id;
     private Name name;
     private Phone phone;
     private Email email;
@@ -28,7 +30,7 @@ public class PersonBuilder {
     private Set<Tag> tags;
 
     /**
-     * Creates a {@code PersonBuilder} with the default details.
+     * Creates a {@code PersonBuilder} with the default details and no ID.
      */
     public PersonBuilder() {
         name = new Name(DEFAULT_NAME);
@@ -42,11 +44,20 @@ public class PersonBuilder {
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
+        id = personToCopy.getId().orElse(null);
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
+    }
+
+    /**
+     * Sets the {@code PersonId} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withId(String id) {
+        this.id = new PersonId(id);
+        return this;
     }
 
     /**
@@ -89,8 +100,14 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Builds the {@code Person}, without an ID unless one was set.
+     */
     public Person build() {
-        return new Person(name, phone, email, address, tags);
+        if (id == null) {
+            return new Person(name, phone, email, address, tags);
+        }
+        return new Person(id, name, phone, email, address, tags);
     }
 
 }

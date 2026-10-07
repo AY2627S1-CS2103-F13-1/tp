@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -17,6 +18,7 @@ import seedu.address.model.tag.Tag;
 public class Person {
 
     // Identity fields
+    private final PersonId id; // null until the person is added to an address book
     private final Name name;
     private final Phone phone;
     private final Email email;
@@ -26,15 +28,38 @@ public class Person {
     private final Set<Tag> tags = new HashSet<>();
 
     /**
+     * Creates a person that has not been assigned an ID yet.
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
         requireAllNonNull(name, phone, email, address, tags);
+        this.id = null;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
+    }
+
+    /**
+     * Creates a person with the given {@code id}.
+     * Every field must be present and not null.
+     */
+    public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        requireAllNonNull(id, name, phone, email, address, tags);
+        this.id = id;
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+        this.tags.addAll(tags);
+    }
+
+    /**
+     * Returns the ID of this person, or {@code Optional#empty()} if it has not been assigned one yet.
+     */
+    public Optional<PersonId> getId() {
+        return Optional.ofNullable(id);
     }
 
     public Name getName() {
@@ -89,7 +114,8 @@ public class Person {
             return false;
         }
 
-        return name.equals(otherPerson.name)
+        return Objects.equals(id, otherPerson.id)
+                && name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
@@ -99,12 +125,13 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(id, name, phone, email, address, tags);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
+                .add("id", id)
                 .add("name", name)
                 .add("phone", phone)
                 .add("email", email)

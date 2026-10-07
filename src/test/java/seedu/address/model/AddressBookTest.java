@@ -2,11 +2,16 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.GEORGE;
+import static seedu.address.testutil.TypicalPersons.HOON;
+import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Collection;
@@ -17,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.testutil.PersonBuilder;
 
@@ -77,13 +83,79 @@ public class AddressBookTest {
     }
 
     @Test
+    public void addPerson_personsWithoutId_assignsIdsInOrder() {
+        addressBook.addPerson(HOON);
+        addressBook.addPerson(IDA);
+
+        assertEquals(new PersonId("C1"), addressBook.getPersonList().get(0).getId().get());
+        assertEquals(new PersonId("C2"), addressBook.getPersonList().get(1).getId().get());
+        assertEquals(3, addressBook.getNextPersonId());
+    }
+
+    @Test
+    public void addPerson_personWithId_keepsIdAndAdvancesCounter() {
+        addressBook.addPerson(GEORGE); // C7
+        addressBook.addPerson(HOON);
+
+        assertEquals(GEORGE, addressBook.getPersonList().get(0));
+        assertEquals(new PersonId("C8"), addressBook.getPersonList().get(1).getId().get());
+    }
+
+    @Test
+    public void addPerson_afterRemovingHighestId_doesNotReuseId() {
+        addressBook.addPerson(HOON); // C1
+        addressBook.addPerson(IDA); // C2
+        addressBook.removePerson(addressBook.getPersonList().get(1));
+        addressBook.addPerson(AMY);
+
+        assertEquals(new PersonId("C3"), addressBook.getPersonList().get(1).getId().get());
+    }
+
+    @Test
+    public void addPerson_duplicatePerson_doesNotAdvanceCounter() {
+        addressBook.addPerson(HOON);
+        assertThrows(DuplicatePersonException.class, () -> addressBook.addPerson(HOON));
+        assertEquals(2, addressBook.getNextPersonId());
+    }
+
+    @Test
+    public void constructor_copy_keepsNextPersonId() {
+        addressBook.addPerson(HOON); // C1
+        addressBook.addPerson(IDA); // C2
+        addressBook.removePerson(addressBook.getPersonList().get(1));
+
+        AddressBook copy = new AddressBook(addressBook);
+        assertEquals(3, copy.getNextPersonId());
+        assertEquals(addressBook, copy);
+    }
+
+    @Test
+    public void setPerson_differentId_throwsIllegalArgumentException() {
+        addressBook.addPerson(ALICE);
+        Person aliceWithDifferentId = new PersonBuilder(ALICE).withId("C99").build();
+        assertThrows(IllegalArgumentException.class, AddressBook.MESSAGE_PERSON_ID_CHANGED, () ->
+                addressBook.setPerson(ALICE, aliceWithDifferentId));
+    }
+
+    @Test
     public void getPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> addressBook.getPersonList().remove(0));
     }
 
     @Test
+    public void equals_differentNextPersonId_returnsFalse() {
+        AddressBook otherAddressBook = new AddressBook();
+        otherAddressBook.addPerson(HOON);
+        otherAddressBook.removePerson(otherAddressBook.getPersonList().get(0));
+
+        // same persons (none), different counter
+        assertNotEquals(addressBook, otherAddressBook);
+    }
+
+    @Test
     public void toStringMethod() {
-        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList() + "}";
+        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList()
+                + ", nextPersonId=" + addressBook.getNextPersonId() + "}";
         assertEquals(expected, addressBook.toString());
     }
 
@@ -100,6 +172,11 @@ public class AddressBookTest {
         @Override
         public ObservableList<Person> getPersonList() {
             return persons;
+        }
+
+        @Override
+        public int getNextPersonId() {
+            return 1;
         }
     }
 

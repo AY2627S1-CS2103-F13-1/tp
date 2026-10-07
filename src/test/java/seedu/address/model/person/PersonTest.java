@@ -12,6 +12,8 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
@@ -88,11 +90,27 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different ID -> returns false
+        editedAlice = new PersonBuilder(ALICE).withId("C99").build();
+        assertFalse(ALICE.equals(editedAlice));
+
+        // ID vs no ID -> returns false
+        Person aliceWithoutId = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
+                ALICE.getTags());
+        assertFalse(ALICE.equals(aliceWithoutId));
+    }
+
+    @Test
+    public void getId() {
+        assertEquals(Optional.of(new PersonId("C1")), ALICE.getId());
+        assertEquals(Optional.empty(), new PersonBuilder().build().getId());
     }
 
     @Test
     public void toStringMethod() {
-        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
+        String expected = Person.class.getCanonicalName() + "{id=" + ALICE.getId().get()
+                + ", name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
