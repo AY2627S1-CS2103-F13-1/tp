@@ -88,12 +88,15 @@ public class AddressBook implements ReadOnlyAddressBook {
      * Adds a person to the address book.
      * The person must not already exist in the address book.
      * If the person does not have an ID, it is assigned the next available one.
+     *
+     * @return the person as stored in the address book, with its ID.
      */
-    public void addPerson(Person p) {
+    public Person addPerson(Person p) {
         requireNonNull(p);
         Person personWithId = withId(p, nextPersonId);
         persons.add(personWithId);
         nextPersonId = nextPersonIdAfter(personWithId.getId().orElseThrow(), nextPersonId);
+        return personWithId;
     }
 
     /**

@@ -17,7 +17,9 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
 
@@ -72,6 +74,13 @@ public class ModelManagerTest {
     public void hasPerson_personInAddressBook_returnsTrue() {
         modelManager.addPerson(ALICE);
         assertTrue(modelManager.hasPerson(ALICE));
+    }
+
+    @Test
+    public void addPerson_personWithoutId_returnsPersonWithAssignedId() {
+        Person addedPerson = modelManager.addPerson(new PersonBuilder().build());
+        assertEquals(new PersonId("C1"), addedPerson.getId().get());
+        assertEquals(List.of(addedPerson), modelManager.getFilteredPersonList());
     }
 
     @Test

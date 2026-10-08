@@ -51,8 +51,10 @@ public interface Model {
     /**
      * Adds the given person.
      * {@code person} must not already exist in the address book.
+     *
+     * @return the person as stored in the address book, with its assigned ID.
      */
-    void addPerson(Person person);
+    Person addPerson(Person person);
 
     /**
      * Replaces the given person {@code target} with {@code editedPerson}.

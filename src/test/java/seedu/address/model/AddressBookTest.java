@@ -99,8 +99,11 @@ public class AddressBookTest {
 
     @Test
     public void addPerson_personsWithoutId_assignsIdsInOrder() {
-        addressBook.addPerson(HOON);
+        Person addedHoon = addressBook.addPerson(HOON);
         addressBook.addPerson(IDA);
+
+        // the returned person is the stored copy, carrying its new ID
+        assertEquals(addressBook.getPersonList().get(0), addedHoon);
 
         assertEquals(new PersonId("C1"), addressBook.getPersonList().get(0).getId().get());
         assertEquals(new PersonId("C2"), addressBook.getPersonList().get(1).getId().get());

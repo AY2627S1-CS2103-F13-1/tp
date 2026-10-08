@@ -33,8 +33,10 @@ public class AddCommandIntegrationTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(validPerson);
 
+        // the typical persons are C1 to C7, so the new person is C8
+        Person addedPerson = new PersonBuilder(validPerson).withId("C8").build();
         assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(addedPerson)),
                 expectedModel);
     }
 
