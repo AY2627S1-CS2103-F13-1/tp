@@ -38,7 +38,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Chia Kei Pei
 
-<img src="images/chia_kei_pei.png" width="200px">
+<img src="images/chiakeipei.png" width="200px">
 
 [[github](https://github.com/Chia-Kei-Pei)]
 
