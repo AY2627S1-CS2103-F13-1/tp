@@ -25,6 +25,7 @@ public class Person {
 
     // Data fields
     private final Address address;
+    private final boolean archived;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
@@ -38,6 +39,7 @@ public class Person {
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.archived = false;
         this.tags.addAll(tags);
     }
 
@@ -52,7 +54,21 @@ public class Person {
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.archived = false;
         this.tags.addAll(tags);
+    }
+
+    /**
+     * Copies a person while changing only archive status, including for persons awaiting an ID.
+     */
+    private Person(Person source, boolean archived) {
+        this.id = source.id;
+        this.name = source.name;
+        this.phone = source.phone;
+        this.email = source.email;
+        this.address = source.address;
+        this.tags.addAll(source.tags);
+        this.archived = archived;
     }
 
     /**
@@ -60,6 +76,17 @@ public class Person {
      */
     public Optional<PersonId> getId() {
         return Optional.ofNullable(id);
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    /**
+     * Returns an immutable copy with the requested archive status and the same ID and details.
+     */
+    public Person withArchived(boolean archived) {
+        return new Person(this, archived);
     }
 
     public Name getName() {
@@ -119,13 +146,14 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && archived == otherPerson.archived;
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(id, name, phone, email, address, tags);
+        return Objects.hash(id, name, phone, email, address, tags, archived);
     }
 
     @Override
@@ -137,6 +165,7 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
+                .add("archived", archived)
                 .toString();
     }
 

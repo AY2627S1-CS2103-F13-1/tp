@@ -26,7 +26,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all active contacts.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
@@ -58,7 +58,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -87,11 +87,36 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing all persons: `list`
+### Listing active or archived persons: `list`
 
-Shows a list of all persons in the address book.
+Shows active contacts by default. Use `list archived` to view archived contacts, marked `[Archived]`.
 
-Format: `list`
+Format: `list [archived]`
+
+### Archiving a person: `archive`
+
+Hides a contact from the normal list and name searches while keeping all details, tags and its contact ID.
+
+Format: `archive INDEX`
+
+* `INDEX` is the positive index shown in the current list, including after filtering or sorting; it is not a contact ID.
+* Example: `find Alice`, then `archive 1` archives the first matching active contact.
+* Archived contacts remain saved across restarts. New contacts with the same name are still rejected;
+  use `list archived` and `restore INDEX` to recover the existing contact.
+* Archiving an already archived contact reports an error.
+
+### Restoring a person: `restore`
+
+Returns an archived contact to the active list with the same details and contact ID.
+
+Format: `restore INDEX`
+
+* Run `list archived`, then `restore 1` to restore the first contact shown in the archive.
+* The restored contact disappears from the archive view. Run `list` to see active contacts again.
+* Restoring an active contact reports an error.
+* Editing a contact in the archive preserves its archived status. As with other edits, the view then returns to active contacts.
+* `delete` permanently removes the contact at the displayed index, including in the archive view.
+  `clear` permanently removes both active and archived contacts. Use `archive` when you want to recover a contact later.
 
 ### Editing a person: `edit`
 
@@ -111,7 +136,9 @@ Examples:
 
 ### Locating persons by name: `find`
 
-Finds persons whose names contain any of the given keywords.
+Searches include only active contacts. Use `list archived` to view archived contacts.
+
+Finds active persons whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -190,9 +217,11 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Archive** | `archive INDEX`<br> e.g., `archive 1`
+**Restore** | `restore INDEX` (after `list archived`)
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**List** | `list`
+**List** | `list [archived]`
 **Help** | `help`
