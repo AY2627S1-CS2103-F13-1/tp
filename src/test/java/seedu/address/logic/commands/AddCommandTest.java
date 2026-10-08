@@ -39,7 +39,9 @@ public class AddCommandTest {
 
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+        // the message shows the person with the ID assigned by the model
+        Person addedPerson = new PersonBuilder(validPerson).withId("C1").build();
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(addedPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
     }
@@ -104,7 +106,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public void addPerson(Person person) {
+        public Person addPerson(Person person) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -185,9 +187,11 @@ public class AddCommandTest {
         }
 
         @Override
-        public void addPerson(Person person) {
+        public Person addPerson(Person person) {
             requireNonNull(person);
             personsAdded.add(person);
+            // like the real model, return the stored person with an assigned ID
+            return new PersonBuilder(person).withId("C" + personsAdded.size()).build();
         }
 
         @Override
