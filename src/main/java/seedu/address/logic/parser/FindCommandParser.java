@@ -24,7 +24,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         // TODO 1: add support for any number of any prefixes in any order.
         // e.g. `find n/...` `find e/...` `find n/... a/...` `find a/... n/...`
 
-        // TODO 1a: only ask for the name prefix
+        // TODO 1a #DONE: only ask for the name prefix
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME) || !argMultimap.getPreamble().isEmpty()) {
