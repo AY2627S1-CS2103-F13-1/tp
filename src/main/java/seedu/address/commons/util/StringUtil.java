@@ -1,11 +1,11 @@
 package seedu.address.commons.util;
 
-import static java.util.Objects.requireNonNull;
-import static seedu.address.commons.util.AppUtil.checkArgument;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+
+import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.AppUtil.checkArgument;
 
 /**
  * Helper functions for handling strings.
@@ -36,6 +36,34 @@ public class StringUtil {
 
         return Arrays.stream(wordsInPreppedSentence)
                 .anyMatch(preppedWord::equalsIgnoreCase);
+    }
+
+    /**
+     * Returns true if the {@code sentence} contains the {@code word}.
+     *   Ignores case, full word match is not required.
+     *   <br>examples:<pre>
+     *       containsWordIgnoreCase("ABc def", "abc") == true
+     *       containsWordIgnoreCase("ABc def", "DEF") == true
+     *       containsWordIgnoreCase("ABc def", "AB") == true //does not need full word match
+     *       </pre>
+     * @param sentence cannot be null
+     * @param partialWord cannot be null, cannot be empty, must be a single word or part of it
+     */
+    public static boolean containsPartialWordIgnoreCase(String sentence, String partialWord) {
+        requireNonNull(sentence);
+        requireNonNull(partialWord);
+
+        String preppedWord = partialWord.trim();
+        checkArgument(!preppedWord.isEmpty(), "Word parameter cannot be empty");
+        checkArgument(preppedWord.split("\\s+").length == 1,
+                "Word parameter should be a single word");
+
+        String preppedSentence = sentence;
+        String[] wordsInPreppedSentence = preppedSentence.split("\\s+");
+
+        return Arrays.stream(wordsInPreppedSentence)
+                .anyMatch(wordInPreppedSentence ->
+                        wordInPreppedSentence.toLowerCase().contains(preppedWord.toLowerCase()));
     }
 
     /**
