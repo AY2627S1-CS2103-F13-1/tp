@@ -1,17 +1,18 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import seedu.address.logic.Messages;
+import seedu.address.logic.commands.FindCommand;
+import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
+import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
-import seedu.address.logic.commands.FindCommand;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 public class FindCommandParserTest {
 
@@ -21,20 +22,38 @@ public class FindCommandParserTest {
     public void parse_emptyArg_throwsParseException() {
         assertParseFailure(parser, "", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, " \n \t ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
     }
 
     @Test
-    public void parse_missingNamePrefix_throwsParseException() {
-        assertParseFailure(parser, " Alice Bob",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
-        assertParseFailure(parser, " e/Alice",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+    public void parse_noPrefix_returnsAnyFieldFindCommand() {
+        FindCommand expectedFindCommand =
+                new FindCommand(new AnyFieldContainsSubstringPredicate("Al"));
+        assertParseSuccess(parser, "Al", expectedFindCommand);
+        assertParseSuccess(parser, " \n \t Al \t \n ", expectedFindCommand);
     }
 
     @Test
-    public void parse_nonEmptyPreamble_throwsParseException() {
-        assertParseFailure(parser, " Alice n/Bob",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+    public void parse_noPrefixMultipleWords_preservesSubstring() {
+        FindCommand expectedFindCommand =
+                new FindCommand(new AnyFieldContainsSubstringPredicate("Alice Bob"));
+        assertParseSuccess(parser, " Alice Bob ", expectedFindCommand);
+
+        // Only surrounding whitespace is removed; internal whitespace remains part of the substring
+        expectedFindCommand = new FindCommand(new AnyFieldContainsSubstringPredicate("Alice  \t Bob"));
+        assertParseSuccess(parser, " Alice  \t Bob ", expectedFindCommand);
+    }
+
+    @Test
+    public void parse_noPrefixOtherFieldValues_returnsAnyFieldFindCommand() {
+        assertParseSuccess(parser, " 12345",
+                new FindCommand(new AnyFieldContainsSubstringPredicate("12345")));
+        assertParseSuccess(parser, " @example.com",
+                new FindCommand(new AnyFieldContainsSubstringPredicate("@example.com")));
+        assertParseSuccess(parser, " Main Street",
+                new FindCommand(new AnyFieldContainsSubstringPredicate("Main Street")));
+        assertParseSuccess(parser, " friends",
+                new FindCommand(new AnyFieldContainsSubstringPredicate("friends")));
     }
 
     @Test
@@ -46,7 +65,7 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_validArgs_returnsFindCommand() {
+    public void parse_namePrefix_returnsNameFindCommand() {
         // no whitespace between the prefix and the first keyword
         FindCommand expectedFindCommand =
                 new FindCommand(new NameContainsKeywordsPredicate(List.of("Alice", "Bob")));
@@ -57,7 +76,7 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_partialName_returnsFindCommand() {
+    public void parse_namePrefixPartialName_returnsNameFindCommand() {
         FindCommand expectedFindCommand =
                 new FindCommand(new NameContainsKeywordsPredicate(List.of("Al")));
         assertParseSuccess(parser, " n/Al", expectedFindCommand);
