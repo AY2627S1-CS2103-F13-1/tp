@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 import java.util.List;
@@ -27,8 +28,15 @@ public class FindCommandParser implements Parser<FindCommand> {
         // TODO 1a #DONE: only ask for the name prefix
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME);
 
+        // If no prefixes are used, then search keywords in all attributes
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME) || !argMultimap.getPreamble().isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            String substring = args.trim();
+            if (substring.isEmpty()) {
+                throw new ParseException(
+                        String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            }
+
+            return new FindCommand(new AnyFieldContainsSubstringPredicate(substring));
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME);
