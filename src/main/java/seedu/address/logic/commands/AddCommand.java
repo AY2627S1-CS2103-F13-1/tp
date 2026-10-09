@@ -38,6 +38,9 @@ public class AddCommand extends Command {
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
 
+    public static final String MESSAGE_DUPLICATE_ARCHIVED_PERSON =
+            "This person already exists in the archive. Use list archived, then restore INDEX to restore it.";
+
     private final Person toAdd;
 
     /**
@@ -53,6 +56,11 @@ public class AddCommand extends Command {
         requireNonNull(model);
 
         if (model.hasPerson(toAdd)) {
+            boolean archivedDuplicate = model.getAddressBook().getPersonList().stream()
+                    .anyMatch(person -> person.isArchived() && person.isSamePerson(toAdd));
+            if (archivedDuplicate) {
+                throw new CommandException(MESSAGE_DUPLICATE_ARCHIVED_PERSON);
+            }
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 

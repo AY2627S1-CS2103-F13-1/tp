@@ -39,7 +39,7 @@ public class ModelManager implements Model {
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        filteredPersons = new FilteredList<>(this.addressBook.getPersonList(), PREDICATE_SHOW_ACTIVE_PERSONS);
         sortedPersons = new SortedList<>(filteredPersons);
     }
 
@@ -91,7 +91,7 @@ public class ModelManager implements Model {
     @Override
     public Person addPerson(Person person) {
         Person addedPerson = addressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        updateFilteredPersonList(PREDICATE_SHOW_ACTIVE_PERSONS);
         return addedPerson;
     }
 
