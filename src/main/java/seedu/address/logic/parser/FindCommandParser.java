@@ -19,6 +19,12 @@ public class FindCommandParser implements Parser<FindCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public FindCommand parse(String args) throws ParseException {
+        // TODO 1: add support for any number of any prefixes in any order.
+        // e.g. `find n/...` `find e/...` `find n/... a/...` `find a/... n/...`
+
+        // TODO 1a: only ask for the name prefix
+
+
         String trimmedArgs = args.trim();
         if (trimmedArgs.isEmpty()) {
             throw new ParseException(
