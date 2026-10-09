@@ -36,6 +36,8 @@ public class FindCommandParser implements Parser<FindCommand> {
         String names = argMultimap.getValue(PREFIX_NAME).get();
         String[] nameKeywords = names.split("\\s+");
 
+        // TODO 2: Allow different predicates for more kinds of person attributes, not just names.
+        // This would require changing the predicate to allow searching by any number of different attributes
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
     }
 
