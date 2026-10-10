@@ -57,6 +57,25 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_nameContainsPartialKeyword_returnsTrue() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Al"));
+
+        // Matches both the start of a word and a substring within a word, ignoring case
+        assertTrue(predicate.test(new PersonBuilder().withName("Alex Yeoh").build()));
+        assertTrue(predicate.test(new PersonBuilder().withName("Roy Balakrishnan").build()));
+
+        // Matches the end of a word
+        predicate = new NameContainsKeywordsPredicate(List.of("OH"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alex Yeoh").build()));
+    }
+
+    @Test
+    public void test_nameDoesNotContainPartialKeyword_returnsFalse() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Al"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Betty Holley").build()));
+    }
+
+    @Test
     public void test_nameDoesNotContainKeywords_returnsFalse() {
         // Zero keywords
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
