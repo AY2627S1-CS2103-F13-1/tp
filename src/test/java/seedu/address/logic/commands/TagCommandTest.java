@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -12,6 +13,9 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -80,6 +84,31 @@ public class TagCommandTest {
         Person updated = model.getFilteredPersonList().get(0);
 
         assertTrue(updated.getTags().containsAll(additions));
+    }
+
+    @Test
+    public void execute_invalidIndex_throwsCommandException() {
+        TagCommand command = new TagCommand(
+                Index.fromOneBased(999), Set.of(new Tag("expert")));
+
+        CommandException exception = assertThrows(
+                CommandException.class, () -> command.execute(model));
+
+        assertEquals(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX,
+                exception.getMessage());
+    }
+
+    @Test
+    public void execute_existingAndNewTags_preservesBoth() throws Exception {
+        Person original = model.getFilteredPersonList().get(0);
+        Set<Tag> additions = new HashSet<>(original.getTags());
+        additions.add(new Tag("investigative journalist"));
+
+        new TagCommand(INDEX_FIRST_PERSON, additions).execute(model);
+
+        Person updated = model.getFilteredPersonList().get(0);
+        assertEquals(additions, updated.getTags());
+        assertEquals(original.getId(), updated.getId());
     }
 
     @Test

@@ -54,6 +54,32 @@ public class TagCommandParserTest {
     }
 
     @Test
+    public void parse_zeroIndex_failure() {
+        assertParseFailure(parser, "0 t/expert",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                        TagCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_nonNumericIndex_failure() {
+        assertParseFailure(parser, "abc t/expert",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                        TagCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_emptyTag_failure() {
+        assertParseFailure(parser, "1 t/", Tag.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_duplicateTags_success() {
+        assertParseSuccess(parser, "1 t/EXPERT t/expert",
+                new TagCommand(INDEX_FIRST_PERSON,
+                        Set.of(new Tag("expert"))));
+    }
+
+    @Test
     public void parse_invalidTag_failure() {
         assertParseFailure(
                 parser,
