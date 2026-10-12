@@ -7,12 +7,24 @@ import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.logic.parser.SortCommandParser.MESSAGE_INVALID_SORT_ORDER;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
+import static seedu.address.testutil.TypicalPersons.ELLE;
+import static seedu.address.testutil.TypicalPersons.FIONA;
+import static seedu.address.testutil.TypicalPersons.GEORGE;
+import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalPersons.getTypicalPersons;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,11 +57,15 @@ public class LogicManagerTest {
 
     @BeforeEach
     public void setUp() {
+        logic = createLogic(model);
+    }
+
+    private Logic createLogic(Model model) {
         JsonAddressBookStorage addressBookStorage =
                 new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-        logic = new LogicManager(model, storage);
+        return new LogicManager(model, storage);
     }
 
     @Test
@@ -68,6 +84,33 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_sortCommand_success() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+
+        CommandResult result = logic.execute("sort name desc");
+
+        assertEquals("Sorted contacts by name in descending order.", result.getFeedbackToUser());
+        assertEquals(List.of(GEORGE, FIONA, ELLE, DANIEL, CARL, BENSON, ALICE),
+                logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_invalidSortCommandAfterSort_throwsParseExceptionAndPreservesDisplayedOrder()
+            throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("sort name desc");
+        List<Person> expectedDisplayedOrder = new ArrayList<>(logic.getFilteredPersonList());
+
+        assertThrows(ParseException.class, MESSAGE_INVALID_SORT_ORDER, () -> logic.execute("sort name upward"));
+
+        assertEquals(expectedDisplayedOrder, logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
     }
 
     @Test
