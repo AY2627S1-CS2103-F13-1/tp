@@ -28,12 +28,12 @@ public class SortCommandParser implements Parser<SortCommand> {
     public SortCommand parse(String args) throws ParseException {
         String trimmedArgs = args.trim();
         if (trimmedArgs.isEmpty()) {
-            throwInvalidCommandFormat();
+            throw createInvalidCommandFormatException();
         }
 
         String[] arguments = trimmedArgs.split("\\s+");
         if (arguments.length > 2) {
-            throwInvalidCommandFormat();
+            throw createInvalidCommandFormatException();
         }
 
         SortField sortField = parseSortField(arguments[0]);
@@ -62,7 +62,7 @@ public class SortCommandParser implements Parser<SortCommand> {
         };
     }
 
-    private static void throwInvalidCommandFormat() throws ParseException {
-        throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
+    private static ParseException createInvalidCommandFormatException() {
+        return new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
     }
 }
