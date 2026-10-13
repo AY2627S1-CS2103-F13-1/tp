@@ -149,6 +149,8 @@ On success, ByLine shows the following message, substituting the selected field 
 
 For example, `sort name desc` shows `Sorted contacts by name in descending order.`
 
+![Result of sorting contacts by name in descending order](images/sortNameDescResult.png)
+
 Invalid commands leave the displayed contact list unchanged and show one of these exact messages:
 
 * Missing `FIELD` or extra arguments:<br>
@@ -158,6 +160,10 @@ Invalid commands leave the displayed contact list unchanged and show one of thes
   `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
 * Unsupported `ORDER`:<br>
   `Invalid sort order. ORDER must be asc or desc.`
+
+For example, an unsupported order leaves the displayed contact list unchanged:
+
+![Result of entering an invalid sort order](images/sortInvalidOrderResult.png)
 
 Valid examples:
 
