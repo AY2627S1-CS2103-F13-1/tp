@@ -126,6 +126,55 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
+### Sorting displayed contacts: `sort`
+
+Arranges the currently displayed contacts by a selected contact field. Sorting changes only the displayed order; it does not change contact details or the order stored in the address book.
+
+Format: `sort FIELD [ORDER]`
+
+* `FIELD` is mandatory. Supported fields are `name`, `phone`, `email`, `address`, and `tag`.
+* `ORDER` is optional. Supported orders are `asc` and `desc`; omitting `ORDER` uses `asc`.
+* `FIELD` and `ORDER` are case-insensitive. For example, `sort NAME DESC` is valid.
+* Name, email, and address values are compared alphabetically without regard to letter case. The complete stored value is compared, and the address `NA` is treated as ordinary text.
+* Phone numbers are compared numerically. Leading zeroes do not affect their numeric value, so `000123` and `123` tie on phone number.
+* For tag sorting, a contact's primary tag is the alphabetically first tag, ignoring letter case. Only that tag is used. Contacts without tags remain after tagged contacts in both ascending and descending order.
+* Contacts that tie on the selected field are ordered by name in ascending order, regardless of the selected `ORDER`. If both the selected value and name tie, their existing relative order is preserved.
+* Only the contacts currently displayed are sorted. A search result remains the same subset, and the stored contact order remains unchanged.
+* Running `list` or a new search replaces the sorted display. Run `sort` again to sort the new displayed list.
+* Sorting an empty list or a list containing one contact succeeds even though its visible order does not change.
+
+On success, ByLine shows the following message, substituting the selected field and the full order name:
+
+`Sorted contacts by FIELD in ORDER order.`
+
+For example, `sort name desc` shows `Sorted contacts by name in descending order.`
+
+Invalid commands leave the displayed contact list unchanged and show one of these exact messages:
+
+* Missing `FIELD` or extra arguments:<br>
+  `Invalid command format!`<br>
+  `Usage: sort FIELD [ORDER]`
+* Unsupported `FIELD`:<br>
+  `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
+* Unsupported `ORDER`:<br>
+  `Invalid sort order. ORDER must be asc or desc.`
+
+Valid examples:
+
+* `sort name` sorts names in ascending order.
+* `sort phone asc` sorts phone numbers numerically in ascending order.
+* `sort email desc` sorts complete email addresses in descending order.
+* `sort tag` sorts by primary tag in ascending order and keeps untagged contacts last.
+* `sort NAME DESC` sorts names in descending order because both parameters are case-insensitive.
+
+Invalid examples:
+
+* `sort` is missing the mandatory field.
+* `sort date` uses an unsupported field.
+* `sort name upward` uses an unsupported order.
+* `sort name email` treats `email` as an invalid order.
+* `sort name asc extra` contains an extra argument.
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
@@ -196,3 +245,4 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
 **Help** | `help`
+**Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
