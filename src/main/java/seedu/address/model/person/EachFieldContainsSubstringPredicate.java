@@ -3,6 +3,7 @@ package seedu.address.model.person;
 import seedu.address.commons.util.ToStringBuilder;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -34,8 +35,9 @@ public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
                 && (email.isEmpty() || person.getEmail().value.toLowerCase().contains(email.get().toLowerCase()))
                 && (address.isEmpty() || person.getAddress().value.toLowerCase().contains(address.get().toLowerCase()))
                 && (tagList.isEmpty()
-                        || person.getTags().stream().anyMatch(tag -> tagList.stream().anyMatch(
-                                tagkey -> tag.tagName.toLowerCase().contains(tagkey.toLowerCase()))));
+                        || tagList.stream().allMatch(
+                                tagKey -> person.getTags().stream().anyMatch(
+                                        tag -> tag.tagName.toLowerCase().contains(tagKey))));
     }
 
     @Override
