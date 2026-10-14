@@ -23,91 +23,107 @@ public class EachFieldContainsSubstringPredicateTest {
 
     @Test
     public void test_noCriteria_returnsTrue() {
-        assertTrue(predicate("", "", "", "", List.of()).test(person));
-        assertTrue(predicate("", "", "", "", List.of()).test(new PersonBuilder(person).withTags().build()));
+        assertTrue(createPredicate("", "", "", "", List.of()).test(person));
+        Person personWithoutTags = new PersonBuilder(person).withTags().build();
+        assertTrue(createPredicate("", "", "", "", List.of()).test(personWithoutTags));
     }
 
     @Test
     public void test_singleFieldContainsSubstring_returnsTrue() {
-        assertTrue(predicate("lex", "", "", "", List.of()).test(person));
-        assertTrue(predicate("", "2345", "", "", List.of()).test(person));
-        assertTrue(predicate("", "", "@example", "", List.of()).test(person));
-        assertTrue(predicate("", "", "", "Main", List.of()).test(person));
-        assertTrue(predicate("", "", "", "", List.of("leagu")).test(person));
+        assertTrue(createPredicate("lex", "", "", "", List.of()).test(person));
+        assertTrue(createPredicate("", "2345", "", "", List.of()).test(person));
+        assertTrue(createPredicate("", "", "@example", "", List.of()).test(person));
+        assertTrue(createPredicate("", "", "", "Main", List.of()).test(person));
+        assertTrue(createPredicate("", "", "", "", List.of("leagu")).test(person));
     }
 
     @Test
     public void test_substringOnlyInAnotherField_returnsFalse() {
-        assertFalse(predicate("Main", "", "", "", List.of()).test(person));
-        assertFalse(predicate("", "Main", "", "", List.of()).test(person));
-        assertFalse(predicate("", "", "Main", "", List.of()).test(person));
-        assertFalse(predicate("", "", "", "Yeoh", List.of()).test(person));
-        assertFalse(predicate("", "", "", "", List.of("Main")).test(person));
+        assertFalse(createPredicate("Main", "", "", "", List.of()).test(person));
+        assertFalse(createPredicate("", "Main", "", "", List.of()).test(person));
+        assertFalse(createPredicate("", "", "Main", "", List.of()).test(person));
+        assertFalse(createPredicate("", "", "", "Yeoh", List.of()).test(person));
+        assertFalse(createPredicate("", "", "", "", List.of("Main")).test(person));
     }
 
     @Test
     public void test_mixedCaseSubstrings_returnsTrue() {
-        assertTrue(predicate("yEOh", "2345", "@EXAMPLE", "mAIN sTREET", List.of("LEAGU", "fRI"))
-                .test(person));
+        assertTrue(createPredicate("yEOh", "2345", "@EXAMPLE", "mAIN sTREET",
+                List.of("LEAGU", "fRI")).test(person));
     }
 
     @Test
     public void test_multipleWords_matchesContiguousSubstringOnly() {
-        assertTrue(predicate("lex Yeo", "", "", "Main Street", List.of()).test(person));
-        assertFalse(predicate("Yeoh Alex", "", "", "", List.of()).test(person));
-        assertFalse(predicate("", "", "", "123 Street", List.of()).test(person));
+        assertTrue(createPredicate("lex Yeo", "", "", "Main Street", List.of()).test(person));
+        assertFalse(createPredicate("Yeoh Alex", "", "", "", List.of()).test(person));
+        assertFalse(createPredicate("", "", "", "123 Street", List.of()).test(person));
     }
 
     @Test
     public void test_allSpecifiedFieldsMatch_returnsTrue() {
-        assertTrue(predicate("lex", "2345", "", "", List.of()).test(person));
-        assertTrue(predicate("lex", "2345", "@example", "Main", List.of("leagu", "rie")).test(person));
+        assertTrue(createPredicate("lex", "2345", "", "", List.of()).test(person));
+        assertTrue(createPredicate("lex", "2345", "@example", "Main",
+                List.of("leagu", "rie")).test(person));
     }
 
     @Test
     public void test_oneSpecifiedFieldDoesNotMatch_returnsFalse() {
-        assertFalse(predicate("Bob", "2345", "@example", "Main", List.of("leagu")).test(person));
-        assertFalse(predicate("lex", "9999", "@example", "Main", List.of("leagu")).test(person));
-        assertFalse(predicate("lex", "2345", "@missing.org", "Main", List.of("leagu")).test(person));
-        assertFalse(predicate("lex", "2345", "@example", "Orchard", List.of("leagu")).test(person));
-        assertFalse(predicate("lex", "2345", "@example", "Main", List.of("family")).test(person));
+        assertFalse(createPredicate("Bob", "2345", "@example", "Main",
+                List.of("leagu")).test(person));
+        assertFalse(createPredicate("lex", "9999", "@example", "Main",
+                List.of("leagu")).test(person));
+        assertFalse(createPredicate("lex", "2345", "@missing.org", "Main",
+                List.of("leagu")).test(person));
+        assertFalse(createPredicate("lex", "2345", "@example", "Orchard"
+                List.of("leagu")).test(person));
+        assertFalse(createPredicate("lex", "2345", "@example", "Main",
+                List.of("family")).test(person));
     }
 
     @Test
     public void test_multipleTagSubstrings_requiresEverySubstringToMatch() {
-        assertTrue(predicate("", "", "", "", List.of("leagu", "rie")).test(person));
-        assertFalse(predicate("", "", "", "", List.of("leagu", "family")).test(person));
+        assertTrue(createPredicate("", "", "", "", List.of("leagu", "rie")).test(person));
+        assertFalse(createPredicate("", "", "", "", List.of("leagu", "family")).test(person));
 
         // Different substrings may match the same tag
-        assertTrue(predicate("", "", "", "", List.of("col", "leagu")).test(person));
+        assertTrue(createPredicate("", "", "", "", List.of("col", "leagu")).test(person));
     }
 
     @Test
     public void test_tagSpecifiedButPersonHasNoTags_returnsFalse() {
         Person personWithoutTags = new PersonBuilder(person).withTags().build();
-        assertFalse(predicate("", "", "", "", List.of("leagu")).test(personWithoutTags));
+        assertFalse(createPredicate("", "", "", "",
+                List.of("leagu")).test(personWithoutTags));
     }
 
     @Test
-    public void equals() {
-        EachFieldContainsSubstringPredicate predicate = predicate("lex", "2345", "@example", "Main", List.of("rie"));
+    public void equals_variousComparisons_returnsExpectedResult() {
+        EachFieldContainsSubstringPredicate predicate =
+                createPredicate("lex", "2345", "@example", "Main", List.of("rie"));
 
         assertTrue(predicate.equals(predicate));
-        assertTrue(predicate.equals(predicate("lex", "2345", "@example", "Main", List.of("rie"))));
+        assertTrue(predicate.equals(createPredicate("lex", "2345", "@example", "Main",
+                List.of("rie"))));
         assertFalse(predicate.equals(null));
         assertFalse(predicate.equals(1));
 
         // Each field contributes to equality
-        assertFalse(predicate.equals(predicate("", "2345", "@example", "Main", List.of("rie"))));
-        assertFalse(predicate.equals(predicate("lex", "", "@example", "Main", List.of("rie"))));
-        assertFalse(predicate.equals(predicate("lex", "2345", "", "Main", List.of("rie"))));
-        assertFalse(predicate.equals(predicate("lex", "2345", "@example", "", List.of("rie"))));
-        assertFalse(predicate.equals(predicate("lex", "2345", "@example", "Main", List.of())));
+        assertFalse(predicate.equals(createPredicate("", "2345", "@example", "Main",
+                List.of("rie"))));
+        assertFalse(predicate.equals(createPredicate("lex", "", "@example", "Main",
+                List.of("rie"))));
+        assertFalse(predicate.equals(createPredicate("lex", "2345", "", "Main",
+                List.of("rie"))));
+        assertFalse(predicate.equals(createPredicate("lex", "2345", "@example", "",
+                List.of("rie"))));
+        assertFalse(predicate.equals(createPredicate("lex", "2345", "@example", "Main",
+                List.of())));
     }
 
     @Test
-    public void toStringMethod() {
-        EachFieldContainsSubstringPredicate predicate = predicate("lex", "2345", "@example", "Main", List.of("rie"));
+    public void toString_allFieldsSpecified_returnsExpectedString() {
+        EachFieldContainsSubstringPredicate predicate =
+                createPredicate("lex", "2345", "@example", "Main", List.of("rie"));
         String expected = EachFieldContainsSubstringPredicate.class.getCanonicalName()
                 + "{nameKey=Optional[lex], phoneKey=Optional[2345], emailKey=Optional[@example], "
                 + "addressKey=Optional[Main], tagKeys=[rie]}";
@@ -117,7 +133,7 @@ public class EachFieldContainsSubstringPredicateTest {
     /**
      * Creates a predicate, using empty strings to represent unspecified fields.
      */
-    private EachFieldContainsSubstringPredicate predicate(String name, String phone, String email,
+    private EachFieldContainsSubstringPredicate createPredicate(String name, String phone, String email,
             String address, List<String> tags) {
         return new EachFieldContainsSubstringPredicate(Optional.of(name).filter(value -> !value.isEmpty()),
                 Optional.of(phone).filter(value -> !value.isEmpty()),
