@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.PersonTarget;
 import seedu.address.model.person.PersonId;
 
 /**
@@ -35,10 +36,10 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_validId_returnsDeleteCommand() {
-        assertParseSuccess(parser, " id/C42", new DeleteCommand(new PersonId("C42")));
+        assertParseSuccess(parser, " id/C42", new DeleteCommand(PersonTarget.ofId(new PersonId("C42"))));
 
         // whitespace around the ID
-        assertParseSuccess(parser, "  id/  C42  ", new DeleteCommand(new PersonId("C42")));
+        assertParseSuccess(parser, "  id/  C42  ", new DeleteCommand(PersonTarget.ofId(new PersonId("C42"))));
     }
 
     @Test

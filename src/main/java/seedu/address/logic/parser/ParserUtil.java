@@ -11,6 +11,7 @@ import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
+import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -78,6 +79,29 @@ public class ParserUtil {
             return Optional.of(parsePersonId(argMultimap.getValue(PREFIX_ID).get()));
         } catch (ParseException pe) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, pe.getMessage()), pe);
+        }
+    }
+
+    /**
+     * Parses the person a command acts on from {@code argMultimap}: by the ID given with {@code PREFIX_ID}
+     * if there is one, and otherwise by the index in the preamble.
+     *
+     * @param messageUsage the usage message of the command, shown if the input is not in the expected format.
+     * @throws ParseException if the ID is not in the format of {@link #parseTargetPersonId}, or if no ID is
+     *     given and the preamble is not a valid index.
+     */
+    public static PersonTarget parsePersonTarget(ArgumentMultimap argMultimap, String messageUsage)
+            throws ParseException {
+        requireNonNull(argMultimap);
+        Optional<PersonId> targetId = parseTargetPersonId(argMultimap, messageUsage);
+        if (targetId.isPresent()) {
+            return PersonTarget.ofId(targetId.get());
+        }
+
+        try {
+            return PersonTarget.ofIndex(parseIndex(argMultimap.getPreamble()));
+        } catch (ParseException pe) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, messageUsage), pe);
         }
     }
 
