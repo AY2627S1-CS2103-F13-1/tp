@@ -112,6 +112,56 @@ public class TagCommandTest {
     }
 
     @Test
+    public void toStringMethod() {
+        TagCommand command = new TagCommand(
+                INDEX_FIRST_PERSON, Set.of(new Tag("expert")));
+
+        String expected = TagCommand.class.getCanonicalName()
+                + "{index=" + INDEX_FIRST_PERSON
+                + ", tagsToAdd=" + Set.of(new Tag("expert")) + "}";
+
+        assertEquals(expected, command.toString());
+    }
+
+    @Test
+    public void equals_sameInstance_returnsTrue() {
+        TagCommand command = new TagCommand(
+                INDEX_FIRST_PERSON, Set.of(new Tag("expert")));
+
+        assertEquals(command, command);
+    }
+
+    @Test
+    public void equals_differentTags_returnsFalse() {
+        TagCommand first = new TagCommand(
+                INDEX_FIRST_PERSON, Set.of(new Tag("expert")));
+
+        TagCommand second = new TagCommand(
+                INDEX_FIRST_PERSON, Set.of(new Tag("journalist")));
+
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    public void equals_differentType_returnsFalse() {
+        TagCommand command = new TagCommand(
+                INDEX_FIRST_PERSON, Set.of(new Tag("expert")));
+
+        assertNotEquals(command, "tag");
+    }
+
+    @Test
+    public void hashCode_equalCommands_sameHashCode() {
+        TagCommand first = new TagCommand(
+                INDEX_FIRST_PERSON, Set.of(new Tag("expert")));
+
+        TagCommand second = new TagCommand(
+                INDEX_FIRST_PERSON, Set.of(new Tag("EXPERT")));
+
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
     public void equals() {
         TagCommand first = new TagCommand(
                 INDEX_FIRST_PERSON, Set.of(new Tag("expert")));
