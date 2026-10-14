@@ -146,6 +146,50 @@ public class ArchiveWorkflowTest {
         assertTrue(model.hasPerson(ALICE));
     }
 
+    @Test
+    public void archiveAndRestoreById_fromActiveView() throws Exception {
+        execute("list active");
+        execute("archive id/C2");
+        Person archivedBenson = new PersonBuilder(BENSON).withArchiveStatus(true).build();
+        assertEquals(archivedBenson, model.getAddressBook().getPersonList().get(1));
+        assertFalse(model.getFilteredPersonList().contains(archivedBenson));
+
+        // BENSON is hidden in the active view, but his ID still selects him
+        execute("restore id/C2");
+        assertEquals(BENSON, model.getAddressBook().getPersonList().get(1));
+        assertTrue(model.getFilteredPersonList().contains(BENSON));
+    }
+
+    @Test
+    public void archiveById_personHiddenByFind() throws Exception {
+        execute("find Alice");
+        execute("archive id/C2");
+        assertEquals(ALICE, model.getAddressBook().getPersonList().get(0));
+        assertEquals(new PersonBuilder(BENSON).withArchiveStatus(true).build(),
+                model.getAddressBook().getPersonList().get(1));
+    }
+
+    @Test
+    public void archiveAndRestoreById_wrongStatus_doesNotChangeData() throws Exception {
+        AddressBook before = new AddressBook(model.getAddressBook());
+        assertThrows(CommandException.class, RestoreCommand.MESSAGE_WRONG_STATUS, () -> execute("restore id/C1"));
+        assertEquals(before, model.getAddressBook());
+
+        execute("archive id/C1");
+        AddressBook afterArchive = new AddressBook(model.getAddressBook());
+        assertThrows(CommandException.class, ArchiveCommand.MESSAGE_WRONG_STATUS, () -> execute("archive id/C1"));
+        assertEquals(afterArchive, model.getAddressBook());
+    }
+
+    @Test
+    public void archiveAndRestoreById_unknownId_doesNotChangeData() {
+        AddressBook before = new AddressBook(model.getAddressBook());
+        String expectedMessage = String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, "C99");
+        assertThrows(CommandException.class, expectedMessage, () -> execute("archive id/C99"));
+        assertThrows(CommandException.class, expectedMessage, () -> execute("restore id/C99"));
+        assertEquals(before, model.getAddressBook());
+    }
+
     private void execute(String command) throws Exception {
         parser.parseCommand(command).execute(model);
     }

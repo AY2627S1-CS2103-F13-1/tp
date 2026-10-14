@@ -1,8 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-
-import java.util.List;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -12,37 +11,42 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Archives a contact identified by its index in the currently displayed list.
+ * Archives a contact identified by its index in the currently displayed list or by its ID.
  */
 public class ArchiveCommand extends Command {
 
     public static final String COMMAND_WORD = "archive";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Archives the person identified by the index number used in the displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+            + ": Archives the person identified by the index number used in the displayed person list, "
+            + "or by its ID.\n"
+            + "Parameters: INDEX (must be a positive integer) or " + PREFIX_ID + "ID\n"
+            + "Example: " + COMMAND_WORD + " 1 or " + COMMAND_WORD + " " + PREFIX_ID + "C3";
 
     public static final String MESSAGE_ARCHIVE_PERSON_SUCCESS = "Archived person: %1$s";
 
     public static final String MESSAGE_WRONG_STATUS = "This person is already archived.";
 
-    private final Index targetIndex;
+    private final PersonTarget target;
 
+    /**
+     * Creates an ArchiveCommand to archive the person selected by {@code target}.
+     */
+    public ArchiveCommand(PersonTarget target) {
+        this.target = requireNonNull(target);
+    }
+
+    /**
+     * Creates an ArchiveCommand to archive the person at {@code targetIndex} in the displayed person list.
+     */
     public ArchiveCommand(Index targetIndex) {
-        this.targetIndex = requireNonNull(targetIndex);
+        this(PersonTarget.ofIndex(targetIndex));
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
-
-        if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-
-        Person personToChange = lastShownList.get(targetIndex.getZeroBased());
+        Person personToChange = target.resolve(model);
         if (personToChange.isArchived()) {
             throw new CommandException(MESSAGE_WRONG_STATUS);
         }
@@ -64,13 +68,13 @@ public class ArchiveCommand extends Command {
             return false;
         }
 
-        return targetIndex.equals(otherArchiveCommand.targetIndex);
+        return target.equals(otherArchiveCommand.target);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("targetIndex", targetIndex)
+                .add("target", target)
                 .toString();
     }
 }
