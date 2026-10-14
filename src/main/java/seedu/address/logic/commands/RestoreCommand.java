@@ -46,7 +46,10 @@ public class RestoreCommand extends Command {
         if (!personToChange.isArchived()) {
             throw new CommandException(MESSAGE_WRONG_STATUS);
         }
-        model.setPerson(personToChange, personToChange.withArchived(false));
+        Person updatedPerson = new Person(personToChange.getId().orElseThrow(), personToChange.getName(),
+                personToChange.getPhone(), personToChange.getEmail(), personToChange.getAddress(),
+                personToChange.getTags(), false);
+        model.setPerson(personToChange, updatedPerson);
         return new CommandResult(String.format(MESSAGE_RESTORE_PERSON_SUCCESS, Messages.format(personToChange)));
     }
 

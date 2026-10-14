@@ -22,6 +22,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Exercises archive commands through the parser with real filtered and sorted model lists.
@@ -36,11 +37,12 @@ public class ArchiveWorkflowTest {
         int nextId = model.getAddressBook().getNextPersonId();
         execute("archive 1");
         assertFalse(model.getFilteredPersonList().contains(ALICE));
-        assertEquals(ALICE.withArchived(true), model.getAddressBook().getPersonList().get(0));
+        assertEquals(new PersonBuilder(ALICE).withArchiveStatus(true).build(),
+                model.getAddressBook().getPersonList().get(0));
         assertEquals(getTypicalAddressBook().getPersonList().size(), model.getAddressBook().getPersonList().size());
 
         execute("list archived");
-        assertEquals(List.of(ALICE.withArchived(true)), model.getFilteredPersonList());
+        assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build()), model.getFilteredPersonList());
         execute("restore 1");
         assertTrue(model.getFilteredPersonList().isEmpty());
         execute("list");
@@ -53,9 +55,10 @@ public class ArchiveWorkflowTest {
         execute("find Benson");
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
         execute("archive 1");
-        assertEquals(List.of(BENSON.withArchived(true)), model.getFilteredPersonList());
+        assertEquals(List.of(new PersonBuilder(BENSON).withArchiveStatus(true).build()), model.getFilteredPersonList());
         assertEquals(ALICE, model.getAddressBook().getPersonList().get(0));
-        assertEquals(BENSON.withArchived(true), model.getAddressBook().getPersonList().get(1));
+        assertEquals(new PersonBuilder(BENSON).withArchiveStatus(true).build(),
+                model.getAddressBook().getPersonList().get(1));
     }
 
     @Test
@@ -67,7 +70,7 @@ public class ArchiveWorkflowTest {
         execute("archive 1");
         execute("list archived");
         model.sortFilteredPersonList(Comparator.comparing((Person person) -> person.getName().fullName).reversed());
-        assertEquals(target.withArchived(true), model.getFilteredPersonList().get(0));
+        assertEquals(new PersonBuilder(target).withArchiveStatus(true).build(), model.getFilteredPersonList().get(0));
         execute("restore 1");
         assertTrue(model.getAddressBook().getPersonList().contains(target));
         assertEquals(1, model.getFilteredPersonList().size());
@@ -82,7 +85,7 @@ public class ArchiveWorkflowTest {
         assertEquals(6, model.getFilteredPersonList().size());
         assertTrue(model.getFilteredPersonList().stream().noneMatch(Person::isArchived));
         execute("list archived");
-        assertEquals(List.of(ALICE.withArchived(true)), model.getFilteredPersonList());
+        assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build()), model.getFilteredPersonList());
         execute("list");
         assertEquals(model.getAddressBook().getPersonList(), model.getFilteredPersonList());
         execute("restore 1");
@@ -96,10 +99,11 @@ public class ArchiveWorkflowTest {
     @Test
     public void startup_allContactsVisible() {
         AddressBook book = new AddressBook();
-        book.addPerson(ALICE.withArchived(true));
+        book.addPerson(new PersonBuilder(ALICE).withArchiveStatus(true).build());
         book.addPerson(BENSON);
         Model restarted = new ModelManager(book, new UserPrefs());
-        assertEquals(List.of(ALICE.withArchived(true), BENSON), restarted.getFilteredPersonList());
+        assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build(),
+                BENSON), restarted.getFilteredPersonList());
         assertTrue(restarted.hasPerson(ALICE));
     }
 

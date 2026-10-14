@@ -29,45 +29,49 @@ public class Person {
     private final Set<Tag> tags = new HashSet<>();
 
     /**
-     * Creates a person that has not been assigned an ID yet.
+     * Creates an active person that has not been assigned an ID yet.
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(name, phone, email, address, tags, false);
+    }
+
+    /**
+     * Creates a person without an ID and with the given archive status.
+     * Used when loading records whose IDs have not yet been assigned.
+     * Every field must be present and not null.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
         requireAllNonNull(name, phone, email, address, tags);
         this.id = null;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
-        this.archived = false;
         this.tags.addAll(tags);
+        this.archived = archived;
     }
 
     /**
-     * Creates a person with the given {@code id}.
+     * Creates an active person with the given ID.
      * Every field must be present and not null.
      */
     public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(id, name, phone, email, address, tags, false);
+    }
+
+    /**
+     * Creates a person with the given ID and archive status.
+     * Every field must be present and not null.
+     */
+    public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
         requireAllNonNull(id, name, phone, email, address, tags);
         this.id = id;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
-        this.archived = false;
         this.tags.addAll(tags);
-    }
-
-    /**
-     * Copies a person while changing only archive status, including for persons awaiting an ID.
-     */
-    private Person(Person source, boolean archived) {
-        this.id = source.id;
-        this.name = source.name;
-        this.phone = source.phone;
-        this.email = source.email;
-        this.address = source.address;
-        this.tags.addAll(source.tags);
         this.archived = archived;
     }
 
@@ -80,13 +84,6 @@ public class Person {
 
     public boolean isArchived() {
         return archived;
-    }
-
-    /**
-     * Returns an immutable copy with the requested archive status and the same ID and details.
-     */
-    public Person withArchived(boolean archived) {
-        return new Person(this, archived);
     }
 
     public Name getName() {

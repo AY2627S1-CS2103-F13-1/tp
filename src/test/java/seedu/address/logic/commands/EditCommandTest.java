@@ -15,6 +15,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -47,6 +49,28 @@ public class EditCommandTest {
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertEquals(VALID_NAME_BOB, editedPerson.getName().fullName);
         assertEquals(firstPerson.getId(), editedPerson.getId());
+        assertFalse(editedPerson.isArchived());
+    }
+
+    @Test
+    public void execute_archivedContact_preservesStatusIdAndUneditedDetails() throws Exception {
+        new ArchiveCommand(INDEX_SECOND_PERSON).execute(model);
+        new ListCommand(ListCommand.View.ARCHIVED).execute(model);
+        Person original = model.getFilteredPersonList().get(0);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("91234567").build();
+
+        new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
+
+        Person updated = model.getAddressBook().getPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        assertTrue(updated.isArchived());
+        assertEquals(original.getId(), updated.getId());
+        assertEquals("91234567", updated.getPhone().value);
+        assertEquals(original.getName(), updated.getName());
+        assertEquals(original.getEmail(), updated.getEmail());
+        assertEquals(original.getAddress(), updated.getAddress());
+        assertEquals(original.getTags(), updated.getTags());
+        new ListCommand(ListCommand.View.ARCHIVED).execute(model);
+        assertEquals(List.of(updated), model.getFilteredPersonList());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,6 +10,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -51,6 +53,28 @@ public class TagCommandTest {
         assertEquals(original.getEmail(), updated.getEmail());
         assertEquals(original.getAddress(), updated.getAddress());
         assertEquals(expectedTags, updated.getTags());
+        assertFalse(updated.isArchived());
+    }
+
+    @Test
+    public void execute_archivedContact_preservesStatusIdDetailsAndExistingTags() throws Exception {
+        new ArchiveCommand(INDEX_SECOND_PERSON).execute(model);
+        new ListCommand(ListCommand.View.ARCHIVED).execute(model);
+        Person original = model.getFilteredPersonList().get(0);
+        Set<Tag> expectedTags = new HashSet<>(original.getTags());
+        expectedTags.add(new Tag("expert"));
+
+        new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("expert"))).execute(model);
+
+        Person updated = model.getAddressBook().getPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        assertTrue(updated.isArchived());
+        assertEquals(original.getId(), updated.getId());
+        assertEquals(original.getName(), updated.getName());
+        assertEquals(original.getPhone(), updated.getPhone());
+        assertEquals(original.getEmail(), updated.getEmail());
+        assertEquals(original.getAddress(), updated.getAddress());
+        assertEquals(expectedTags, updated.getTags());
+        assertEquals(List.of(updated), model.getFilteredPersonList());
     }
 
     @Test

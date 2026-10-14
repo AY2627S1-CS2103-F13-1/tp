@@ -12,10 +12,13 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
@@ -104,16 +107,48 @@ public class PersonTest {
 
     @Test
     public void archiveStatus_affectsEqualityButPreservesIdentityAndDetails() {
-        Person archived = ALICE.withArchived(true);
+        Person archived = new PersonBuilder(ALICE).withArchiveStatus(true).build();
         assertFalse(ALICE.equals(archived));
         assertFalse(archived.equals(ALICE));
         assertTrue(ALICE.isSamePerson(archived));
         assertEquals(ALICE.getId(), archived.getId());
         assertEquals(ALICE.getTags(), archived.getTags());
-        assertEquals(ALICE, archived.withArchived(false));
+        assertEquals(ALICE, new PersonBuilder(archived).withArchiveStatus(false).build());
         assertFalse(ALICE.isArchived());
-        assertEquals(archived, ALICE.withArchived(true));
-        assertEquals(archived.hashCode(), ALICE.withArchived(true).hashCode());
+        assertEquals(archived, new PersonBuilder(ALICE).withArchiveStatus(true).build());
+        assertEquals(archived.hashCode(), new PersonBuilder(ALICE).withArchiveStatus(true).build().hashCode());
+    }
+
+    @Test
+    public void constructors_archiveStatusAndDefaults_preserved() {
+        Person withoutId = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags(), true);
+        Person withId = new Person(ALICE.getId().orElseThrow(), ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags(), true);
+        assertTrue(withoutId.isArchived());
+        assertTrue(withoutId.getId().isEmpty());
+        assertTrue(withId.isArchived());
+        assertEquals(ALICE.getId(), withId.getId());
+        assertFalse(new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags()).isArchived());
+        assertFalse(new Person(ALICE.getId().orElseThrow(), ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags()).isArchived());
+    }
+
+    @Test
+    public void constructors_explicitArchiveStatus_copyTagsAndRejectNulls() {
+        Set<Tag> tags = new HashSet<>(ALICE.getTags());
+        Person withoutId = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), tags, true);
+        Person withId = new Person(ALICE.getId().orElseThrow(), ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), tags, true);
+        tags.clear();
+        assertEquals(ALICE.getTags(), withoutId.getTags());
+        assertEquals(ALICE.getTags(), withId.getTags());
+        assertThrows(NullPointerException.class, () -> new Person(null, ALICE.getName(), ALICE.getPhone(),
+                ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags(), true));
+        assertThrows(NullPointerException.class, () -> new Person(null, ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags(), true));
     }
 
     @Test
