@@ -37,7 +37,7 @@ public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
                 && (tagKeys.isEmpty()
                         || tagKeys.stream().allMatch(
                                 tagKey -> person.getTags().stream().anyMatch(
-                                        tag -> tag.tagName.toLowerCase().contains(tagKey))));
+                                        tag -> tag.tagName.toLowerCase().contains(tagKey.toLowerCase()))));
     }
 
     @Override
