@@ -74,7 +74,7 @@ public class EachFieldContainsSubstringPredicateTest {
                 List.of("leagu")).test(person));
         assertFalse(createPredicate("lex", "2345", "@missing.org", "Main",
                 List.of("leagu")).test(person));
-        assertFalse(createPredicate("lex", "2345", "@example", "Orchard"
+        assertFalse(createPredicate("lex", "2345", "@example", "Orchard",
                 List.of("leagu")).test(person));
         assertFalse(createPredicate("lex", "2345", "@example", "Main",
                 List.of("family")).test(person));
