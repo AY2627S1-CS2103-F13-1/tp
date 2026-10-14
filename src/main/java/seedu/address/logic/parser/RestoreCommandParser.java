@@ -1,7 +1,5 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
-
 import seedu.address.logic.commands.RestoreCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -16,7 +14,7 @@ public class RestoreCommandParser implements Parser<RestoreCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public RestoreCommand parse(String args) throws ParseException {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_ID);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args);
         return new RestoreCommand(ParserUtil.parsePersonTarget(argMultimap, RestoreCommand.MESSAGE_USAGE));
     }
 

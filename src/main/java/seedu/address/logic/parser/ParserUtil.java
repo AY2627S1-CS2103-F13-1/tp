@@ -2,11 +2,9 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -26,6 +24,7 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_PERSON_ID = "Contact ID must be a positive whole number.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -41,65 +40,32 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a {@code String personId} into a {@code PersonId}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Parses a {@code String personId}, the contact ID as users type it (e.g. {@code 42}), into a
+     * {@code PersonId}. Leading and trailing whitespaces will be trimmed.
      *
-     * @throws ParseException if the given {@code personId} is invalid.
+     * @throws ParseException if the given {@code personId} is not a positive whole number.
      */
     public static PersonId parsePersonId(String personId) throws ParseException {
         requireNonNull(personId);
         String trimmedPersonId = personId.trim();
-        if (!PersonId.isValidPersonId(trimmedPersonId)) {
-            throw new ParseException(PersonId.MESSAGE_CONSTRAINTS);
+        if (!StringUtil.isNonZeroUnsignedInteger(trimmedPersonId)) {
+            throw new ParseException(MESSAGE_INVALID_PERSON_ID);
         }
-        return new PersonId(trimmedPersonId);
+        return new PersonId(Integer.parseInt(trimmedPersonId));
     }
 
     /**
-     * Parses the contact ID given with {@code PREFIX_ID} in {@code argMultimap}, which selects the contact
-     * a command acts on. Returns {@code Optional.empty()} if no ID is given.
+     * Parses the person a command acts on from the ID in the preamble of {@code argMultimap},
+     * e.g. the {@code 3} in {@code edit 3 p/91234567}.
      *
      * @param messageUsage the usage message of the command, shown if the input is not in the expected format.
-     * @throws ParseException if the ID is given together with a preamble (such as an index), given more than
-     *     once, or is invalid.
-     */
-    public static Optional<PersonId> parseTargetPersonId(ArgumentMultimap argMultimap, String messageUsage)
-            throws ParseException {
-        requireNonNull(argMultimap);
-        if (argMultimap.getValue(PREFIX_ID).isEmpty()) {
-            return Optional.empty();
-        }
-
-        if (!argMultimap.getPreamble().isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, messageUsage));
-        }
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_ID);
-
-        try {
-            return Optional.of(parsePersonId(argMultimap.getValue(PREFIX_ID).get()));
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, pe.getMessage()), pe);
-        }
-    }
-
-    /**
-     * Parses the person a command acts on from {@code argMultimap}: by the ID given with {@code PREFIX_ID}
-     * if there is one, and otherwise by the index in the preamble.
-     *
-     * @param messageUsage the usage message of the command, shown if the input is not in the expected format.
-     * @throws ParseException if the ID is not in the format of {@link #parseTargetPersonId}, or if no ID is
-     *     given and the preamble is not a valid index.
+     * @throws ParseException if the preamble is not a valid contact ID.
      */
     public static PersonTarget parsePersonTarget(ArgumentMultimap argMultimap, String messageUsage)
             throws ParseException {
         requireNonNull(argMultimap);
-        Optional<PersonId> targetId = parseTargetPersonId(argMultimap, messageUsage);
-        if (targetId.isPresent()) {
-            return PersonTarget.ofId(targetId.get());
-        }
-
         try {
-            return PersonTarget.ofIndex(parseIndex(argMultimap.getPreamble()));
+            return PersonTarget.ofId(parsePersonId(argMultimap.getPreamble()));
         } catch (ParseException pe) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, messageUsage), pe);
         }

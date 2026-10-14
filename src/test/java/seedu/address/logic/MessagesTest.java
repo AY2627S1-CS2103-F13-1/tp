@@ -12,7 +12,7 @@ public class MessagesTest {
 
     @Test
     public void format_personWithId_showsIdAfterName() {
-        String expected = "Carl Kurz (ID: C3); Phone: 95352563; Email: heinz@example.com; Address: wall street; Tags: ";
+        String expected = "Carl Kurz (ID: 3); Phone: 95352563; Email: heinz@example.com; Address: wall street; Tags: ";
         assertEquals(expected, Messages.format(CARL));
     }
 
@@ -27,7 +27,7 @@ public class MessagesTest {
     @Test
     public void format_personWithTags_listsTags() {
         Person person = new PersonBuilder(CARL).withTags("friends").build();
-        assertEquals("Carl Kurz (ID: C3); Phone: 95352563; Email: heinz@example.com; Address: wall street; "
+        assertEquals("Carl Kurz (ID: 3); Phone: 95352563; Email: heinz@example.com; Address: wall street; "
                 + "Tags: [friends]", Messages.format(person));
     }
 }

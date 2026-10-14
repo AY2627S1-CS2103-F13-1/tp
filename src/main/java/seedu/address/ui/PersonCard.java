@@ -48,7 +48,7 @@ public class PersonCard extends UiPart<Region> {
         super(FXML);
         this.person = person;
         name.setText(person.getName().fullName + (person.isArchived() ? " [Archived]" : ""));
-        personId.setText(person.getId().map(assignedId -> "ID: " + assignedId).orElse(""));
+        personId.setText(person.getId().map(assignedId -> "ID: " + assignedId.getValue()).orElse(""));
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);

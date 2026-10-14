@@ -4,44 +4,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
-import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.model.person.PersonId;
 
 /**
  * Tests the command value semantics and null input contract.
  */
 public class RestoreCommandTest {
-    @Test
-    public void equals_comparesCommandTypeAndDisplayedIndex() {
-        RestoreCommand command = new RestoreCommand(INDEX_FIRST_PERSON);
-        assertTrue(command.equals(command));
-        assertTrue(command.equals(new RestoreCommand(INDEX_FIRST_PERSON)));
-        assertFalse(command.equals(new RestoreCommand(INDEX_SECOND_PERSON)));
-        assertFalse(command.equals(new DeleteCommand(INDEX_FIRST_PERSON)));
-        assertFalse(command.equals(null));
+    private static final PersonTarget TARGET_FIRST = PersonTarget.ofId(new PersonId(1));
+    private static final PersonTarget TARGET_SECOND = PersonTarget.ofId(new PersonId(2));
 
-        RestoreCommand byId = new RestoreCommand(PersonTarget.ofId(new PersonId("C1")));
-        assertTrue(byId.equals(new RestoreCommand(PersonTarget.ofId(new PersonId("C1")))));
-        assertFalse(byId.equals(new RestoreCommand(PersonTarget.ofId(new PersonId("C2")))));
-        assertFalse(command.equals(byId));
+    @Test
+    public void equals_comparesCommandTypeAndTarget() {
+        RestoreCommand command = new RestoreCommand(TARGET_FIRST);
+        assertTrue(command.equals(command));
+        assertTrue(command.equals(new RestoreCommand(PersonTarget.ofId(new PersonId(1)))));
+        assertFalse(command.equals(new RestoreCommand(TARGET_SECOND)));
+        assertFalse(command.equals(new DeleteCommand(TARGET_FIRST)));
+        assertFalse(command.equals(null));
     }
 
     @Test
-    public void toString_includesTargetIndex() {
-        RestoreCommand command = new RestoreCommand(INDEX_FIRST_PERSON);
-        assertEquals(RestoreCommand.class.getCanonicalName() + "{target=" + PersonTarget.ofIndex(INDEX_FIRST_PERSON)
-                + "}", command.toString());
+    public void toString_includesTarget() {
+        RestoreCommand command = new RestoreCommand(TARGET_FIRST);
+        assertEquals(RestoreCommand.class.getCanonicalName() + "{target=" + TARGET_FIRST + "}", command.toString());
     }
 
     @Test
     public void nullInputs_rejected() {
-        assertThrows(NullPointerException.class, () -> new RestoreCommand((Index) null));
-        assertThrows(NullPointerException.class, () -> new RestoreCommand((PersonTarget) null));
-        assertThrows(NullPointerException.class, () -> new RestoreCommand(INDEX_FIRST_PERSON).execute(null));
+        assertThrows(NullPointerException.class, () -> new RestoreCommand(null));
+        assertThrows(NullPointerException.class, () -> new RestoreCommand(TARGET_FIRST).execute(null));
     }
 }

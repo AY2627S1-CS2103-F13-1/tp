@@ -1,14 +1,12 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -26,9 +24,9 @@ public class UntagCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Removes specified tags from a contact.\n"
-            + "Parameters: INDEX (positive integer) or " + PREFIX_ID + "ID "
+            + "Parameters: ID (must be a positive whole number) "
             + PREFIX_TAG + "TAG [" + PREFIX_TAG + "TAG]...\n"
-            + "Example: untag 1 t/housing policy t/expert or untag " + PREFIX_ID + "C3 t/expert";
+            + "Example: untag 3 t/housing policy t/expert";
 
     public static final String MESSAGE_SUCCESS = "Removed tags from contact: %1$s";
 
@@ -44,13 +42,6 @@ public class UntagCommand extends Command {
 
         this.target = target;
         this.tagsToRemove = new HashSet<>(tagsToRemove);
-    }
-
-    /**
-     * Creates a command that removes tags from the contact at {@code index} in the displayed list.
-     */
-    public UntagCommand(Index index, Set<Tag> tagsToRemove) {
-        this(PersonTarget.ofIndex(index), tagsToRemove);
     }
 
     @Override

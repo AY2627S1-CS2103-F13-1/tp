@@ -47,7 +47,7 @@ public class PersonIdWorkflowTest {
     public void setUp() throws Exception {
         storage = new StorageManager(new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
-        // the typical persons have the IDs C1 to C7
+        // the typical persons have the IDs 1 to 7
         storage.saveAddressBook(getTypicalAddressBook());
         restart();
     }
@@ -55,28 +55,28 @@ public class PersonIdWorkflowTest {
     @Test
     public void fullWorkflow_idsStayStableAndAreNeverReused() throws Exception {
         // a new contact gets the next unused ID
-        assertTrue(execute(PersonUtil.getAddCommand(AMY)).contains("(ID: C8)"));
+        assertTrue(execute(PersonUtil.getAddCommand(AMY)).contains("(ID: 8)"));
 
         // hidden by find, but still edited by its ID
         execute("find Alice");
-        execute("edit id/C8 p/91234567");
-        assertEquals("91234567", findById("C8").getPhone().value);
+        execute("edit 8 p/91234567");
+        assertEquals("91234567", findById(8).getPhone().value);
 
         // moved by sort, but still tagged and untagged by its ID
         execute("sort name desc");
-        execute("tag id/C8 t/expert");
-        execute("untag id/C8 t/expert");
-        execute("tag id/C8 t/source");
+        execute("tag 8 t/expert");
+        execute("untag 8 t/expert");
+        execute("tag 8 t/source");
 
         // archived, then restored from the active view, where it is hidden
-        execute("archive id/C8");
-        assertTrue(findById("C8").isArchived());
+        execute("archive 8");
+        assertTrue(findById(8).isArchived());
         execute("list active");
-        execute("restore id/C8");
+        execute("restore 8");
 
         // after a restart, the contact keeps its ID and every change
         restart();
-        Person amy = findById("C8");
+        Person amy = findById(8);
         assertEquals(AMY.getName(), amy.getName());
         assertEquals("91234567", amy.getPhone().value);
         assertEquals(Set.of(new Tag(VALID_TAG_FRIEND), new Tag("source")), amy.getTags());
@@ -86,14 +86,14 @@ public class PersonIdWorkflowTest {
         }
 
         // a deleted ID is never given to a new contact
-        execute("delete id/C8");
-        assertTrue(execute(PersonUtil.getAddCommand(BOB)).contains("(ID: C9)"));
+        execute("delete 8");
+        assertTrue(execute(PersonUtil.getAddCommand(BOB)).contains("(ID: 9)"));
 
         // not even after another restart
         restart();
-        assertEquals(BOB.getName(), findById("C9").getName());
-        assertThrows(CommandException.class, String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, "C8"), () ->
-                execute("delete id/C8"));
+        assertEquals(BOB.getName(), findById(9).getName());
+        assertThrows(CommandException.class, String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, 8), () ->
+                execute("delete 8"));
     }
 
     @Test
@@ -101,9 +101,9 @@ public class PersonIdWorkflowTest {
         execute("clear");
         restart();
 
-        // C1 to C7 were used before the clear, so they are not given out again
-        assertTrue(execute(PersonUtil.getAddCommand(AMY)).contains("(ID: C8)"));
-        assertEquals(AMY.getName(), findById("C8").getName());
+        // IDs 1 to 7 were used before the clear, so they are not given out again
+        assertTrue(execute(PersonUtil.getAddCommand(AMY)).contains("(ID: 8)"));
+        assertEquals(AMY.getName(), findById(8).getName());
     }
 
     /**
@@ -119,7 +119,7 @@ public class PersonIdWorkflowTest {
         return logic.execute(commandText).getFeedbackToUser();
     }
 
-    private Person findById(String id) {
+    private Person findById(int id) {
         return model.findPersonById(new PersonId(id)).orElseThrow();
     }
 }
