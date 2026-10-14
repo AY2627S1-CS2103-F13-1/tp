@@ -9,7 +9,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +25,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.EachFieldContainsSubstringPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.SortField;
 import seedu.address.model.person.SortOrder;
@@ -62,7 +62,8 @@ public class AddressBookParserTest {
         Person person = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
-                + INDEX_FIRST_PERSON.getOneBased() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
+                + INDEX_FIRST_PERSON.getOneBased() + " "
+                + PersonUtil.getEditPersonDescriptorDetails(descriptor));
         assertEquals(new EditCommand(INDEX_FIRST_PERSON, descriptor), command);
     }
 
@@ -73,18 +74,28 @@ public class AddressBookParserTest {
     }
 
     @Test
-    public void parseCommand_findWithNamePrefix() throws Exception {
-        List<String> keywords = List.of("foo", "bar", "baz");
+    public void parseCommand_findWithNamePrefix_returnsFieldFindCommand() throws Exception {
+        String substring = "Alice Pauline";
         FindCommand command = (FindCommand) parser.parseCommand(
-                FindCommand.COMMAND_WORD + " " + PREFIX_NAME + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
+                FindCommand.COMMAND_WORD + " " + PREFIX_NAME + substring);
+        assertEquals(new FindCommand(new EachFieldContainsSubstringPredicate(Optional.of(substring),
+                Optional.empty(), Optional.empty(), Optional.empty(), List.of())), command);
     }
 
     @Test
-    public void parseCommand_findWithoutPrefix() throws Exception {
+    public void parseCommand_findWithoutPrefix_returnsAnyFieldFindCommand() throws Exception {
         String substring = "Main Street";
         FindCommand command = (FindCommand) parser.parseCommand(FindCommand.COMMAND_WORD + " " + substring);
         assertEquals(new FindCommand(new AnyFieldContainsSubstringPredicate(substring)), command);
+    }
+
+    @Test
+    public void parseCommand_findWithMultiplePrefixes_returnsFieldFindCommand() throws Exception {
+        FindCommand command = (FindCommand) parser.parseCommand(
+                "find t/fri p/2345 a/Main Street n/Al t/col e/@example");
+        assertEquals(new FindCommand(new EachFieldContainsSubstringPredicate(Optional.of("Al"),
+                Optional.of("2345"), Optional.of("@example"), Optional.of("Main Street"),
+                List.of("fri", "col"))), command);
     }
 
     @Test
@@ -107,12 +118,13 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_unrecognisedInput_throwsParseException() {
-        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE), ()
-            -> parser.parseCommand(""));
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(""));
     }
 
     @Test
     public void parseCommand_unknownCommand_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("unknownCommand"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, ()
+                -> parser.parseCommand("unknownCommand"));
     }
 }
