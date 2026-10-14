@@ -1,13 +1,13 @@
 package seedu.address.model.person;
 
-import seedu.address.commons.util.ToStringBuilder;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import seedu.address.commons.util.ToStringBuilder;
+
 /**
- * Tests that a {@code Person}'s fields contains any given substring, respective to each field.
+ * Tests that a {@code Person} matches every specified field and tag substring.
  */
 public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
     private final Optional<String> nameKey;
@@ -16,22 +16,34 @@ public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
     private final Optional<String> addressKey;
     private final List<String> tagKeys;
 
+    /**
+     * Creates a predicate that matches substrings within their respective fields, ignoring case.
+     * Unspecified fields impose no restriction, and every tag substring must match at least one tag.
+     *
+     * @param nameKey Optional name substring.
+     * @param phoneKey Optional phone substring.
+     * @param emailKey Optional email substring.
+     * @param addressKey Optional address substring.
+     * @param tagKeysKey Tag substrings that must all match.
+     */
     public EachFieldContainsSubstringPredicate(
             Optional<String> nameKey, Optional<String> phoneKey, Optional<String> emailKey,
             Optional<String> addressKey, List<String> tagKeysKey) {
-           this.nameKey = nameKey;
-           this.phoneKey = phoneKey;
-           this.emailKey = emailKey;
-           this.addressKey = addressKey;
-           this.tagKeys = tagKeysKey;
+        this.nameKey = nameKey;
+        this.phoneKey = phoneKey;
+        this.emailKey = emailKey;
+        this.addressKey = addressKey;
+        this.tagKeys = tagKeysKey;
     }
 
     @Override
     public boolean test(Person person) {
 
         return (nameKey.isEmpty() || person.getName().fullName.toLowerCase().contains(nameKey.get().toLowerCase()))
-                && (phoneKey.isEmpty() || person.getPhone().value.toLowerCase().contains(phoneKey.get().toLowerCase()))
-                && (emailKey.isEmpty() || person.getEmail().value.toLowerCase().contains(emailKey.get().toLowerCase()))
+                && (phoneKey.isEmpty()
+                        || person.getPhone().value.toLowerCase().contains(phoneKey.get().toLowerCase()))
+                && (emailKey.isEmpty()
+                        || person.getEmail().value.toLowerCase().contains(emailKey.get().toLowerCase()))
                 && (addressKey.isEmpty()
                         || person.getAddress().value.toLowerCase().contains(addressKey.get().toLowerCase()))
                 && (tagKeys.isEmpty()
