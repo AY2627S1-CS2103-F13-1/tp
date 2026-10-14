@@ -69,7 +69,8 @@ public class UntagCommand extends Command {
                 original.getPhone(),
                 original.getEmail(),
                 original.getAddress(),
-                updatedTags);
+                updatedTags,
+                original.isArchived());
 
         model.setPerson(original, updated);
 

@@ -1,11 +1,13 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Tests for the untag command.
@@ -51,6 +54,41 @@ public class UntagCommandTest {
         assertEquals(tagged.getPhone(), updated.getPhone());
         assertEquals(tagged.getEmail(), updated.getEmail());
         assertEquals(tagged.getAddress(), updated.getAddress());
+        assertFalse(updated.isArchived());
+    }
+
+    @Test
+    public void execute_archivedContact_preservesStatusIdAndOtherDetails() throws CommandException {
+        Person original = model.getAddressBook().getPersonList().get(1);
+        Person archived = new PersonBuilder(original).withTags("expert", "politics")
+                .withArchiveStatus(true).build();
+        model.setPerson(original, archived);
+        new ListCommand(ListCommand.View.ARCHIVED).execute(model);
+
+        new UntagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("expert"))).execute(model);
+
+        Person updated = model.getAddressBook().getPersonList().get(1);
+        assertTrue(updated.isArchived());
+        assertEquals(archived.getId(), updated.getId());
+        assertEquals(archived.getName(), updated.getName());
+        assertEquals(archived.getPhone(), updated.getPhone());
+        assertEquals(archived.getEmail(), updated.getEmail());
+        assertEquals(archived.getAddress(), updated.getAddress());
+        assertEquals(Set.of(new Tag("politics")), updated.getTags());
+        assertEquals(List.of(updated), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_nonexistentTagOnArchivedContact_preservesContact() throws CommandException {
+        Person original = model.getAddressBook().getPersonList().get(1);
+        Person archived = new PersonBuilder(original).withTags("politics").withArchiveStatus(true).build();
+        model.setPerson(original, archived);
+        new ListCommand(ListCommand.View.ARCHIVED).execute(model);
+
+        new UntagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("expert"))).execute(model);
+
+        assertEquals(archived, model.getAddressBook().getPersonList().get(1));
+        assertEquals(List.of(archived), model.getFilteredPersonList());
     }
 
     @Test
@@ -161,6 +199,7 @@ public class UntagCommandTest {
                 original.getPhone(),
                 original.getEmail(),
                 original.getAddress(),
-                tags);
+                tags,
+                original.isArchived());
     }
 }
