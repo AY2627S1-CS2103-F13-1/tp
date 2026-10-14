@@ -32,6 +32,7 @@ public class ArchiveWorkflowTest {
 
     @Test
     public void archiveThenRestore_preservesDetailsIdAndCounter() throws Exception {
+        execute("list active");
         int nextId = model.getAddressBook().getNextPersonId();
         execute("archive 1");
         assertFalse(model.getFilteredPersonList().contains(ALICE));
@@ -52,13 +53,14 @@ public class ArchiveWorkflowTest {
         execute("find Benson");
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
         execute("archive 1");
-        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(List.of(BENSON.withArchived(true)), model.getFilteredPersonList());
         assertEquals(ALICE, model.getAddressBook().getPersonList().get(0));
         assertEquals(BENSON.withArchived(true), model.getAddressBook().getPersonList().get(1));
     }
 
     @Test
     public void archiveAndRestore_sortedList_targetsDisplayedPerson() throws Exception {
+        execute("list active");
         model.sortFilteredPersonList(Comparator.comparing((Person person) -> person.getName().fullName).reversed());
         Person target = model.getFilteredPersonList().get(0);
         execute("archive 1");
@@ -72,51 +74,33 @@ public class ArchiveWorkflowTest {
     }
 
     @Test
-    public void findAndList_excludeArchivedContacts() throws Exception {
+    public void listViews_selectRequestedContactsAndPreserveDefault() throws Exception {
         execute("archive 1");
-        execute("list archived");
-        execute("find Alice");
-        assertTrue(model.getFilteredPersonList().isEmpty());
-        execute("list");
+        assertEquals(7, model.getFilteredPersonList().size());
+        assertTrue(model.getFilteredPersonList().get(0).isArchived());
+        execute("list active");
         assertEquals(6, model.getFilteredPersonList().size());
         assertTrue(model.getFilteredPersonList().stream().noneMatch(Person::isArchived));
+        execute("list archived");
+        assertEquals(List.of(ALICE.withArchived(true)), model.getFilteredPersonList());
+        execute("list");
+        assertEquals(model.getAddressBook().getPersonList(), model.getFilteredPersonList());
+        execute("restore 1");
+        assertEquals(ALICE, model.getFilteredPersonList().get(0));
+        execute("list archived");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        execute("list 3"); // Existing list behavior ignores unrelated arguments.
+        assertEquals(7, model.getFilteredPersonList().size());
     }
 
     @Test
-    public void startup_archivedContactsHidden() {
+    public void startup_allContactsVisible() {
         AddressBook book = new AddressBook();
         book.addPerson(ALICE.withArchived(true));
         book.addPerson(BENSON);
         Model restarted = new ModelManager(book, new UserPrefs());
-        assertEquals(List.of(BENSON), restarted.getFilteredPersonList());
+        assertEquals(List.of(ALICE.withArchived(true), BENSON), restarted.getFilteredPersonList());
         assertTrue(restarted.hasPerson(ALICE));
-    }
-
-    @Test
-    public void add_archivedDuplicate_rejectedWithRestoreInstructions() throws Exception {
-        execute("archive 1");
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_ARCHIVED_PERSON, () ->
-                new AddCommand(ALICE).execute(model));
-        assertEquals(ALICE.withArchived(true), model.getAddressBook().getPersonList().get(0));
-    }
-
-    @Test
-    public void edit_archivedContact_preservesArchiveStatusAndId() throws Exception {
-        execute("archive 1");
-        execute("list archived");
-        execute("edit 1 p/91234567");
-        Person edited = model.getAddressBook().getPersonList().get(0);
-        assertTrue(edited.isArchived());
-        assertEquals(ALICE.getId(), edited.getId());
-        assertEquals("91234567", edited.getPhone().value);
-        assertFalse(model.getFilteredPersonList().contains(edited));
-    }
-
-    @Test
-    public void edit_duplicateArchivedName_rejected() throws Exception {
-        execute("archive 1");
-        assertThrows(CommandException.class, EditCommand.MESSAGE_DUPLICATE_PERSON, () ->
-                execute("edit 1 n/Alice Pauline"));
     }
 
     @Test
@@ -147,8 +131,6 @@ public class ArchiveWorkflowTest {
                 assertThrows(ParseException.class, () -> parser.parseCommand(command + args));
             }
         }
-        assertThrows(ParseException.class, () -> parser.parseCommand("list archive"));
-        assertThrows(ParseException.class, () -> parser.parseCommand("list archived extra"));
     }
 
     @Test

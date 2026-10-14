@@ -1,22 +1,18 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-
 import seedu.address.logic.commands.ListCommand;
-import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.logic.commands.ListCommand.View;
 
 /**
- * Parses the optional archive view selector for the list command.
+ * Adds explicit contact views while preserving list's existing handling of other arguments.
  */
 public class ListCommandParser implements Parser<ListCommand> {
-
     @Override
-    public ListCommand parse(String args) throws ParseException {
+    public ListCommand parse(String args) {
         return switch (args.trim()) {
-            case "" -> new ListCommand();
-            case "archived" -> new ListCommand(true);
-            default -> throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE));
+            case "active" -> new ListCommand(View.ACTIVE);
+            case "archived" -> new ListCommand(View.ARCHIVED);
+            default -> new ListCommand();
         };
     }
 }

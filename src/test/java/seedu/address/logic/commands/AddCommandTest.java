@@ -168,13 +168,6 @@ public class AddCommandTest {
         }
 
         @Override
-        public ReadOnlyAddressBook getAddressBook() {
-            AddressBook addressBook = new AddressBook();
-            addressBook.addPerson(person);
-            return addressBook;
-        }
-
-        @Override
         public boolean hasPerson(Person person) {
             requireNonNull(person);
             return this.person.isSamePerson(person);

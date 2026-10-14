@@ -5,31 +5,47 @@ import static java.util.Objects.requireNonNull;
 import seedu.address.model.Model;
 
 /**
- * Lists active contacts by default, or archived contacts on request.
+ * Lists all contacts by default, with optional active and archived views.
  */
 public class ListCommand extends Command {
-
     public static final String COMMAND_WORD = "list";
-    public static final String MESSAGE_USAGE = "list: Lists active contacts, or archived contacts.\n"
-            + "Parameters: [archived]\nExample: list archived";
-    public static final String MESSAGE_SUCCESS = "Listed all active persons.";
+    public static final String MESSAGE_SUCCESS = "Listed all persons.";
+    public static final String MESSAGE_ACTIVE_SUCCESS = "Listed all active persons.";
     public static final String MESSAGE_ARCHIVED_SUCCESS = "Listed all archived persons.";
 
-    private final boolean archived;
-
-    public ListCommand() {
-        this(false);
+    /**
+     * The contact subset displayed by the list command.
+     */
+    public enum View {
+        ALL, ACTIVE, ARCHIVED
     }
 
-    public ListCommand(boolean archived) {
-        this.archived = archived;
+    private final View view;
+
+    public ListCommand() {
+        this(View.ALL);
+    }
+
+    public ListCommand(View view) {
+        this.view = requireNonNull(view);
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(archived
-                ? Model.PREDICATE_SHOW_ARCHIVED_PERSONS : Model.PREDICATE_SHOW_ACTIVE_PERSONS);
-        return new CommandResult(archived ? MESSAGE_ARCHIVED_SUCCESS : MESSAGE_SUCCESS);
+        return switch (view) {
+            case ALL -> {
+                model.updateFilteredPersonList(Model.PREDICATE_SHOW_ALL_PERSONS);
+                yield new CommandResult(MESSAGE_SUCCESS);
+            }
+            case ACTIVE -> {
+                model.updateFilteredPersonList(Model.PREDICATE_SHOW_ACTIVE_PERSONS);
+                yield new CommandResult(MESSAGE_ACTIVE_SUCCESS);
+            }
+            case ARCHIVED -> {
+                model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED_PERSONS);
+                yield new CommandResult(MESSAGE_ARCHIVED_SUCCESS);
+            }
+        };
     }
 }

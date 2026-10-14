@@ -26,7 +26,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all active contacts.
+   * `list` : Lists all contacts.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
@@ -58,7 +58,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -87,36 +87,11 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing active or archived persons: `list`
+### Listing all persons: `list`
 
-Shows active contacts by default. Use `list archived` to view archived contacts, marked `[Archived]`.
+Shows a list of all persons in the address book.
 
-Format: `list [archived]`
-
-### Archiving a person: `archive`
-
-Hides a contact from the normal list and name searches while keeping all details, tags and its contact ID.
-
-Format: `archive INDEX`
-
-* `INDEX` is the positive index shown in the current list, including after filtering or sorting; it is not a contact ID.
-* Example: `find Alice`, then `archive 1` archives the first matching active contact.
-* Archived contacts remain saved across restarts. New contacts with the same name are still rejected;
-  use `list archived` and `restore INDEX` to recover the existing contact.
-* Archiving an already archived contact reports an error.
-
-### Restoring a person: `restore`
-
-Returns an archived contact to the active list with the same details and contact ID.
-
-Format: `restore INDEX`
-
-* Run `list archived`, then `restore 1` to restore the first contact shown in the archive.
-* The restored contact disappears from the archive view. Run `list` to see active contacts again.
-* Restoring an active contact reports an error.
-* Editing a contact in the archive preserves its archived status. As with other edits, the view then returns to active contacts.
-* `delete` permanently removes the contact at the displayed index, including in the archive view.
-  `clear` permanently removes both active and archived contacts. Use `archive` when you want to recover a contact later.
+Format: `list`
 
 ### Editing a person: `edit`
 
@@ -136,9 +111,7 @@ Examples:
 
 ### Locating persons by name: `find`
 
-Searches include only active contacts. Use `list archived` to view archived contacts.
-
-Finds active persons whose names contain any of the given keywords.
+Finds persons whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -152,6 +125,61 @@ Examples:
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+### Sorting displayed contacts: `sort`
+
+Arranges the currently displayed contacts by a selected contact field. Sorting changes only the displayed order; it does not change contact details or the order stored in the address book.
+
+Format: `sort FIELD [ORDER]`
+
+* `FIELD` is mandatory. Supported fields are `name`, `phone`, `email`, `address`, and `tag`.
+* `ORDER` is optional. Supported orders are `asc` and `desc`; omitting `ORDER` uses `asc`.
+* `FIELD` and `ORDER` are case-insensitive. For example, `sort NAME DESC` is valid.
+* Name, email, and address values are compared alphabetically without regard to letter case. The complete stored value is compared, and the address `NA` is treated as ordinary text.
+* Phone numbers are compared numerically. Leading zeroes do not affect their numeric value, so `000123` and `123` tie on phone number.
+* For tag sorting, a contact's primary tag is the alphabetically first tag, ignoring letter case. Only that tag is used. Contacts without tags remain after tagged contacts in both ascending and descending order.
+* Contacts that tie on the selected field are ordered by name in ascending order, regardless of the selected `ORDER`. If both the selected value and name tie, their existing relative order is preserved.
+* Only the contacts currently displayed are sorted. A search result remains the same subset, and the stored contact order remains unchanged.
+* Running `list` or a new search replaces the sorted display. Run `sort` again to sort the new displayed list.
+* Sorting an empty list or a list containing one contact succeeds even though its visible order does not change.
+
+On success, ByLine shows the following message, substituting the selected field and the full order name:
+
+`Sorted contacts by FIELD in ORDER order.`
+
+For example, `sort name desc` shows `Sorted contacts by name in descending order.`
+
+![Result of sorting contacts by name in descending order](images/sortNameDescResult.png)
+
+Invalid commands leave the displayed contact list unchanged and show one of these exact messages:
+
+* Missing `FIELD` or extra arguments:<br>
+  `Invalid command format!`<br>
+  `Usage: sort FIELD [ORDER]`
+* Unsupported `FIELD`:<br>
+  `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
+* Unsupported `ORDER`:<br>
+  `Invalid sort order. ORDER must be asc or desc.`
+
+For example, an unsupported order leaves the displayed contact list unchanged:
+
+![Result of entering an invalid sort order](images/sortInvalidOrderResult.png)
+
+Valid examples:
+
+* `sort name` sorts names in ascending order.
+* `sort phone asc` sorts phone numbers numerically in ascending order.
+* `sort email desc` sorts complete email addresses in descending order.
+* `sort tag` sorts by primary tag in ascending order and keeps untagged contacts last.
+* `sort NAME DESC` sorts names in descending order because both parameters are case-insensitive.
+
+Invalid examples:
+
+* `sort` is missing the mandatory field.
+* `sort date` uses an unsupported field.
+* `sort name upward` uses an unsupported order.
+* `sort name email` treats `email` as an invalid order.
+* `sort name asc extra` contains an extra argument.
 
 ### Deleting a person: `delete`
 
@@ -217,11 +245,10 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
-**Archive** | `archive INDEX`<br> e.g., `archive 1`
-**Restore** | `restore INDEX` (after `list archived`)
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**List** | `list [archived]`
+**List** | `list`
 **Help** | `help`
+**Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
