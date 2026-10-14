@@ -68,7 +68,8 @@ public class TagCommand extends Command {
                 original.getPhone(),
                 original.getEmail(),
                 original.getAddress(),
-                updatedTags).withArchived(original.isArchived());
+                updatedTags,
+                original.isArchived());
 
         model.setPerson(original, updated);
 

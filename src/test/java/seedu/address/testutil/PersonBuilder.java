@@ -103,13 +103,21 @@ public class PersonBuilder {
     }
 
     /**
+     * Sets archive status for the test person being built.
+     */
+    public PersonBuilder withArchiveStatus(boolean archived) {
+        this.archived = archived;
+        return this;
+    }
+
+    /**
      * Builds the {@code Person}, without an ID unless one was set.
      */
     public Person build() {
         if (id == null) {
-            return new Person(name, phone, email, address, tags).withArchived(archived);
+            return new Person(name, phone, email, address, tags, archived);
         }
-        return new Person(id, name, phone, email, address, tags).withArchived(archived);
+        return new Person(id, name, phone, email, address, tags, archived);
     }
 
 }

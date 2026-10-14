@@ -17,6 +17,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Verifies archived contacts survive disk storage and legacy records stay active.
@@ -28,7 +29,7 @@ public class ArchiveStorageTest {
     @Test
     public void saveAndLoad_mixedContacts_preservesAllFieldsAndCounter() throws Exception {
         AddressBook book = new AddressBook(10);
-        book.addPerson(ALICE.withArchived(true));
+        book.addPerson(new PersonBuilder(ALICE).withArchiveStatus(true).build());
         book.addPerson(BENSON);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("contacts.json"));
         storage.saveAddressBook(book);
@@ -71,7 +72,8 @@ public class ArchiveStorageTest {
                 new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
         LogicManager logic = new LogicManager(model, storageManager);
         logic.execute("archive 1");
-        assertEquals(ALICE.withArchived(true), storage.readAddressBook().orElseThrow().getPersonList().get(0));
+        assertEquals(new PersonBuilder(ALICE).withArchiveStatus(true).build(),
+                storage.readAddressBook().orElseThrow().getPersonList().get(0));
         logic.execute("list archived");
         logic.execute("restore 1");
         assertEquals(ALICE, storage.readAddressBook().orElseThrow().getPersonList().get(0));

@@ -126,8 +126,8 @@ public class EditCommand extends Command {
         // persons in the model always have an ID, and an edit must keep it
         PersonId id = personToEdit.getId().orElseThrow();
 
-        return new Person(id, updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags)
-                .withArchived(personToEdit.isArchived());
+        return new Person(id, updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
+                personToEdit.isArchived());
     }
 
     @Override

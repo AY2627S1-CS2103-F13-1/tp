@@ -129,13 +129,13 @@ class JsonAdaptedPerson {
         final Set<Tag> modelTags = new HashSet<>(personTags);
 
         if (id == null) {
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags).withArchived(archived);
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, archived);
         }
         if (!PersonId.isValidPersonId(id)) {
             throw new IllegalValueException(PersonId.MESSAGE_CONSTRAINTS);
         }
         final PersonId modelId = new PersonId(id);
-        return new Person(modelId, modelName, modelPhone, modelEmail, modelAddress, modelTags).withArchived(archived);
+        return new Person(modelId, modelName, modelPhone, modelEmail, modelAddress, modelTags, archived);
     }
 
 }
