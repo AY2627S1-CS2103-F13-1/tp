@@ -1,11 +1,13 @@
 package seedu.address.model;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 
 /**
  * The API of the Model component.
@@ -13,6 +15,12 @@ import seedu.address.model.person.Person;
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
+
+    /** Selects active contacts for the default view and ordinary searches. */
+    Predicate<Person> PREDICATE_SHOW_ACTIVE_PERSONS = person -> !person.isArchived();
+
+    /** Selects archived contacts for the archive view. */
+    Predicate<Person> PREDICATE_SHOW_ARCHIVED_PERSONS = Person::isArchived;
 
     /**
      * Returns the user prefs.
@@ -41,6 +49,12 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /**
+     * Returns the person with the ID {@code id}, or {@code Optional.empty()} if no person has that ID.
+     * The whole address book is searched, including persons hidden from the filtered person list.
+     */
+    Optional<Person> findPersonById(PersonId id);
 
     /**
      * Deletes the given person.

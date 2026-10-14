@@ -6,6 +6,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
@@ -85,6 +86,17 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Returns the person with the ID {@code id}, or {@code Optional.empty()} if no person has that ID.
+     * All persons in the address book are searched.
+     */
+    public Optional<Person> findPersonById(PersonId id) {
+        requireNonNull(id);
+        return persons.asUnmodifiableObservableList().stream()
+                .filter(person -> person.getId().equals(Optional.of(id)))
+                .findFirst();
+    }
+
+    /**
      * Adds a person to the address book.
      * The person must not already exist in the address book.
      * If the person does not have an ID, it is assigned the next available one.
@@ -129,7 +141,7 @@ public class AddressBook implements ReadOnlyAddressBook {
         }
 
         return new Person(new PersonId(nextId), person.getName(), person.getPhone(), person.getEmail(),
-                person.getAddress(), person.getTags());
+                person.getAddress(), person.getTags()).withArchived(person.isArchived());
     }
 
     /**

@@ -155,6 +155,25 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Sort feature
+
+`AddressBookParser` delegates the arguments of a `sort` command to `SortCommandParser`. The parser validates the mandatory field and optional order, normalises both case-insensitively, defaults a missing order to ascending, and creates a `SortCommand`.
+
+When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `AddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the persistent `AddressBook` list.
+
+Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list` and commands that apply a new filter call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
+
+#### Design considerations
+
+**Aspect: Where sorting is applied**
+
+* **Alternative 1 (current choice): Use a sorted view of the filtered contacts.**
+  * Pros: Sorting affects exactly the contacts being displayed, composes with filtering, and cannot change the saved contact order.
+  * Cons: The model must maintain both `FilteredList` and `SortedList` view layers and explicitly clear the comparator when the display is replaced.
+* **Alternative 2: Sort the stored contact list directly.**
+  * Pros: The UI could display the reordered storage list without another view layer.
+  * Cons: A display-only command would mutate persistent ordering, filtering would be harder to isolate, and the changed order could be saved unintentionally. This alternative was rejected because sorting is specified as a temporary presentation operation.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -285,6 +304,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | journalist | search for contacts by their details | quickly locate relevant contacts without going through the entire list |
 | `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
 | `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
+| `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
 | `* *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
 
@@ -437,6 +457,44 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 *{More to be added}*
 
+**System:** Byline<br>
+**Use case:** UC06 - Sort displayed contacts<br>
+**Actor:** Journalist
+
+**MSS**
+
+1. Journalist views a list of contacts.
+2. Journalist requests to sort the displayed contacts, specifying a supported field and optionally an order.
+3. Byline reorders the displayed contacts and shows the successful sort message.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The field is invalid.
+  * 2a1. Byline shows `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
+  * 2a2. The displayed list remains unchanged.
+
+    Use case resumes at step 1.
+
+* 2b. The order is invalid.
+  * 2b1. Byline shows `Invalid sort order. ORDER must be asc or desc.`
+  * 2b2. The displayed list remains unchanged.
+
+    Use case resumes at step 1.
+
+* 2c. The field is missing.
+  * 2c1. Byline shows the invalid command format message and `Usage: sort FIELD [ORDER]`.
+  * 2c2. The displayed list remains unchanged.
+
+    Use case resumes at step 1.
+
+* 2d. Extra arguments are supplied.
+  * 2d1. Byline shows the invalid command format message and `Usage: sort FIELD [ORDER]`.
+  * 2d2. The displayed list remains unchanged.
+
+    Use case resumes at step 1.
+
 ### Non-Functional Requirements
 
 These requirements define the quality targets and operating constraints for ByLine.
@@ -548,6 +606,46 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Sorting displayed contacts
+
+1. Sorting valid displayed lists
+
+   1. Prerequisites: Start Byline with multiple contacts displayed, including contacts whose names differ in case, phone numbers with leading zeroes, contacts with multiple tags, and contacts without tags. Note the displayed and stored order.
+
+   1. Test case: `sort name desc`<br>
+      Expected: Contacts are displayed by name in descending, case-insensitive order. The result is `Sorted contacts by name in descending order.` The stored order is unchanged.
+
+   1. Test case: `sort phone`<br>
+      Expected: Contacts are displayed by numeric phone value in ascending order. Leading zeroes do not affect numeric order, phone ties use name-ascending order, and the result is `Sorted contacts by phone in ascending order.`
+
+   1. Test case: `sort tag desc`<br>
+      Expected: Each contact's alphabetically first tag is used, tagged contacts are displayed in descending primary-tag order, untagged contacts remain last, and ties use name-ascending order.
+
+   1. Test case: Run a search, then enter `sort email asc`.<br>
+      Expected: Only the search results are reordered by complete email address. No contact is added, removed, or edited.
+
+   1. Test case: After a sort, run `list`, then run a new search.<br>
+      Expected: Each command replaces the sorted display with its normal unsorted result. The stored order remains unchanged.
+
+   1. Test case: `sort address asc` when zero or one contact is displayed.<br>
+      Expected: The command succeeds and shows `Sorted contacts by address in ascending order.`
+
+1. Rejecting invalid sort commands
+
+   1. Prerequisites: Display multiple contacts and note their order.
+
+   1. Test case: `sort`<br>
+      Expected: The displayed order is unchanged. The result shows `Invalid command format!` followed by `Usage: sort FIELD [ORDER]`.
+
+   1. Test case: `sort date`<br>
+      Expected: The displayed order is unchanged. The result is `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
+
+   1. Test case: `sort name upward`<br>
+      Expected: The displayed order is unchanged. The result is `Invalid sort order. ORDER must be asc or desc.`
+
+   1. Test case: `sort name asc extra`<br>
+      Expected: The displayed order is unchanged. The result shows `Invalid command format!` followed by `Usage: sort FIELD [ORDER]`.
 
 ### Saving data
 

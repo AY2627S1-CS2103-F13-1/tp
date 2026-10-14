@@ -23,6 +23,7 @@ public class PersonBuilder {
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
     private PersonId id;
+    private boolean archived;
     private Name name;
     private Phone phone;
     private Email email;
@@ -45,6 +46,7 @@ public class PersonBuilder {
      */
     public PersonBuilder(Person personToCopy) {
         id = personToCopy.getId().orElse(null);
+        archived = personToCopy.isArchived();
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
@@ -105,9 +107,9 @@ public class PersonBuilder {
      */
     public Person build() {
         if (id == null) {
-            return new Person(name, phone, email, address, tags);
+            return new Person(name, phone, email, address, tags).withArchived(archived);
         }
-        return new Person(id, name, phone, email, address, tags);
+        return new Person(id, name, phone, email, address, tags).withArchived(archived);
     }
 
 }
