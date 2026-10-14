@@ -1,10 +1,10 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -26,36 +26,37 @@ public class TagCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Adds tags to a contact without removing existing tags.\n"
-            + "Parameters: INDEX (positive integer) "
+            + "Parameters: INDEX (positive integer) or " + PREFIX_ID + "ID "
             + PREFIX_TAG + "TAG [" + PREFIX_TAG + "TAG]...\n"
-            + "Example: tag 1 t/housing policy t/expert";
+            + "Example: tag 1 t/housing policy t/expert or tag " + PREFIX_ID + "C3 t/expert";
 
     public static final String MESSAGE_SUCCESS = "Tagged contact: %1$s";
 
-    private final Index index;
+    private final PersonTarget target;
     private final Set<Tag> tagsToAdd;
 
     /**
-     * Creates a command that adds tags to a contact.
+     * Creates a command that adds tags to the contact selected by {@code target}.
+     */
+    public TagCommand(PersonTarget target, Set<Tag> tagsToAdd) {
+        requireNonNull(target);
+        requireNonNull(tagsToAdd);
+        this.target = target;
+        this.tagsToAdd = new HashSet<>(tagsToAdd);
+    }
+
+    /**
+     * Creates a command that adds tags to the contact at {@code index} in the displayed list.
      */
     public TagCommand(Index index, Set<Tag> tagsToAdd) {
-        requireNonNull(index);
-        requireNonNull(tagsToAdd);
-        this.index = index;
-        this.tagsToAdd = new HashSet<>(tagsToAdd);
+        this(PersonTarget.ofIndex(index), tagsToAdd);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        List<Person> displayedPersons = model.getFilteredPersonList();
-
-        if (index.getZeroBased() >= displayedPersons.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-
-        Person original = displayedPersons.get(index.getZeroBased());
+        Person original = target.resolve(model);
 
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.addAll(tagsToAdd);
@@ -87,19 +88,19 @@ public class TagCommand extends Command {
             return false;
         }
 
-        return index.equals(otherCommand.index)
+        return target.equals(otherCommand.target)
                 && tagsToAdd.equals(otherCommand.tagsToAdd);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index, tagsToAdd);
+        return Objects.hash(target, tagsToAdd);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("index", index)
+                .add("target", target)
                 .add("tagsToAdd", tagsToAdd)
                 .toString();
     }
