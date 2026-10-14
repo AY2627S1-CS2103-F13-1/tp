@@ -13,6 +13,8 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
@@ -209,37 +211,72 @@ public class EditCommandTest {
         assertFalse(standardCommand.equals(new EditCommand(INDEX_FIRST_PERSON, DESC_BOB)));
 
         // same ID -> returns true
-        EditCommand editByIdCommand = new EditCommand(new PersonId("C1"), DESC_AMY);
-        assertTrue(editByIdCommand.equals(new EditCommand(new PersonId("C1"), copyDescriptor)));
+        EditCommand editByIdCommand = new EditCommand(PersonTarget.ofId(new PersonId("C1")), DESC_AMY);
+        assertTrue(editByIdCommand.equals(new EditCommand(PersonTarget.ofId(new PersonId("C1")), copyDescriptor)));
 
         // different ID -> returns false
-        assertFalse(editByIdCommand.equals(new EditCommand(new PersonId("C2"), DESC_AMY)));
+        assertFalse(editByIdCommand.equals(new EditCommand(PersonTarget.ofId(new PersonId("C2")), DESC_AMY)));
 
         // selected by ID instead of index -> returns false
         assertFalse(standardCommand.equals(editByIdCommand));
     }
 
     @Test
-    public void execute_targetById_failure() {
-        // selecting by ID is not connected yet, so nothing is edited
-        EditCommand editCommand = new EditCommand(new PersonId("C1"), DESC_BOB);
-        assertCommandFailure(editCommand, model, Messages.MESSAGE_ID_TARGETING_NOT_SUPPORTED);
+    public void execute_validIdSomeFieldsSpecified_success() {
+        // only the phone is given, so every other field and the ID stay the same
+        Person editedPerson = new PersonBuilder(BENSON).withPhone(VALID_PHONE_BOB).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
+        EditCommand editCommand = new EditCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()), descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_validIdOfPersonHiddenByFilter_success() {
+        // only ALICE is displayed, but BENSON can still be edited by his ID
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        Person editedPerson = new PersonBuilder(BENSON).withPhone(VALID_PHONE_BOB).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
+        EditCommand editCommand = new EditCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()), descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+
+        // edit shows every person afterwards, as it does when selecting by index
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_unknownId_failure() {
+        PersonId unknownId = new PersonId("C99");
+        EditCommand editCommand = new EditCommand(PersonTarget.ofId(unknownId), DESC_BOB);
+
+        assertCommandFailure(editCommand, model, String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, unknownId));
+    }
+
+    @Test
+    public void execute_duplicatePersonById_failure() {
+        EditCommand editCommand = new EditCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()),
+                new EditPersonDescriptorBuilder(ALICE).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test
     public void toStringMethod() {
-        Index index = Index.fromOneBased(1);
+        PersonTarget target = PersonTarget.ofIndex(Index.fromOneBased(1));
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
-        EditCommand editCommand = new EditCommand(index, editPersonDescriptor);
-        String expected = EditCommand.class.getCanonicalName() + "{index=" + index + ", targetId=null"
+        EditCommand editCommand = new EditCommand(target, editPersonDescriptor);
+        String expected = EditCommand.class.getCanonicalName() + "{target=" + target
                 + ", editPersonDescriptor=" + editPersonDescriptor + "}";
         assertEquals(expected, editCommand.toString());
-
-        PersonId targetId = new PersonId("C1");
-        EditCommand editByIdCommand = new EditCommand(targetId, editPersonDescriptor);
-        String expectedById = EditCommand.class.getCanonicalName() + "{index=null, targetId=" + targetId
-                + ", editPersonDescriptor=" + editPersonDescriptor + "}";
-        assertEquals(expectedById, editByIdCommand.toString());
     }
 
 }

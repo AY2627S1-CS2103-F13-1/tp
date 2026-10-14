@@ -39,6 +39,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.logic.commands.PersonTarget;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -59,15 +60,22 @@ public class EditCommandParserTest {
     @Test
     public void parse_validIdWithFields_success() {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
-        assertParseSuccess(parser, " id/C1" + PHONE_DESC_BOB, new EditCommand(new PersonId("C1"), descriptor));
+        EditCommand expectedCommand = new EditCommand(PersonTarget.ofId(new PersonId("C1")), descriptor);
+        assertParseSuccess(parser, " id/C1" + PHONE_DESC_BOB, expectedCommand);
 
         // ID given after the fields
-        assertParseSuccess(parser, PHONE_DESC_BOB + " id/C1", new EditCommand(new PersonId("C1"), descriptor));
+        assertParseSuccess(parser, PHONE_DESC_BOB + " id/C1", expectedCommand);
     }
 
     @Test
     public void parse_idWithoutFields_failure() {
         assertParseFailure(parser, " id/C1", EditCommand.MESSAGE_NOT_EDITED);
+    }
+
+    @Test
+    public void parse_idWithInvalidValue_failure() {
+        // fields are still checked when the person is selected by ID
+        assertParseFailure(parser, " id/C1" + INVALID_PHONE_DESC, Phone.MESSAGE_CONSTRAINTS);
     }
 
     @Test
