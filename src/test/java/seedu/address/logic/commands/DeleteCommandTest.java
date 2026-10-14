@@ -5,8 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.logic.commands.CommandTestUtil.showOnlyPerson;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -33,7 +32,7 @@ public class DeleteCommandTest {
     @Test
     public void execute_validIdOfDisplayedPersonInFilteredList_success() {
         // only ALICE is displayed, and she is deleted by her ID
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showOnlyPerson(model, ALICE);
         DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(ALICE.getId().orElseThrow()));
 
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
@@ -84,7 +83,7 @@ public class DeleteCommandTest {
     @Test
     public void execute_validIdOfPersonHiddenByFilter_success() {
         // only ALICE is displayed, but BENSON can still be deleted by his ID
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showOnlyPerson(model, ALICE);
         DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()));
 
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
@@ -92,7 +91,7 @@ public class DeleteCommandTest {
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.deletePerson(BENSON);
-        showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
+        showOnlyPerson(expectedModel, ALICE);
 
         assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
     }

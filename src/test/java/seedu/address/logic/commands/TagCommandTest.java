@@ -5,8 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.logic.commands.CommandTestUtil.showOnlyPerson;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -144,7 +143,7 @@ public class TagCommandTest {
     @Test
     public void execute_validIdOfPersonHiddenByFilter_success() throws Exception {
         // only ALICE is displayed, but BENSON can still be tagged by his ID
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showOnlyPerson(model, ALICE);
         PersonId bensonId = BENSON.getId().orElseThrow();
 
         new TagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("expert"))).execute(model);

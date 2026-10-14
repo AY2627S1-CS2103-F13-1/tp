@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
+import static seedu.address.logic.commands.CommandTestUtil.showOnlyPerson;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
@@ -41,7 +41,7 @@ public class PersonTargetTest {
     @Test
     public void resolve_idOfPersonHiddenByFilter_returnsPerson() throws Exception {
         // only ALICE is displayed
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showOnlyPerson(model, ALICE);
         assertEquals(BENSON, PersonTarget.ofId(BENSON.getId().orElseThrow()).resolve(model));
     }
 

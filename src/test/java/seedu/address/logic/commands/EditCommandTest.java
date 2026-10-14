@@ -10,8 +10,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.logic.commands.CommandTestUtil.showOnlyPerson;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -122,7 +121,7 @@ public class EditCommandTest {
     @Test
     public void execute_filteredList_success() {
         // only ALICE is displayed, and she is edited by her ID
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showOnlyPerson(model, ALICE);
 
         Person editedPerson = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(TARGET_ALICE,
@@ -146,7 +145,7 @@ public class EditCommandTest {
 
     @Test
     public void execute_duplicatePersonFilteredList_failure() {
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showOnlyPerson(model, ALICE);
 
         // edit the displayed person into a duplicate of a person hidden by the filter
         EditCommand editCommand = new EditCommand(TARGET_ALICE, new EditPersonDescriptorBuilder(BENSON).build());
@@ -197,7 +196,7 @@ public class EditCommandTest {
     @Test
     public void execute_validIdOfPersonHiddenByFilter_success() {
         // only ALICE is displayed, but BENSON can still be edited by his ID
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showOnlyPerson(model, ALICE);
         Person editedPerson = new PersonBuilder(BENSON).withPhone(VALID_PHONE_BOB).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
         EditCommand editCommand = new EditCommand(TARGET_BENSON, descriptor);
