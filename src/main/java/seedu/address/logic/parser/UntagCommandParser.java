@@ -2,12 +2,13 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
 import java.util.Set;
 
-import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.commands.UntagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.tag.Tag;
@@ -22,19 +23,9 @@ public class UntagCommandParser implements Parser<UntagCommand> {
         requireNonNull(args);
 
         ArgumentMultimap arguments =
-                ArgumentTokenizer.tokenize(args, PREFIX_TAG);
+                ArgumentTokenizer.tokenize(args, PREFIX_ID, PREFIX_TAG);
 
-        Index index;
-
-        try {
-            index = ParserUtil.parseIndex(arguments.getPreamble());
-        } catch (ParseException exception) {
-            throw new ParseException(
-                    String.format(
-                            MESSAGE_INVALID_COMMAND_FORMAT,
-                            UntagCommand.MESSAGE_USAGE),
-                    exception);
-        }
+        PersonTarget target = ParserUtil.parsePersonTarget(arguments, UntagCommand.MESSAGE_USAGE);
 
         List<String> tagNames = arguments.getAllValues(PREFIX_TAG);
 
@@ -47,6 +38,6 @@ public class UntagCommandParser implements Parser<UntagCommand> {
 
         Set<Tag> tags = ParserUtil.parseTags(tagNames);
 
-        return new UntagCommand(index, tags);
+        return new UntagCommand(target, tags);
     }
 }

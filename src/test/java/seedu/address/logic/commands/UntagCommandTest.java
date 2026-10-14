@@ -3,8 +3,11 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
@@ -20,6 +23,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
@@ -178,6 +182,52 @@ public class UntagCommandTest {
         assertNotEquals(first, null);
         assertNotEquals(first, "untag");
         assertEquals(first.hashCode(), same.hashCode());
+
+        UntagCommand byId = new UntagCommand(
+                PersonTarget.ofId(new PersonId("C1")), Set.of(new Tag("expert")));
+
+        // same ID -> equal
+        assertEquals(byId, new UntagCommand(
+                PersonTarget.ofId(new PersonId("C1")), Set.of(new Tag("expert"))));
+
+        // different ID -> not equal
+        assertNotEquals(byId, new UntagCommand(
+                PersonTarget.ofId(new PersonId("C2")), Set.of(new Tag("expert"))));
+
+        // selected by ID instead of index -> not equal
+        assertNotEquals(first, byId);
+    }
+
+    @Test
+    public void execute_validId_success() throws CommandException {
+        // BENSON is tagged "owesMoney" and "friends"
+        PersonId bensonId = BENSON.getId().orElseThrow();
+
+        new UntagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("owesMoney"))).execute(model);
+
+        Person updated = model.findPersonById(bensonId).orElseThrow();
+        assertEquals(Set.of(new Tag("friends")), updated.getTags());
+        assertEquals(BENSON.getName(), updated.getName());
+    }
+
+    @Test
+    public void execute_validIdOfPersonHiddenByFilter_success() throws CommandException {
+        // only ALICE is displayed, but BENSON can still be untagged by his ID
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        PersonId bensonId = BENSON.getId().orElseThrow();
+
+        new UntagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("owesMoney"))).execute(model);
+
+        assertEquals(Set.of(new Tag("friends")), model.findPersonById(bensonId).orElseThrow().getTags());
+    }
+
+    @Test
+    public void execute_unknownId_throwsCommandException() {
+        PersonId unknownId = new PersonId("C99");
+        UntagCommand command = new UntagCommand(PersonTarget.ofId(unknownId), Set.of(new Tag("expert")));
+
+        CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
+        assertEquals(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, unknownId), exception.getMessage());
     }
 
     @Test
@@ -187,7 +237,7 @@ public class UntagCommandTest {
 
         String result = command.toString();
 
-        assertTrue(result.contains("index"));
+        assertTrue(result.contains("target"));
         assertTrue(result.contains("tagsToRemove"));
         assertTrue(result.contains("expert"));
     }

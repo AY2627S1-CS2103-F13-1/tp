@@ -1,10 +1,10 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -26,37 +26,38 @@ public class UntagCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Removes specified tags from a contact.\n"
-            + "Parameters: INDEX (positive integer) "
+            + "Parameters: INDEX (positive integer) or " + PREFIX_ID + "ID "
             + PREFIX_TAG + "TAG [" + PREFIX_TAG + "TAG]...\n"
-            + "Example: untag 1 t/housing policy t/expert";
+            + "Example: untag 1 t/housing policy t/expert or untag " + PREFIX_ID + "C3 t/expert";
 
     public static final String MESSAGE_SUCCESS = "Removed tags from contact: %1$s";
 
-    private final Index index;
+    private final PersonTarget target;
     private final Set<Tag> tagsToRemove;
 
     /**
-     * Creates a command that removes tags from a contact.
+     * Creates a command that removes tags from the contact selected by {@code target}.
      */
-    public UntagCommand(Index index, Set<Tag> tagsToRemove) {
-        requireNonNull(index);
+    public UntagCommand(PersonTarget target, Set<Tag> tagsToRemove) {
+        requireNonNull(target);
         requireNonNull(tagsToRemove);
 
-        this.index = index;
+        this.target = target;
         this.tagsToRemove = new HashSet<>(tagsToRemove);
+    }
+
+    /**
+     * Creates a command that removes tags from the contact at {@code index} in the displayed list.
+     */
+    public UntagCommand(Index index, Set<Tag> tagsToRemove) {
+        this(PersonTarget.ofIndex(index), tagsToRemove);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        List<Person> displayedPersons = model.getFilteredPersonList();
-
-        if (index.getZeroBased() >= displayedPersons.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-
-        Person original = displayedPersons.get(index.getZeroBased());
+        Person original = target.resolve(model);
 
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.removeAll(tagsToRemove);
@@ -88,19 +89,19 @@ public class UntagCommand extends Command {
             return false;
         }
 
-        return index.equals(otherCommand.index)
+        return target.equals(otherCommand.target)
                 && tagsToRemove.equals(otherCommand.tagsToRemove);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index, tagsToRemove);
+        return Objects.hash(target, tagsToRemove);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("index", index)
+                .add("target", target)
                 .add("tagsToRemove", tagsToRemove)
                 .toString();
     }

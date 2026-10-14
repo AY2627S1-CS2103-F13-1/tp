@@ -160,4 +160,10 @@ public class AddressBookParserTest {
         assertEquals(new UntagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("expert"))),
                 parser.parseCommand("untag 1 t/expert"));
     }
+
+    @Test
+    public void parseCommand_untagById() throws Exception {
+        assertEquals(new UntagCommand(PersonTarget.ofId(new PersonId("C1")), Set.of(new Tag("expert"))),
+                parser.parseCommand("untag id/C1 t/expert"));
+    }
 }
