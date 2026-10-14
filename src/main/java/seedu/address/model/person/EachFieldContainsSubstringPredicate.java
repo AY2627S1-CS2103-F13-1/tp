@@ -3,39 +3,39 @@ package seedu.address.model.person;
 import seedu.address.commons.util.ToStringBuilder;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
- * Tests that a {@code Person}'s {@code Name} matches any of the keywords given.
+ * Tests that a {@code Person}'s fields contains any given substring, respective to each field.
  */
 public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
-    private final Optional<String> name;
-    private final Optional<String> phone;
-    private final Optional<String> email;
-    private final Optional<String> address;
-    private final List<String> tagList;
+    private final Optional<String> nameKey;
+    private final Optional<String> phoneKey;
+    private final Optional<String> emailKey;
+    private final Optional<String> addressKey;
+    private final List<String> tagKeys;
 
     public EachFieldContainsSubstringPredicate(
-            Optional<String> name, Optional<String> phone, Optional<String> email,
-            Optional<String> address, List<String> tagList) {
-           this.name = name;
-           this.phone = phone;
-           this.email = email;
-           this.address = address;
-           this.tagList = tagList;
+            Optional<String> nameKey, Optional<String> phoneKey, Optional<String> emailKey,
+            Optional<String> addressKey, List<String> tagKeysKey) {
+           this.nameKey = nameKey;
+           this.phoneKey = phoneKey;
+           this.emailKey = emailKey;
+           this.addressKey = addressKey;
+           this.tagKeys = tagKeysKey;
     }
 
     @Override
     public boolean test(Person person) {
 
-        return (name.isEmpty() || person.getName().fullName.toLowerCase().contains(name.get().toLowerCase()))
-                && (phone.isEmpty() || person.getPhone().value.toLowerCase().contains(phone.get().toLowerCase()))
-                && (email.isEmpty() || person.getEmail().value.toLowerCase().contains(email.get().toLowerCase()))
-                && (address.isEmpty() || person.getAddress().value.toLowerCase().contains(address.get().toLowerCase()))
-                && (tagList.isEmpty()
-                        || tagList.stream().allMatch(
+        return (nameKey.isEmpty() || person.getName().fullName.toLowerCase().contains(nameKey.get().toLowerCase()))
+                && (phoneKey.isEmpty() || person.getPhone().value.toLowerCase().contains(phoneKey.get().toLowerCase()))
+                && (emailKey.isEmpty() || person.getEmail().value.toLowerCase().contains(emailKey.get().toLowerCase()))
+                && (addressKey.isEmpty()
+                        || person.getAddress().value.toLowerCase().contains(addressKey.get().toLowerCase()))
+                && (tagKeys.isEmpty()
+                        || tagKeys.stream().allMatch(
                                 tagKey -> person.getTags().stream().anyMatch(
                                         tag -> tag.tagName.toLowerCase().contains(tagKey))));
     }
@@ -51,21 +51,21 @@ public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
             return false;
         }
 
-        return name.equals(otherNameContainsKeywordsPredicate.name)
-                && phone.equals(otherNameContainsKeywordsPredicate.phone)
-                && email.equals(otherNameContainsKeywordsPredicate.email)
-                && address.equals(otherNameContainsKeywordsPredicate.address)
-                && tagList.equals(otherNameContainsKeywordsPredicate.tagList);
+        return nameKey.equals(otherNameContainsKeywordsPredicate.nameKey)
+                && phoneKey.equals(otherNameContainsKeywordsPredicate.phoneKey)
+                && emailKey.equals(otherNameContainsKeywordsPredicate.emailKey)
+                && addressKey.equals(otherNameContainsKeywordsPredicate.addressKey)
+                && tagKeys.equals(otherNameContainsKeywordsPredicate.tagKeys);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("name", name)
-                .add("phone", phone)
-                .add("email", email)
-                .add("address", address)
-                .add("tagList", tagList)
+                .add("nameKey", nameKey)
+                .add("phoneKey", phoneKey)
+                .add("emailKey", emailKey)
+                .add("addressKey", addressKey)
+                .add("tagKeys", tagKeys)
                 .toString();
     }
 }
