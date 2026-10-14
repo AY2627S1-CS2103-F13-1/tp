@@ -2,6 +2,8 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -11,6 +13,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -34,6 +37,8 @@ public class ParserUtilTest {
     private static final String VALID_TAG_2 = "neighbour";
 
     private static final String WHITESPACE = " \t\r\n";
+
+    private static final String MESSAGE_USAGE = "command: usage";
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {
@@ -74,6 +79,45 @@ public class ParserUtilTest {
     @Test
     public void parsePersonId_validValueWithWhitespace_returnsTrimmedPersonId() throws Exception {
         assertEquals(new PersonId("C42"), ParserUtil.parsePersonId(WHITESPACE + "C42" + WHITESPACE));
+    }
+
+    @Test
+    public void parsePersonTarget_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parsePersonTarget(null, MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parsePersonTarget_id_returnsIdTarget() throws Exception {
+        assertEquals(PersonTarget.ofId(new PersonId("C42")),
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize(" id/C42", PREFIX_ID), MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parsePersonTarget_index_returnsIndexTarget() throws Exception {
+        assertEquals(PersonTarget.ofIndex(INDEX_FIRST_PERSON),
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("  1  ", PREFIX_ID), MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parsePersonTarget_invalidIndexOrNoTarget_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () ->
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("a", PREFIX_ID), MESSAGE_USAGE));
+        assertThrows(ParseException.class, expectedMessage, () ->
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("", PREFIX_ID), MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parsePersonTarget_indexAndId_throwsParseException() {
+        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE), () ->
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("1 id/C42", PREFIX_ID), MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parsePersonTarget_invalidId_throwsParseException() {
+        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                PersonId.MESSAGE_CONSTRAINTS), () ->
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize(" id/2", PREFIX_ID), MESSAGE_USAGE));
     }
 
     @Test

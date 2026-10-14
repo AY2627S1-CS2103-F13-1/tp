@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.HashSet;
@@ -22,6 +24,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -136,12 +139,49 @@ public class TagCommandTest {
     }
 
     @Test
+    public void execute_validId_success() throws Exception {
+        PersonId bensonId = BENSON.getId().orElseThrow();
+        Set<Tag> expectedTags = new HashSet<>(BENSON.getTags());
+        expectedTags.add(new Tag("expert"));
+
+        new TagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("expert"))).execute(model);
+
+        Person updated = model.findPersonById(bensonId).orElseThrow();
+        assertEquals(BENSON.getName(), updated.getName());
+        assertEquals(expectedTags, updated.getTags());
+    }
+
+    @Test
+    public void execute_validIdOfPersonHiddenByFilter_success() throws Exception {
+        // only ALICE is displayed, but BENSON can still be tagged by his ID
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        PersonId bensonId = BENSON.getId().orElseThrow();
+
+        new TagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("expert"))).execute(model);
+
+        Person updated = model.findPersonById(bensonId).orElseThrow();
+        assertTrue(updated.getTags().contains(new Tag("expert")));
+    }
+
+    @Test
+    public void execute_unknownId_throwsCommandException() {
+        PersonId unknownId = new PersonId("C99");
+        TagCommand command = new TagCommand(PersonTarget.ofId(unknownId), Set.of(new Tag("expert")));
+
+        CommandException exception = assertThrows(
+                CommandException.class, () -> command.execute(model));
+
+        assertEquals(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, unknownId),
+                exception.getMessage());
+    }
+
+    @Test
     public void toStringMethod() {
         TagCommand command = new TagCommand(
                 INDEX_FIRST_PERSON, Set.of(new Tag("expert")));
 
         String expected = TagCommand.class.getCanonicalName()
-                + "{index=" + INDEX_FIRST_PERSON
+                + "{target=" + PersonTarget.ofIndex(INDEX_FIRST_PERSON)
                 + ", tagsToAdd=" + Set.of(new Tag("expert")) + "}";
 
         assertEquals(expected, command.toString());
@@ -199,5 +239,19 @@ public class TagCommandTest {
         assertEquals(first, same);
         assertNotEquals(first, differentIndex);
         assertNotEquals(first, null);
+
+        TagCommand byId = new TagCommand(
+                PersonTarget.ofId(new PersonId("C1")), Set.of(new Tag("expert")));
+
+        // same ID -> equal
+        assertEquals(byId, new TagCommand(
+                PersonTarget.ofId(new PersonId("C1")), Set.of(new Tag("expert"))));
+
+        // different ID -> not equal
+        assertNotEquals(byId, new TagCommand(
+                PersonTarget.ofId(new PersonId("C2")), Set.of(new Tag("expert"))));
+
+        // selected by ID instead of index -> not equal
+        assertNotEquals(first, byId);
     }
 }

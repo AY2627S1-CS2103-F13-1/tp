@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -10,7 +11,6 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -37,9 +37,9 @@ public class EditCommand extends Command {
     public static final String COMMAND_WORD = "edit";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
-            + "by the index number used in the displayed person list. "
+            + "by the index number used in the displayed person list, or by its ID. "
             + "Existing values will be overwritten by the input values.\n"
-            + "Parameters: INDEX (must be a positive integer) "
+            + "Parameters: INDEX (must be a positive integer) or " + PREFIX_ID + "ID "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
@@ -47,58 +47,41 @@ public class EditCommand extends Command {
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
-            + PREFIX_EMAIL + "johndoe@example.com";
+            + PREFIX_EMAIL + "johndoe@example.com or "
+            + COMMAND_WORD + " " + PREFIX_ID + "C3 "
+            + PREFIX_PHONE + "91234567";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
 
-    // exactly one of these is set, depending on how the person to edit was selected
-    private final Index index;
-    private final PersonId targetId;
+    private final PersonTarget target;
     private final EditPersonDescriptor editPersonDescriptor;
+
+    /**
+     * @param target selects the person to edit
+     * @param editPersonDescriptor details to edit the person with
+     */
+    public EditCommand(PersonTarget target, EditPersonDescriptor editPersonDescriptor) {
+        requireNonNull(target);
+        requireNonNull(editPersonDescriptor);
+
+        this.target = target;
+        this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
+    }
 
     /**
      * @param index of the person in the filtered person list to edit
      * @param editPersonDescriptor details to edit the person with
      */
     public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
-        requireNonNull(index);
-        requireNonNull(editPersonDescriptor);
-
-        this.index = index;
-        this.targetId = null;
-        this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
-    }
-
-    /**
-     * @param targetId of the person to edit
-     * @param editPersonDescriptor details to edit the person with
-     */
-    public EditCommand(PersonId targetId, EditPersonDescriptor editPersonDescriptor) {
-        requireNonNull(targetId);
-        requireNonNull(editPersonDescriptor);
-
-        this.index = null;
-        this.targetId = targetId;
-        this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
+        this(PersonTarget.ofIndex(index), editPersonDescriptor);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        if (targetId != null) {
-            // selecting a person by ID is not connected to the address book yet
-            throw new CommandException(Messages.MESSAGE_ID_TARGETING_NOT_SUPPORTED);
-        }
-
-        List<Person> lastShownList = model.getFilteredPersonList();
-
-        if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-
-        Person personToEdit = lastShownList.get(index.getZeroBased());
+        Person personToEdit = target.resolve(model);
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
@@ -141,16 +124,14 @@ public class EditCommand extends Command {
             return false;
         }
 
-        return Objects.equals(index, otherEditCommand.index)
-                && Objects.equals(targetId, otherEditCommand.targetId)
+        return target.equals(otherEditCommand.target)
                 && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("index", index)
-                .add("targetId", targetId)
+                .add("target", target)
                 .add("editPersonDescriptor", editPersonDescriptor)
                 .toString();
     }

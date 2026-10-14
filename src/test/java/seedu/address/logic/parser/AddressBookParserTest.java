@@ -22,6 +22,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
@@ -61,7 +62,7 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_deleteById() throws Exception {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(DeleteCommand.COMMAND_WORD + " id/C1");
-        assertEquals(new DeleteCommand(new PersonId("C1")), command);
+        assertEquals(new DeleteCommand(PersonTarget.ofId(new PersonId("C1"))), command);
     }
 
     @Test
@@ -70,7 +71,7 @@ public class AddressBookParserTest {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " id/C1 "
                 + PersonUtil.getEditPersonDescriptorDetails(descriptor));
-        assertEquals(new EditCommand(new PersonId("C1"), descriptor), command);
+        assertEquals(new EditCommand(PersonTarget.ofId(new PersonId("C1")), descriptor), command);
     }
 
     @Test

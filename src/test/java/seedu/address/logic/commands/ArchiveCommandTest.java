@@ -9,6 +9,9 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
+import seedu.address.model.person.PersonId;
+
 /**
  * Tests the command value semantics and null input contract.
  */
@@ -21,18 +24,24 @@ public class ArchiveCommandTest {
         assertFalse(command.equals(new ArchiveCommand(INDEX_SECOND_PERSON)));
         assertFalse(command.equals(new DeleteCommand(INDEX_FIRST_PERSON)));
         assertFalse(command.equals(null));
+
+        ArchiveCommand byId = new ArchiveCommand(PersonTarget.ofId(new PersonId("C1")));
+        assertTrue(byId.equals(new ArchiveCommand(PersonTarget.ofId(new PersonId("C1")))));
+        assertFalse(byId.equals(new ArchiveCommand(PersonTarget.ofId(new PersonId("C2")))));
+        assertFalse(command.equals(byId));
     }
 
     @Test
     public void toString_includesTargetIndex() {
         ArchiveCommand command = new ArchiveCommand(INDEX_FIRST_PERSON);
-        assertEquals(ArchiveCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_PERSON + "}",
-                command.toString());
+        assertEquals(ArchiveCommand.class.getCanonicalName() + "{target=" + PersonTarget.ofIndex(INDEX_FIRST_PERSON)
+                + "}", command.toString());
     }
 
     @Test
     public void nullInputs_rejected() {
-        assertThrows(NullPointerException.class, () -> new ArchiveCommand(null));
+        assertThrows(NullPointerException.class, () -> new ArchiveCommand((Index) null));
+        assertThrows(NullPointerException.class, () -> new ArchiveCommand((PersonTarget) null));
         assertThrows(NullPointerException.class, () -> new ArchiveCommand(INDEX_FIRST_PERSON).execute(null));
     }
 }
