@@ -103,6 +103,20 @@ public class PersonTest {
     }
 
     @Test
+    public void archiveStatus_affectsEqualityButPreservesIdentityAndDetails() {
+        Person archived = ALICE.withArchived(true);
+        assertFalse(ALICE.equals(archived));
+        assertFalse(archived.equals(ALICE));
+        assertTrue(ALICE.isSamePerson(archived));
+        assertEquals(ALICE.getId(), archived.getId());
+        assertEquals(ALICE.getTags(), archived.getTags());
+        assertEquals(ALICE, archived.withArchived(false));
+        assertFalse(ALICE.isArchived());
+        assertEquals(archived, ALICE.withArchived(true));
+        assertEquals(archived.hashCode(), ALICE.withArchived(true).hashCode());
+    }
+
+    @Test
     public void getId() {
         assertEquals(Optional.of(new PersonId("C1")), ALICE.getId());
         assertEquals(Optional.empty(), new PersonBuilder().build().getId());
@@ -112,7 +126,8 @@ public class PersonTest {
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{id=" + ALICE.getId().get()
                 + ", name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+                + ", archived=false}";
         assertEquals(expected, ALICE.toString());
     }
 }
