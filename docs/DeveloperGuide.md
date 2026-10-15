@@ -155,6 +155,19 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Find feature
+
+`AddressBookParser` delegates `find` arguments to `FindCommandParser`, which selects one of two search modes. Both modes match consecutive substrings case-insensitively:
+
+* **Search across all fields:** When no recognised prefixes are present, the parser trims the input and passes it as one substring to `AnyFieldContainsSubstringPredicate`. This predicate searches `Person.toString()`, so the searchable details depend on that string representation.
+* **Search by field:** When prefixes are present, the parser creates an `EachFieldContainsSubstringPredicate`. Each substring is matched only against its corresponding field, and all specified conditions must match. Adding field or tag conditions therefore narrows the results. The parser rejects text before the first prefix and duplicate non-tag prefixes.
+
+For field searches, `ArgumentMultimap.getValue(...)` returns an `Optional<String>` for each of the name, phone, email, and address prefixes. The parser passes these objects directly into the predicate constructor. An absent prefix produces `Optional.empty()`, so the predicate skips that field; a present value is used as the field's substring. For example, `find n/Al e/example.com` supplies `Optional.of("Al")` and `Optional.of("example.com")` for name and email, with empty optionals for phone and address.
+
+Tags use `getAllValues(PREFIX_TAG)` instead, producing a `List<String>` to support repeated `t/` prefixes. Every tag substring must match at least one of the person's tags; an empty list imposes no tag restriction.
+
+Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons.
+
 ### Sort feature
 
 `AddressBookParser` delegates the arguments of a `sort` command to `SortCommandParser`. The parser validates the mandatory field and optional order, normalises both case-insensitively, defaults a missing order to ascending, and creates a `SortCommand`.
@@ -265,7 +278,7 @@ _{Explain here how the data archiving feature will be implemented}_
 
 --------------------------------------------------------------------------------------------------------------------
 
-## **Documentation, logging, testing, dev-ops**
+## **Documentation, logging, testing, dev-ops**FF
 
 * [Documentation guide](Documentation.md)
 * [Testing guide](Testing.md)
