@@ -123,6 +123,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* gives every `Person` a `PersonId` when it is added, using a counter of the next ID to give out (see [Contact ID feature](#contact-id-feature)).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -142,6 +143,7 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* saves each person's ID and the next ID to give out, so that IDs stay the same after a restart and are never reused.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -155,18 +157,98 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Contact ID feature
+
+Every contact has a `PersonId`, a whole number from 1 to `PersonId.MAX_VALUE` (999999). Commands that act on one contact, such as `edit`, `delete`, `tag`, `untag`, `archive` and `restore`, select the contact by this ID instead of by its position in the displayed list.
+
+#### Assigning IDs
+
+`AddressBook` holds a counter, `nextPersonId`, starting at 1. When `AddressBook#addPerson(Person)` receives a person without an ID, it gives the person the ID `nextPersonId` and moves the counter on. A person that already has an ID keeps it, and the counter moves past that ID if needed, so a new ID is always higher than every ID in use.
+
+The counter only moves forward. Deleting a person does not lower it, and `clear` creates the new, empty address book with the same counter, so a deleted ID is never given out again.
+
+`EditCommand`, `TagCommand`, `UntagCommand`, `ArchiveCommand` and `RestoreCommand` replace a person with an updated copy. Each copy keeps the original's ID, and `AddressBook#setPerson` rejects a copy whose ID differs.
+
+Once ID 999999 has been given out, the counter is 1000000 and `AddressBook#hasAvailablePersonId()` returns false. `AddCommand` checks `Model#hasAvailablePersonId()` and shows an error instead of adding the person. Because the largest ID is far below the largest `int`, the counter can never overflow and wrap around to an ID in use.
+
+#### Selecting a contact by ID
+
+1. The command's parser calls `ParserUtil#parsePersonTarget`, which reads the number before the first prefix, e.g. the `3` in `edit 3 p/91234567`. Anything that is not a whole number from 1 to 999999 gives the invalid command format message.
+1. The parser creates the command with a `PersonTarget` for that ID.
+1. When the command runs, `PersonTarget#resolve(Model)` calls `Model#findPersonById`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. If no contact has the ID, `resolve` throws a `CommandException` with `No contact has the ID 3.`
+
+New commands that act on one contact should use `parsePersonTarget` and `PersonTarget`, so that every command reads IDs the same way.
+
+#### Saving IDs
+
+`JsonAdaptedPerson` saves each ID as text, e.g. `"id" : "3"`, and `JsonSerializableAddressBook` saves the counter as `"nextPersonId"`. When the file is loaded:
+
+* The counter is raised above the highest saved ID if needed, so a hand-edited counter cannot cause an ID to be reused.
+* The file is rejected as invalid if two persons have the same ID, an ID is outside 1 to 999999, or `nextPersonId` is outside 1 to 1000000.
+* Persons saved without an ID (data from before IDs were added) are given new IDs, and `JsonAddressBookStorage` saves the file again straight away so that those IDs are kept.
+
+#### Design considerations
+
+**Aspect: How commands select a contact**
+
+* **Alternative 1 (current choice): A persistent ID.**
+  * Pros: The same number always means the same contact, whatever is displayed. A contact hidden by `find` or moved by `sort` can still be edited or deleted, and there is no risk of acting on the wrong contact after the list changes.
+  * Cons: Users read the ID from the card instead of counting positions, and IDs must be saved and kept unique.
+* **Alternative 2: The position in the displayed list (AB3's original design).**
+  * Pros: Nothing extra needs to be stored.
+  * Cons: The same number points to a different contact after `find`, `sort` or a deletion, so it is easy to edit or delete the wrong contact.
+
+**Aspect: Whether deleted IDs are reused**
+
+* **Alternative 1 (current choice): Never reuse IDs.**
+  * Pros: An ID that a journalist has noted down never points to a different contact later.
+  * Cons: IDs have gaps, and the limit of 999999 applies to every contact ever added, not just the ones currently stored.
+* **Alternative 2: Reuse the lowest free ID.**
+  * Pros: IDs stay small and have no gaps.
+  * Cons: An old ID can suddenly mean a different contact, which is the problem persistent IDs are meant to solve.
+
+### Tag and untag feature
+
+`TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonTarget` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
+
+When executed, both commands find the contact with `PersonTarget#resolve` and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
+
+`Tag` saves its name in lowercase, and tags are compared by that name. A contact's tags are a `Set<Tag>`, so adding a tag the contact already has, in any upper/lower case, does not create a second copy, and removing a tag matches it regardless of case.
+
+Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` change only the tags given.
+
+#### Design considerations
+
+**Aspect: How tags are added and removed**
+
+* **Alternative 1 (current choice): Separate `tag` and `untag` commands.**
+  * Pros: A journalist can add or remove one tag without retyping the contact's other tags.
+  * Cons: Two more commands to learn.
+* **Alternative 2: Only `edit t/…`.**
+  * Pros: Fewer commands.
+  * Cons: Changing one tag means retyping every other tag, and leaving one out removes it by mistake.
+
+**Aspect: Upper/lower case in tags**
+
+* **Alternative 1 (current choice): Save tags in lowercase.**
+  * Pros: `Expert` and `expert` are the same tag, so a contact cannot end up with both, and tags look consistent in the list.
+  * Cons: The capitalisation the journalist typed is lost.
+* **Alternative 2: Keep tags as typed.**
+  * Pros: Tags look exactly as typed.
+  * Cons: Every comparison would need to ignore case separately, or near-identical tags would pile up.
+
 ### Find feature
 
 `AddressBookParser` delegates `find` arguments to `FindCommandParser`, which selects one of two search modes. Both modes match consecutive substrings case-insensitively:
 
-* **Search across all fields:** When no recognised prefixes are present, the parser trims the input and passes it as one substring to `AnyFieldContainsSubstringPredicate`. This predicate searches `Person.toString()`, so the searchable details depend on that string representation.
+* **Search across all fields:** When no recognised prefixes are present, the parser trims the input and passes it as one substring to `AnyFieldContainsSubstringPredicate`. This predicate checks the name, phone number, email, address and each tag separately, and matches the person if the substring appears in any of them.
 * **Search by field:** When prefixes are present, the parser creates an `EachFieldContainsSubstringPredicate`. Each substring is matched only against its corresponding field, and all specified conditions must match. Adding field or tag conditions therefore narrows the results. The parser rejects text before the first prefix and duplicate non-tag prefixes.
 
 For field searches, `ArgumentMultimap.getValue(...)` returns an `Optional<String>` for each of the name, phone, email, and address prefixes. The parser passes these objects directly into the predicate constructor. An absent prefix produces `Optional.empty()`, so the predicate skips that field; a present value is used as the field's substring. For example, `find n/Al e/example.com` supplies `Optional.of("Al")` and `Optional.of("example.com")` for name and email, with empty optionals for phone and address.
 
 Tags use `getAllValues(PREFIX_TAG)` instead, producing a `List<String>` to support repeated `t/` prefixes. Every tag substring must match at least one of the person's tags; an empty list imposes no tag restriction.
 
-Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons.
+Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. Neither predicate checks the archive flag, so archived contacts appear in search results.
 
 ### Sort feature
 
@@ -174,7 +256,7 @@ Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. O
 
 When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `AddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the persistent `AddressBook` list.
 
-Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list` and commands that apply a new filter call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
+Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
 
 #### Design considerations
 
@@ -186,6 +268,27 @@ Text fields are compared case-insensitively, phone numbers numerically, and tags
 * **Alternative 2: Sort the stored contact list directly.**
   * Pros: The UI could display the reordered storage list without another view layer.
   * Cons: A display-only command would mutate persistent ordering, filtering would be harder to isolate, and the changed order could be saved unintentionally. This alternative was rejected because sorting is specified as a temporary presentation operation.
+
+### Archive feature
+
+Each `Person` has an `archived` flag, which is `false` for new contacts. `ArchiveCommand` and `RestoreCommand` select the contact by ID through `PersonTarget` (see [Contact ID feature](#contact-id-feature)), then replace it with a copy whose flag is `true` or `false`. All other fields, including the ID, are copied unchanged. Archiving a contact that is already archived, or restoring one that is not, throws a `CommandException` and changes nothing.
+
+`JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
+
+`ListCommandParser` turns `list active` and `list archived` into a `ListCommand` with the view `ACTIVE` or `ARCHIVED`. These views call `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`. Plain `list` uses `PREDICATE_SHOW_ALL_PERSONS`, so it still shows archived contacts.
+
+Other commands, such as `find`, `edit`, `tag` and `delete`, treat archived contacts like any other contact. `EditCommand`, `TagCommand` and `UntagCommand` copy the flag into the updated person, so changing a contact's details does not restore it.
+
+#### Design considerations
+
+**Aspect: How archived contacts are stored**
+
+* **Alternative 1 (current choice): A flag on each `Person`, in the same list as other contacts.**
+  * Pros: An archived contact keeps its ID and details, and every command that selects a contact by ID works on it unchanged.
+  * Cons: Every command that creates an updated `Person` must remember to copy the flag.
+* **Alternative 2: A separate list of archived contacts.**
+  * Pros: Active and archived contacts are clearly separated.
+  * Cons: Looking up an ID would have to search two lists, and archiving would move a contact between lists.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -205,7 +308,7 @@ Step 1. The user launches the application for the first time. The `VersionedAddr
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5` command to delete the contact with ID 5. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
@@ -271,14 +374,9 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
 --------------------------------------------------------------------------------------------------------------------
 
-## **Documentation, logging, testing, dev-ops**FF
+## **Documentation, logging, testing, dev-ops**
 
 * [Documentation guide](Documentation.md)
 * [Testing guide](Testing.md)
@@ -314,12 +412,17 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | journalist | add a new contact | keep track of people who may be useful for my reporting |
 | `* * *` | journalist | list my contacts | see the contacts I have saved |
 | `* * *` | journalist | delete a contact | remove contacts that I no longer need |
+| `* * *` | journalist | refer to a contact by a fixed ID | act on the right contact even after searching or sorting the list |
 | `* * *` | journalist | search for contacts by their details | quickly locate relevant contacts without going through the entire list |
 | `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
 | `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
 | `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
 | `* *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
+| `* *` | journalist | remove tags from a contact | keep a contact's tags accurate when their role or relevance changes |
+| `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
+| `* *` | journalist | restore an archived contact | work with that contact again |
+| `* *` | journalist | view only my active or only my archived contacts | focus on the contacts I need right now |
 
 ### Use cases
 
@@ -331,7 +434,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist requests to list persons
 2.  Byline shows a list of persons
-3.  Journalist requests to delete a specific person in the list
+3.  Journalist requests to delete a specific person by its ID
 4.  Byline deletes the person
 
     Use case ends.
@@ -342,9 +445,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The given ID is not a whole number from 1 to 999999.
 
-    * 3a1. Byline shows an error message.
+    * 3a1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 2.
+
+* 3b. No person has the given ID.
+
+    * 3b1. Byline shows an error message stating that no contact has that ID.
 
       Use case resumes at step 2.
 
@@ -354,14 +463,14 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1.  Journalist requests to add a contact, providing the contact's name, phone number, email, and optionally an address and tags
+1.  Journalist requests to add a contact, providing the contact's name, phone number, email and address, and optionally tags
 2.  Byline adds the contact and shows the details of the added contact
 
     Use case ends.
 
 **Extensions**
 
-* 1a. A compulsory detail (name, phone number or email) is missing.
+* 1a. A compulsory detail (name, phone number, email or address) is missing.
 
     * 1a1. Byline shows an error message stating the correct format.
 
@@ -373,11 +482,17 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1c. No address is given.
+* 1c. A contact with the same name already exists.
 
-    * 1c1. Byline records the address as "NA" and shows a warning that no address was given.
+    * 1c1. Byline shows an error message stating that the person already exists.
 
-      Use case resumes at step 2.
+      Use case resumes at step 1.
+
+* 1d. Every contact ID up to 999999 has been used.
+
+    * 1d1. Byline shows an error message stating that no more contacts can be added.
+
+      Use case ends.
 
 **Guarantees**
 
@@ -410,7 +525,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist requests to list contacts
 2.  Byline shows a list of contacts
-3.  Journalist requests to add one or more tags to a specific contact in the list
+3.  Journalist requests to add one or more tags to a specific contact by its ID
 4.  Byline adds the tags to the contact and shows the updated contact
 
     Use case ends.
@@ -421,23 +536,29 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The given ID is not valid, or no contact has that ID.
 
     * 3a1. Byline shows an error message.
 
       Use case resumes at step 2.
 
-* 3b. A given tag contains non-alphanumeric characters.
+* 3b. A given tag contains characters other than letters, numbers and spaces.
 
-    * 3b1. Byline shows an error message stating that tags must be alphanumeric.
+    * 3b1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
 
       Use case resumes at step 2.
 
 * 3c. The contact already has one of the given tags (ignoring upper/lower case).
 
-    * 3c1. Byline does not add the duplicate tag and informs the journalist that the contact already has it.
+    * 3c1. Byline keeps the existing tag and adds the remaining tags.
 
-      Use case resumes at step 4 for the remaining tags.
+      Use case resumes at step 4.
+
+* 3d. No tag is given.
+
+    * 3d1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 2.
 
 **Guarantees**
 
@@ -462,13 +583,17 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 2a. No contacts match all the given criteria.
+* 1b. Journalist gives search text without any prefix.
 
-    * 2a1. Byline shows an empty list and a message that no contacts were found.
+    * 1b1. Byline shows the contacts that have the text in any of their details.
 
       Use case ends.
 
-*{More to be added}*
+* 2a. No contacts match all the given criteria.
+
+    * 2a1. Byline shows an empty list and a message that 0 persons are listed.
+
+      Use case ends.
 
 **System:** Byline<br>
 **Use case:** UC06 - Sort displayed contacts<br>
@@ -508,6 +633,113 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     Use case resumes at step 1.
 
+**System:** Byline<br>
+**Use case:** UC07 - Archive a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list contacts
+2.  Byline shows a list of contacts
+3.  Journalist requests to archive a specific contact by its ID
+4.  Byline marks the contact as archived and shows the archived contact
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The given ID is not valid, or no contact has that ID.
+
+    * 3a1. Byline shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. The contact is already archived.
+
+    * 3b1. Byline shows an error message stating that the contact is already archived.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact's details and ID are unchanged.
+
+**System:** Byline<br>
+**Use case:** UC08 - Restore an archived contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list archived contacts
+2.  Byline shows the archived contacts
+3.  Journalist requests to restore a specific contact by its ID
+4.  Byline marks the contact as no longer archived and shows the restored contact
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. There are no archived contacts.
+
+  Use case ends.
+
+* 3a. The given ID is not valid, or no contact has that ID.
+
+    * 3a1. Byline shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. The contact is not archived.
+
+    * 3b1. Byline shows an error message stating that the contact is not archived.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact's details and ID are unchanged.
+
+**System:** Byline<br>
+**Use case:** UC09 - Remove tags from a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list contacts
+2.  Byline shows a list of contacts
+3.  Journalist requests to remove one or more tags from a specific contact by its ID
+4.  Byline removes the tags from the contact and shows the updated contact
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given ID is not valid, or no contact has that ID.
+
+    * 3a1. Byline shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. No tag is given.
+
+    * 3b1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 2.
+
+* 3c. A given tag contains characters other than letters, numbers and spaces.
+
+    * 3c1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact's other tags and details are unchanged.
+
 ### Non-Functional Requirements
 
 These requirements define the quality targets and operating constraints for ByLine.
@@ -530,7 +762,7 @@ These requirements define the quality targets and operating constraints for ByLi
    should save the updated data without a separate save action. Restarting ByLine should restore
    the saved contact details and tags.
 7. **Input reliability:** A command rejected because of invalid syntax, invalid field values, or
-   an invalid contact index should leave existing contact records unchanged and allow the user
+   an invalid or unknown contact ID should leave existing contact records unchanged and allow the user
    to enter another command without restarting ByLine.
 8. **Storage failure reporting:** If saving contact data fails, ByLine should show a visible error
    indicating that the save failed, rather than reporting the command as successfully completed.
@@ -550,12 +782,11 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Command prefix**: A marker that identifies the meaning of a command parameter, such as `n/` for a name or `t/` for a tag.
 * **Complete contact list**: All contacts stored in ByLine, regardless of the contacts currently displayed in the UI.
 * **Contact**: A person whose details a journalist stores in ByLine because the person may be relevant to current or future reporting.
-* **Contact index**: The one-based number assigned to a contact in the currently displayed contact list. Commands that accept an index operate on the contact at that position.
+* **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
 * **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
-* **Duplicate contact**: A contact whose normalised name is the same as that of an existing contact. Name comparison ignores letter case and leading, trailing, or repeated spaces.
+* **Duplicate contact**: A contact whose name is exactly the same as an existing contact's name, including upper/lower case and spaces. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
-* **Exact tag match**: A match that occurs only when the complete search value is equal to a contact's complete tag, ignoring letter case.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
 * **Filtered contact list**: The internal list of contacts that satisfy the current search criteria. It provides the data shown in the displayed contact list.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
@@ -563,11 +794,9 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Journalist**: The target user of ByLine, who manages professional contacts for reporting purposes and prefers a command-driven desktop application.
 * **Mainstream OS**: Windows, Linux, Unix, or macOS.
 * **MVP (Minimum Viable Product)**: The smallest set of features required for ByLine to provide its intended core value to journalists.
-* **Normalised name**: A contact name converted to a standard form for comparison by ignoring letter case and leading, trailing, or repeated spaces.
 * **Partial match**: A match that occurs when a search value appears within a stored field without being equal to the complete field value.
 * **Person**: The internal model entity used to represent a contact. This term is inherited from AB3 and appears in class names such as `Person` and `UniquePersonList`; user-facing documentation should use **contact** instead.
 * **Potential source**: A contact who may be able to provide information for a story but has not necessarily been approached or interviewed.
-* **Private contact detail**: Contact information that is not intended to be shown or shared with others.
 * **Search criterion**: A field and value used to restrict search results, such as a name, phone number, email address, address, or tag.
 * **Source**: A contact who provides, or may provide, information, evidence, background, or commentary for a journalist's reporting.
 * **Story**: A news article, investigation, or other reporting assignment on which a journalist is working.
@@ -605,20 +834,54 @@ testers are expected to do more *exploratory* testing.
 
 ### Deleting a person
 
-1. Deleting a person while all persons are being shown
+1. Deleting a person by ID
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: Multiple contacts exist. Note the ID shown on one contact's card, e.g. `ID: 2`.
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+   1. Test case: `delete 2`<br>
+      Expected: The contact with ID 2 is deleted, wherever it appears in the list. The status message shows the deleted contact's details.
+
+   1. Test case: Run `find` so that the contact with ID 3 is not shown, then enter `delete 3`.<br>
+      Expected: The contact with ID 3 is deleted even though it was not shown.
+
+   1. Test case: `delete 2` again<br>
+      Expected: Nothing is deleted. The status message is `No contact has the ID 2.`
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: Nothing is deleted. The status message shows the invalid command format message.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
+   1. Other incorrect delete commands to try: `delete`, `delete x`, `delete C3`, `delete 1000000`<br>
       Expected: Similar to previous.
 
+1. IDs are not reused
+
+   1. Test case: Delete the contact with the highest ID, then add a new contact.<br>
+      Expected: The new contact gets the next ID after the deleted one, not the deleted ID.
+
 1. _{ more test cases …​ }_
+
+### Finding contacts
+
+1. Searching all fields
+
+   1. Prerequisites: Start with the sample data.
+
+   1. Test case: `find yu`<br>
+      Expected: Only contacts with `yu` somewhere in their details, in any upper/lower case, are shown. The status message shows how many contacts are listed.
+
+   1. Test case: `find`<br>
+      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+
+1. Searching specific fields
+
+   1. Test case: `find n/al t/fri`<br>
+      Expected: Only contacts whose name contains `al` and that have a tag containing `fri` are shown.
+
+   1. Test case: `find hello n/Alex`<br>
+      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+
+   1. Test case: `find n/Al n/Be`<br>
+      Expected: The displayed list is unchanged. The status message says that `n/` was given more than once.
 
 ### Sorting displayed contacts
 
@@ -659,6 +922,62 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `sort name asc extra`<br>
       Expected: The displayed order is unchanged. The result shows `Invalid command format!` followed by `Usage: sort FIELD [ORDER]`.
+
+### Archiving and restoring contacts
+
+1. Archiving a contact
+
+   1. Prerequisites: A contact with ID 2 exists and is not archived.
+
+   1. Test case: `archive 2`<br>
+      Expected: The card for ID 2 shows `[Archived]` after the name. The status message shows the archived contact.
+
+   1. Test case: `archive 2` again<br>
+      Expected: Nothing changes. The status message is `This person is already archived.`
+
+   1. Test case: `list active`, then `list archived`, then `list`<br>
+      Expected: `list active` hides the contact with ID 2. `list archived` shows only archived contacts, including ID 2. `list` shows all contacts, including ID 2.
+
+   1. Test case: Close and reopen ByLine.<br>
+      Expected: The contact with ID 2 is still archived.
+
+1. Restoring a contact
+
+   1. Prerequisites: The contact with ID 2 is archived.
+
+   1. Test case: `restore 2`<br>
+      Expected: `[Archived]` disappears from the card. The status message shows the restored contact.
+
+   1. Test case: `restore 2` again<br>
+      Expected: Nothing changes. The status message is `This person is not archived.`
+
+### Tagging and untagging contacts
+
+1. Adding tags
+
+   1. Prerequisites: Start with the sample data, in which the contact with ID 2 has the tags `colleagues` and `friends`.
+
+   1. Test case: `tag 2 t/Expert t/housing policy`<br>
+      Expected: The card for ID 2 shows `colleagues`, `expert`, `friends` and `housing policy`. The status message shows the updated contact.
+
+   1. Test case: `tag 2`<br>
+      Expected: No tags are changed. The status message shows the invalid command format message.
+
+   1. Test case: `tag 2 t/#expert`<br>
+      Expected: No tags are changed. The status message is `Tag names should contain only letters, numbers and spaces`.
+
+   1. Test case: `tag 99 t/expert`, when no contact has ID 99<br>
+      Expected: No tags are changed. The status message is `No contact has the ID 99.`
+
+1. Removing tags
+
+   1. Prerequisites: The contact with ID 2 has the tags `colleagues`, `expert`, `friends` and `housing policy`.
+
+   1. Test case: `untag 2 t/EXPERT t/housing policy`<br>
+      Expected: The card for ID 2 shows only `colleagues` and `friends`.
+
+   1. Test case: `untag 2`<br>
+      Expected: No tags are changed. The status message shows the invalid command format message.
 
 ### Saving data
 
