@@ -43,7 +43,7 @@ public class AddressBookTest {
         assertEquals(5, addressBookWithCounter.getNextPersonId());
 
         addressBookWithCounter.addPerson(HOON);
-        assertEquals(new PersonId("C5"), addressBookWithCounter.getPersonList().get(0).getId().get());
+        assertEquals(new PersonId("5"), addressBookWithCounter.getPersonList().get(0).getId().get());
     }
 
     @Test
@@ -106,28 +106,28 @@ public class AddressBookTest {
         // the returned person is the stored copy, carrying its new ID
         assertEquals(addressBook.getPersonList().get(0), addedHoon);
 
-        assertEquals(new PersonId("C1"), addressBook.getPersonList().get(0).getId().get());
-        assertEquals(new PersonId("C2"), addressBook.getPersonList().get(1).getId().get());
+        assertEquals(new PersonId("1"), addressBook.getPersonList().get(0).getId().get());
+        assertEquals(new PersonId("2"), addressBook.getPersonList().get(1).getId().get());
         assertEquals(3, addressBook.getNextPersonId());
     }
 
     @Test
     public void addPerson_personWithId_keepsIdAndAdvancesCounter() {
-        addressBook.addPerson(GEORGE); // C7
+        addressBook.addPerson(GEORGE); // ID 7
         addressBook.addPerson(HOON);
 
         assertEquals(GEORGE, addressBook.getPersonList().get(0));
-        assertEquals(new PersonId("C8"), addressBook.getPersonList().get(1).getId().get());
+        assertEquals(new PersonId("8"), addressBook.getPersonList().get(1).getId().get());
     }
 
     @Test
     public void addPerson_afterRemovingHighestId_doesNotReuseId() {
-        addressBook.addPerson(HOON); // C1
-        addressBook.addPerson(IDA); // C2
+        addressBook.addPerson(HOON); // ID 1
+        addressBook.addPerson(IDA); // ID 2
         addressBook.removePerson(addressBook.getPersonList().get(1));
         addressBook.addPerson(AMY);
 
-        assertEquals(new PersonId("C3"), addressBook.getPersonList().get(1).getId().get());
+        assertEquals(new PersonId("3"), addressBook.getPersonList().get(1).getId().get());
     }
 
     @Test
@@ -139,8 +139,8 @@ public class AddressBookTest {
 
     @Test
     public void constructor_copy_keepsNextPersonId() {
-        addressBook.addPerson(HOON); // C1
-        addressBook.addPerson(IDA); // C2
+        addressBook.addPerson(HOON); // ID 1
+        addressBook.addPerson(IDA); // ID 2
         addressBook.removePerson(addressBook.getPersonList().get(1));
 
         AddressBook copy = new AddressBook(addressBook);
@@ -151,7 +151,7 @@ public class AddressBookTest {
     @Test
     public void setPerson_differentId_throwsIllegalArgumentException() {
         addressBook.addPerson(ALICE);
-        Person aliceWithDifferentId = new PersonBuilder(ALICE).withId("C99").build();
+        Person aliceWithDifferentId = new PersonBuilder(ALICE).withId("99").build();
         assertThrows(IllegalArgumentException.class, AddressBook.MESSAGE_PERSON_ID_CHANGED, () ->
                 addressBook.setPerson(ALICE, aliceWithDifferentId));
     }
@@ -159,13 +159,13 @@ public class AddressBookTest {
     @Test
     public void findPersonById_existingId_returnsPerson() {
         AddressBook typicalAddressBook = getTypicalAddressBook();
-        assertEquals(Optional.of(GEORGE), typicalAddressBook.findPersonById(new PersonId("C7")));
+        assertEquals(Optional.of(GEORGE), typicalAddressBook.findPersonById(new PersonId("7")));
     }
 
     @Test
     public void findPersonById_unknownId_returnsEmpty() {
-        AddressBook typicalAddressBook = getTypicalAddressBook(); // C1 to C7
-        assertEquals(Optional.empty(), typicalAddressBook.findPersonById(new PersonId("C8")));
+        AddressBook typicalAddressBook = getTypicalAddressBook(); // IDs 1 to 7
+        assertEquals(Optional.empty(), typicalAddressBook.findPersonById(new PersonId("8")));
     }
 
     @Test

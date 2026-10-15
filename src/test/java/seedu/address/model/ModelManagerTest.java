@@ -86,7 +86,7 @@ public class ModelManagerTest {
     @Test
     public void addPerson_personWithoutId_returnsPersonWithAssignedId() {
         Person addedPerson = modelManager.addPerson(new PersonBuilder().build());
-        assertEquals(new PersonId("C1"), addedPerson.getId().get());
+        assertEquals(new PersonId("1"), addedPerson.getId().get());
         assertEquals(List.of(addedPerson), modelManager.getFilteredPersonList());
     }
 
@@ -96,13 +96,13 @@ public class ModelManagerTest {
         typicalModelManager.updateFilteredPersonList(person -> person.isSamePerson(ALICE)); // only ALICE shown
 
         // BENSON is not displayed, but is still found
-        assertEquals(Optional.of(BENSON), typicalModelManager.findPersonById(new PersonId("C2")));
+        assertEquals(Optional.of(BENSON), typicalModelManager.findPersonById(new PersonId("2")));
     }
 
     @Test
     public void findPersonById_unknownId_returnsEmpty() {
         ModelManager typicalModelManager = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        assertEquals(Optional.empty(), typicalModelManager.findPersonById(new PersonId("C99")));
+        assertEquals(Optional.empty(), typicalModelManager.findPersonById(new PersonId("99")));
     }
 
     @Test

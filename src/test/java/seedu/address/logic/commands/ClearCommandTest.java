@@ -35,11 +35,11 @@ public class ClearCommandTest {
 
     @Test
     public void execute_nonEmptyAddressBook_doesNotReuseIds() {
-        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs()); // C1 to C7
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs()); // IDs 1 to 7
         new ClearCommand().execute(model);
         model.addPerson(HOON);
 
-        assertEquals(new PersonId("C8"), model.getAddressBook().getPersonList().get(0).getId().get());
+        assertEquals(new PersonId("8"), model.getAddressBook().getPersonList().get(0).getId().get());
     }
 
 }

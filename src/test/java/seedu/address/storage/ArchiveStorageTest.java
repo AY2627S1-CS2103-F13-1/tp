@@ -40,12 +40,12 @@ public class ArchiveStorageTest {
     public void read_missingArchivedField_defaultsToActive() throws Exception {
         Path path = testFolder.resolve("legacy.json");
         Files.writeString(path, """
-                {"nextPersonId": 2, "persons": [{"id": "C1", "name": "Alex", "phone": "91234567",
+                {"nextPersonId": 2, "persons": [{"id": "1", "name": "Alex", "phone": "91234567",
                   "email": "alex@example.com", "address": "Singapore", "tags": []}]}
                 """);
         Person loaded = new JsonAddressBookStorage(path).readAddressBook().orElseThrow().getPersonList().get(0);
         assertFalse(loaded.isArchived());
-        assertEquals("C1", loaded.getId().orElseThrow().toString());
+        assertEquals("1", loaded.getId().orElseThrow().toString());
     }
 
     @Test
@@ -58,7 +58,7 @@ public class ArchiveStorageTest {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(path);
         Person loaded = storage.readAddressBook().orElseThrow().getPersonList().get(0);
         assertTrue(loaded.isArchived());
-        assertEquals("C1", loaded.getId().orElseThrow().toString());
+        assertEquals("1", loaded.getId().orElseThrow().toString());
         assertEquals(loaded, storage.readAddressBook().orElseThrow().getPersonList().get(0));
     }
 

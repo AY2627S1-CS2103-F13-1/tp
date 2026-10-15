@@ -48,14 +48,14 @@ public class JsonSerializableAddressBookTest {
     public void toModelType_legacyFileWithoutIds_assignsIdsInOrder() throws Exception {
         JsonSerializableAddressBook dataFromFile = readFile(LEGACY_TYPICAL_PERSONS_FILE);
         assertTrue(dataFromFile.needsUpgrade());
-        // persons are assigned C1, C2, ... in file order, matching the typical address book
+        // persons are assigned IDs 1, 2, ... in file order, matching the typical address book
         assertEquals(TypicalPersons.getTypicalAddressBook(), dataFromFile.toModelType());
     }
 
     @Test
     public void toModelType_highestIdDeleted_keepsSavedNextPersonId() throws Exception {
         AddressBook addressBookFromFile = readFile(DELETED_HIGHEST_ID_FILE).toModelType();
-        // not reconstructed from the highest remaining ID (C2), so C3 is not reused
+        // not reconstructed from the highest remaining ID (2), so ID 3 is not reused
         assertEquals(4, addressBookFromFile.getNextPersonId());
     }
 
@@ -71,8 +71,8 @@ public class JsonSerializableAddressBookTest {
         assertTrue(dataFromFile.needsUpgrade());
 
         AddressBook addressBookFromFile = dataFromFile.toModelType();
-        assertEquals(new PersonId("C6"), addressBookFromFile.getPersonList().get(0).getId().get());
-        assertEquals(new PersonId("C5"), addressBookFromFile.getPersonList().get(1).getId().get());
+        assertEquals(new PersonId("6"), addressBookFromFile.getPersonList().get(0).getId().get());
+        assertEquals(new PersonId("5"), addressBookFromFile.getPersonList().get(1).getId().get());
         assertEquals(7, addressBookFromFile.getNextPersonId());
     }
 

@@ -28,8 +28,8 @@ public class PersonIdTest {
 
     @Test
     public void constructor_validValue_matchesStringForm() {
-        assertEquals(new PersonId("C42"), new PersonId(42));
-        assertEquals(42, new PersonId("C42").getValue());
+        assertEquals(new PersonId("42"), new PersonId(42));
+        assertEquals(42, new PersonId("42").getValue());
     }
 
     @Test
@@ -40,35 +40,33 @@ public class PersonIdTest {
         // invalid person IDs
         assertFalse(PersonId.isValidPersonId("")); // empty string
         assertFalse(PersonId.isValidPersonId(" ")); // spaces only
-        assertFalse(PersonId.isValidPersonId("C")); // missing number
-        assertFalse(PersonId.isValidPersonId("c42")); // lowercase prefix
-        assertFalse(PersonId.isValidPersonId("C0")); // zero
-        assertFalse(PersonId.isValidPersonId("C042")); // leading zero
-        assertFalse(PersonId.isValidPersonId("C-1")); // negative number
-        assertFalse(PersonId.isValidPersonId("42")); // missing prefix
-        assertFalse(PersonId.isValidPersonId("C4 2")); // spaces within number
-        assertFalse(PersonId.isValidPersonId(" C42")); // leading space
-        assertFalse(PersonId.isValidPersonId("C42 ")); // trailing space
-        assertFalse(PersonId.isValidPersonId("ID42")); // unrelated prefix
-        assertFalse(PersonId.isValidPersonId("C4a")); // alphabets within number
-        assertFalse(PersonId.isValidPersonId("C99999999999")); // too large
+        assertFalse(PersonId.isValidPersonId("0")); // zero
+        assertFalse(PersonId.isValidPersonId("042")); // leading zero
+        assertFalse(PersonId.isValidPersonId("-1")); // negative number
+        assertFalse(PersonId.isValidPersonId("+1")); // plus sign
+        assertFalse(PersonId.isValidPersonId("C42")); // old format with a C prefix
+        assertFalse(PersonId.isValidPersonId("4 2")); // spaces within number
+        assertFalse(PersonId.isValidPersonId(" 42")); // leading space
+        assertFalse(PersonId.isValidPersonId("42 ")); // trailing space
+        assertFalse(PersonId.isValidPersonId("4a")); // alphabets within number
+        assertFalse(PersonId.isValidPersonId("2147483648")); // too large
 
         // valid person IDs
-        assertTrue(PersonId.isValidPersonId("C1")); // smallest ID
-        assertTrue(PersonId.isValidPersonId("C42"));
-        assertTrue(PersonId.isValidPersonId("C2147483647")); // largest ID
+        assertTrue(PersonId.isValidPersonId("1")); // smallest ID
+        assertTrue(PersonId.isValidPersonId("42"));
+        assertTrue(PersonId.isValidPersonId("2147483647")); // largest ID
     }
 
     @Test
     public void toStringMethod() {
-        assertEquals("C42", new PersonId("C42").toString());
-        assertEquals("C7", new PersonId(7).toString());
+        assertEquals("42", new PersonId("42").toString());
+        assertEquals("7", new PersonId(7).toString());
     }
 
     @Test
     public void compareTo() {
-        PersonId smaller = new PersonId("C2");
-        PersonId larger = new PersonId("C10");
+        PersonId smaller = new PersonId("2");
+        PersonId larger = new PersonId("10");
 
         // numeric, not lexicographic, ordering
         assertTrue(smaller.compareTo(larger) < 0);
@@ -80,11 +78,11 @@ public class PersonIdTest {
 
     @Test
     public void equals() {
-        PersonId personId = new PersonId("C42");
+        PersonId personId = new PersonId("42");
 
         // same values -> returns true
-        assertTrue(personId.equals(new PersonId("C42")));
-        assertEquals(personId.hashCode(), new PersonId("C42").hashCode());
+        assertTrue(personId.equals(new PersonId("42")));
+        assertEquals(personId.hashCode(), new PersonId("42").hashCode());
 
         // same object -> returns true
         assertTrue(personId.equals(personId));
@@ -96,6 +94,6 @@ public class PersonIdTest {
         assertFalse(personId.equals(5.0f));
 
         // different values -> returns false
-        assertFalse(personId.equals(new PersonId("C43")));
+        assertFalse(personId.equals(new PersonId("43")));
     }
 }
