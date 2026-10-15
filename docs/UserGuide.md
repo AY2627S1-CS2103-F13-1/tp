@@ -30,7 +30,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete 3` : Deletes the contact with ID 3. Each contact's ID is shown as `ID: 3` on its card.
 
    * `clear` : Deletes all contacts.
 
@@ -64,6 +64,17 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
 
+### Contact IDs
+
+Every contact has an ID, a whole number shown as `ID: 3` on the contact's card. Commands that act on one contact, such as `edit` and `delete`, use this ID to pick the contact.
+
+* A new contact gets the next unused ID. The first contact is `1`, the next is `2`, and so on.
+* A contact keeps its ID for good. The ID does not change when you use `find`, `sort` or `list`, archive the contact, or restart ByLine.
+* Commands find the contact by its ID even if it is not in the list currently shown, e.g. after a `find`.
+* IDs are never reused. After you delete a contact or run `clear`, the next new contact still gets a new ID.
+* Type the ID as a plain number, e.g. `delete 3`.
+* IDs go up to 999999. Because IDs are never reused, no more contacts can be added once ID 999999 has been given out.
+
 ### Viewing help: `help`
 
 Shows a message explaining how to access the help page.
@@ -78,6 +89,9 @@ Format: `help`
 Adds a person to the address book.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
+
+* The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
+* If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero.
@@ -97,17 +111,18 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
+Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
+* Edits the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
+* If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is changed.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the contact with ID 1 to be `91234567` and `johndoe@example.com` respectively.
+*  `edit 2 n/Betsy Crower t/` Edits the name of the contact with ID 2 to be `Betsy Crower` and clears all existing tags.
 
 ### Finding persons: `find`
 
@@ -197,21 +212,24 @@ Invalid examples:
 
 Deletes the specified person from the address book.
 
-Format: `delete INDEX`
+Format: `delete ID`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, …​
+* Deletes the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
+* The contact is deleted even if it is not in the list currently shown.
+* If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is deleted.
+* The deleted contact's ID is never given to another contact.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `delete 2` deletes the contact with ID 2.
+* `find Betsy` shows the matching contacts with their IDs. If Betsy's card shows `ID: 5`, `delete 5` deletes that contact.
 
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
 
 Format: `clear`
+
+IDs are not reset: the next contact you add still gets a new ID.
 
 ### Exiting the program: `exit`
 
@@ -226,6 +244,8 @@ ByLine automatically saves data after every command. You do not need to save man
 ### Editing the data file
 
 ByLine data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+
+Each contact in the file has an `id`, and the file has a `nextPersonId`, which is the ID the next new contact will get. Do not change these. Changing them can make ByLine reuse old IDs, or make the data file invalid, for example if two contacts have the same ID or an ID is above 999999.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, ByLine starts with an empty address book at the next run. The invalid file remains on disk until you run a command (ByLine saves after every command). Still, we recommend backing up the file before editing it.<br>
@@ -258,8 +278,8 @@ Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
 **Clear** | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
+**Delete** | `delete ID`<br> e.g., `delete 3`
+**Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find SUBSTRING` or `find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak` or `find n/Al t/fri`
 **List** | `list`
 **Help** | `help`
