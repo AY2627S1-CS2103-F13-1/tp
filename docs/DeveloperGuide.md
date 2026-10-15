@@ -239,6 +239,27 @@ Text fields are compared case-insensitively, phone numbers numerically, and tags
   * Pros: The UI could display the reordered storage list without another view layer.
   * Cons: A display-only command would mutate persistent ordering, filtering would be harder to isolate, and the changed order could be saved unintentionally. This alternative was rejected because sorting is specified as a temporary presentation operation.
 
+### Archive feature
+
+Each `Person` has an `archived` flag, which is `false` for new contacts. `ArchiveCommand` and `RestoreCommand` select the contact by ID through `PersonTarget` (see [Contact ID feature](#contact-id-feature)), then replace it with a copy whose flag is `true` or `false`. All other fields, including the ID, are copied unchanged. Archiving a contact that is already archived, or restoring one that is not, throws a `CommandException` and changes nothing.
+
+`JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
+
+`ListCommandParser` turns `list active` and `list archived` into a `ListCommand` with the view `ACTIVE` or `ARCHIVED`. These views call `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`. Plain `list` uses `PREDICATE_SHOW_ALL_PERSONS`, so it still shows archived contacts.
+
+Other commands, such as `find`, `edit`, `tag` and `delete`, treat archived contacts like any other contact. `EditCommand`, `TagCommand` and `UntagCommand` copy the flag into the updated person, so changing a contact's details does not restore it.
+
+#### Design considerations
+
+**Aspect: How archived contacts are stored**
+
+* **Alternative 1 (current choice): A flag on each `Person`, in the same list as other contacts.**
+  * Pros: An archived contact keeps its ID and details, and every command that selects a contact by ID works on it unchanged.
+  * Cons: Every command that creates an updated `Person` must remember to copy the flag.
+* **Alternative 2: A separate list of archived contacts.**
+  * Pros: Active and archived contacts are clearly separated.
+  * Cons: Looking up an ID would have to search two lists, and archiving would move a contact between lists.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -373,6 +394,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
 | `* *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
+| `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
+| `* *` | journalist | restore an archived contact | work with that contact again |
+| `* *` | journalist | view only my active or only my archived contacts | focus on the contacts I need right now |
 
 ### Use cases
 
@@ -567,6 +591,72 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     Use case resumes at step 1.
 
+**System:** Byline<br>
+**Use case:** UC07 - Archive a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list contacts
+2.  Byline shows a list of contacts
+3.  Journalist requests to archive a specific contact by its ID
+4.  Byline marks the contact as archived and shows the archived contact
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The given ID is not valid, or no contact has that ID.
+
+    * 3a1. Byline shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. The contact is already archived.
+
+    * 3b1. Byline shows an error message stating that the contact is already archived.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact's details and ID are unchanged.
+
+**System:** Byline<br>
+**Use case:** UC08 - Restore an archived contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list archived contacts
+2.  Byline shows the archived contacts
+3.  Journalist requests to restore a specific contact by its ID
+4.  Byline marks the contact as no longer archived and shows the restored contact
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. There are no archived contacts.
+
+  Use case ends.
+
+* 3a. The given ID is not valid, or no contact has that ID.
+
+    * 3a1. Byline shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. The contact is not archived.
+
+    * 3b1. Byline shows an error message stating that the contact is not archived.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact's details and ID are unchanged.
+
 ### Non-Functional Requirements
 
 These requirements define the quality targets and operating constraints for ByLine.
@@ -729,6 +819,34 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `sort name asc extra`<br>
       Expected: The displayed order is unchanged. The result shows `Invalid command format!` followed by `Usage: sort FIELD [ORDER]`.
+
+### Archiving and restoring contacts
+
+1. Archiving a contact
+
+   1. Prerequisites: A contact with ID 2 exists and is not archived.
+
+   1. Test case: `archive 2`<br>
+      Expected: The card for ID 2 shows `[Archived]` after the name. The status message shows the archived contact.
+
+   1. Test case: `archive 2` again<br>
+      Expected: Nothing changes. The status message is `This person is already archived.`
+
+   1. Test case: `list active`, then `list archived`, then `list`<br>
+      Expected: `list active` hides the contact with ID 2. `list archived` shows only archived contacts, including ID 2. `list` shows all contacts, including ID 2.
+
+   1. Test case: Close and reopen ByLine.<br>
+      Expected: The contact with ID 2 is still archived.
+
+1. Restoring a contact
+
+   1. Prerequisites: The contact with ID 2 is archived.
+
+   1. Test case: `restore 2`<br>
+      Expected: `[Archived]` disappears from the card. The status message shows the restored contact.
+
+   1. Test case: `restore 2` again<br>
+      Expected: Nothing changes. The status message is `This person is not archived.`
 
 ### Saving data
 

@@ -58,7 +58,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -101,11 +101,15 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing all persons: `list`
+### Listing contacts: `list`
 
-Shows a list of all persons in the address book.
+Shows contacts in the address book.
 
-Format: `list`
+Formats:
+
+* `list` shows all contacts, including archived ones.
+* `list active` shows only contacts that are not archived.
+* `list archived` shows only archived contacts.
 
 ### Editing a person: `edit`
 
@@ -223,6 +227,33 @@ Examples:
 * `delete 2` deletes the contact with ID 2.
 * `find Betsy` shows the matching contacts with their IDs. If Betsy's card shows `ID: 5`, `delete 5` deletes that contact.
 
+### Archiving a contact: `archive`
+
+Archives a contact you are no longer working with, without deleting it.
+
+Format: `archive ID`
+
+* Archives the contact with the given `ID`. See [Contact IDs](#contact-ids).
+* An archived contact keeps all its details and its ID. Its card shows `[Archived]` after the name.
+* Archived contacts are still shown by `list` and `find`. Use `list active` to hide them, or `list archived` to see only them.
+* An archived contact can still be edited, tagged or deleted.
+* If the contact is already archived, ByLine shows `This person is already archived.`
+
+Examples:
+* `archive 4` archives the contact with ID 4.
+
+### Restoring an archived contact: `restore`
+
+Restores an archived contact, so that it is no longer archived.
+
+Format: `restore ID`
+
+* Restores the contact with the given `ID`. See [Contact IDs](#contact-ids).
+* If the contact is not archived, ByLine shows `This person is not archived.`
+
+Examples:
+* `list archived` shows the archived contacts. If one of them shows `ID: 4`, `restore 4` restores it.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -277,10 +308,12 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Archive** | `archive ID`<br> e.g., `archive 4`
 **Clear** | `clear`
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find SUBSTRING` or `find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak` or `find n/Al t/fri`
-**List** | `list`
+**List** | `list`, `list active` or `list archived`
 **Help** | `help`
+**Restore** | `restore ID`<br> e.g., `restore 4`
 **Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
