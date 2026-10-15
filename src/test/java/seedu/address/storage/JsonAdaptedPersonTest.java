@@ -21,7 +21,7 @@ import seedu.address.model.person.PersonId;
 import seedu.address.model.person.Phone;
 
 public class JsonAdaptedPersonTest {
-    private static final String INVALID_ID = "c2";
+    private static final String INVALID_ID = "C2"; // the old format with a C prefix
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";

@@ -3,7 +3,7 @@
   "nextPersonId" : 3,
   "persons" : [
     {
-      "id" : "C1",
+      "id" : "1",
       "name" : "Alice Pauline",
       "phone" : "94351253",
       "email" : "alice@example.com",
@@ -11,7 +11,7 @@
       "tags" : [ ]
     },
     {
-      "id" : "C5",
+      "id" : "5",
       "name" : "Benson Meier",
       "phone" : "98765432",
       "email" : "johnd@example.com",

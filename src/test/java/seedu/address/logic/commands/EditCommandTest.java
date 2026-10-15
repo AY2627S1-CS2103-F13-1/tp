@@ -75,7 +75,7 @@ public class EditCommandTest {
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Person editedPerson = new PersonBuilder().withId("C1").build(); // keeps ALICE's ID
+        Person editedPerson = new PersonBuilder().withId("1").build(); // keeps ALICE's ID
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(TARGET_ALICE, descriptor);
 

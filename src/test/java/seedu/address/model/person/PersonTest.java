@@ -96,7 +96,7 @@ public class PersonTest {
         assertFalse(ALICE.equals(editedAlice));
 
         // different ID -> returns false
-        editedAlice = new PersonBuilder(ALICE).withId("C99").build();
+        editedAlice = new PersonBuilder(ALICE).withId("99").build();
         assertFalse(ALICE.equals(editedAlice));
 
         // ID vs no ID -> returns false
@@ -153,7 +153,7 @@ public class PersonTest {
 
     @Test
     public void getId() {
-        assertEquals(Optional.of(new PersonId("C1")), ALICE.getId());
+        assertEquals(Optional.of(new PersonId("1")), ALICE.getId());
         assertEquals(Optional.empty(), new PersonBuilder().build().getId());
     }
 

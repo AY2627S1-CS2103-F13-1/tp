@@ -9,29 +9,27 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class PersonId implements Comparable<PersonId> {
 
-    public static final String PREFIX = "C";
     public static final String MESSAGE_CONSTRAINTS =
-            "Contact IDs should be an uppercase 'C' followed by a positive whole number without leading zeros, "
-            + "e.g. C1 or C42";
-    public static final String VALIDATION_REGEX = PREFIX + "[1-9]\\d*";
+            "Contact IDs should be a positive whole number without leading zeros, e.g. 1 or 42";
+    public static final String VALIDATION_REGEX = "[1-9]\\d*";
 
     private final int value;
 
     /**
-     * Constructs a {@code PersonId} from its display form.
+     * Constructs a {@code PersonId} from its text form.
      *
-     * @param id A valid person ID, e.g. "C42".
+     * @param id A valid person ID, e.g. "42".
      */
     public PersonId(String id) {
         requireNonNull(id);
         checkArgument(isValidPersonId(id), MESSAGE_CONSTRAINTS);
-        value = Integer.parseInt(id.substring(PREFIX.length()));
+        value = Integer.parseInt(id);
     }
 
     /**
      * Constructs a {@code PersonId} from its numeric value.
      *
-     * @param value A positive number, e.g. 42 for "C42".
+     * @param value A positive number, e.g. 42.
      */
     public PersonId(int value) {
         checkArgument(value > 0, MESSAGE_CONSTRAINTS);
@@ -47,7 +45,7 @@ public class PersonId implements Comparable<PersonId> {
         }
 
         try {
-            Integer.parseInt(test.substring(PREFIX.length()));
+            Integer.parseInt(test);
             return true;
         } catch (NumberFormatException nfe) {
             return false; // number is too large to fit in an int
@@ -65,7 +63,7 @@ public class PersonId implements Comparable<PersonId> {
 
     @Override
     public String toString() {
-        return PREFIX + value;
+        return String.valueOf(value);
     }
 
     @Override

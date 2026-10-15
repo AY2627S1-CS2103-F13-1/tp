@@ -42,7 +42,7 @@ public class AddCommandTest {
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
 
         // the message shows the person with the ID assigned by the model
-        Person addedPerson = new PersonBuilder(validPerson).withId("C1").build();
+        Person addedPerson = new PersonBuilder(validPerson).withId("1").build();
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(addedPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
@@ -198,7 +198,7 @@ public class AddCommandTest {
             requireNonNull(person);
             personsAdded.add(person);
             // like the real model, return the stored person with an assigned ID
-            return new PersonBuilder(person).withId("C" + personsAdded.size()).build();
+            return new PersonBuilder(person).withId(String.valueOf(personsAdded.size())).build();
         }
 
         @Override
