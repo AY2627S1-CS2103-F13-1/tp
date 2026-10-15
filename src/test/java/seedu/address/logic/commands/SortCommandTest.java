@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.CARL;
@@ -26,6 +25,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.person.SortField;
 import seedu.address.model.person.SortOrder;
 import seedu.address.testutil.AddressBookBuilder;
@@ -133,16 +133,18 @@ public class SortCommandTest {
     }
 
     @Test
-    public void execute_indexBasedCommandAfterSort_usesSortedDisplayedOrder() throws Exception {
+    public void execute_idBasedCommandAfterSort_ignoresDisplayedOrder() throws Exception {
         new SortCommand(SortField.NAME, SortOrder.DESCENDING).execute(model);
         Person firstDisplayedPerson = model.getFilteredPersonList().get(0);
 
-        CommandResult result = new DeleteCommand(INDEX_FIRST_PERSON).execute(model);
+        // ID 1 is ALICE, even though GEORGE is now displayed first
+        CommandResult result = new DeleteCommand(PersonTarget.ofId(new PersonId(1))).execute(model);
 
         assertEquals(GEORGE, firstDisplayedPerson);
-        assertEquals(String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(GEORGE)),
+        assertEquals(String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(ALICE)),
                 result.getFeedbackToUser());
-        assertFalse(model.hasPerson(GEORGE));
+        assertFalse(model.hasPerson(ALICE));
+        assertTrue(model.hasPerson(GEORGE));
     }
 
     @Test

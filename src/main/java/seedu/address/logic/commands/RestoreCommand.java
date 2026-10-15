@@ -1,9 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -11,17 +9,16 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Restores a contact identified by its index in the currently displayed list or by its ID.
+ * Restores a contact identified by its ID.
  */
 public class RestoreCommand extends Command {
 
     public static final String COMMAND_WORD = "restore";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Restores the person identified by the index number used in the displayed person list, "
-            + "or by its ID.\n"
-            + "Parameters: INDEX (must be a positive integer) or " + PREFIX_ID + "ID\n"
-            + "Example: " + COMMAND_WORD + " 1 or " + COMMAND_WORD + " " + PREFIX_ID + "C3";
+            + ": Restores the contact with the given ID (shown as \"ID: 3\" on its card).\n"
+            + "Parameters: ID (must be a positive whole number)\n"
+            + "Example: " + COMMAND_WORD + " 3";
 
     public static final String MESSAGE_RESTORE_PERSON_SUCCESS = "Restored person: %1$s";
 
@@ -34,13 +31,6 @@ public class RestoreCommand extends Command {
      */
     public RestoreCommand(PersonTarget target) {
         this.target = requireNonNull(target);
-    }
-
-    /**
-     * Creates a RestoreCommand to restore the person at {@code targetIndex} in the displayed person list.
-     */
-    public RestoreCommand(Index targetIndex) {
-        this(PersonTarget.ofIndex(targetIndex));
     }
 
     @Override

@@ -6,7 +6,6 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +40,8 @@ import seedu.address.testutil.PersonUtil;
 
 public class AddressBookParserTest {
 
+    private static final PersonId TARGET_FIRST_ID = new PersonId(1);
+
     private final AddressBookParser parser = new AddressBookParser();
 
     @Test
@@ -59,23 +60,8 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_delete() throws Exception {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(
-                DeleteCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased());
-        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), command);
-    }
-
-    @Test
-    public void parseCommand_deleteById() throws Exception {
-        DeleteCommand command = (DeleteCommand) parser.parseCommand(DeleteCommand.COMMAND_WORD + " id/C1");
-        assertEquals(new DeleteCommand(PersonTarget.ofId(new PersonId("C1"))), command);
-    }
-
-    @Test
-    public void parseCommand_editById() throws Exception {
-        Person person = new PersonBuilder().build();
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
-        EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " id/C1 "
-                + PersonUtil.getEditPersonDescriptorDetails(descriptor));
-        assertEquals(new EditCommand(PersonTarget.ofId(new PersonId("C1")), descriptor), command);
+                DeleteCommand.COMMAND_WORD + " " + TARGET_FIRST_ID.getValue());
+        assertEquals(new DeleteCommand(PersonTarget.ofId(TARGET_FIRST_ID)), command);
     }
 
     @Test
@@ -83,9 +69,9 @@ public class AddressBookParserTest {
         Person person = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
-                + INDEX_FIRST_PERSON.getOneBased() + " "
+                + TARGET_FIRST_ID.getValue() + " "
                 + PersonUtil.getEditPersonDescriptorDetails(descriptor));
-        assertEquals(new EditCommand(INDEX_FIRST_PERSON, descriptor), command);
+        assertEquals(new EditCommand(PersonTarget.ofId(TARGET_FIRST_ID), descriptor), command);
     }
 
     @Test
@@ -151,13 +137,13 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_tag() throws Exception {
-        assertEquals(new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("expert"))),
+        assertEquals(new TagCommand(PersonTarget.ofId(TARGET_FIRST_ID), Set.of(new Tag("expert"))),
                 parser.parseCommand("tag 1 t/expert"));
     }
 
     @Test
     public void parseCommand_untag() throws Exception {
-        assertEquals(new UntagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("expert"))),
+        assertEquals(new UntagCommand(PersonTarget.ofId(TARGET_FIRST_ID), Set.of(new Tag("expert"))),
                 parser.parseCommand("untag 1 t/expert"));
     }
 }

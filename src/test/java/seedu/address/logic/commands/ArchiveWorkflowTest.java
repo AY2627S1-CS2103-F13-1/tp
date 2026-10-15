@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.GEORGE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Comparator;
@@ -51,10 +52,10 @@ public class ArchiveWorkflowTest {
     }
 
     @Test
-    public void archive_filteredList_targetsDisplayedPerson() throws Exception {
+    public void archive_filteredList_targetsId() throws Exception {
         execute("find Benson");
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
-        execute("archive 1");
+        execute("archive 2");
         assertEquals(List.of(new PersonBuilder(BENSON).withArchiveStatus(true).build()), model.getFilteredPersonList());
         assertEquals(ALICE, model.getAddressBook().getPersonList().get(0));
         assertEquals(new PersonBuilder(BENSON).withArchiveStatus(true).build(),
@@ -62,17 +63,19 @@ public class ArchiveWorkflowTest {
     }
 
     @Test
-    public void archiveAndRestore_sortedList_targetsDisplayedPerson() throws Exception {
+    public void archiveAndRestore_sortedList_targetsId() throws Exception {
         execute("list active");
         model.sortFilteredPersonList(Comparator.comparing((Person person) -> person.getName().fullName).reversed());
-        Person target = model.getFilteredPersonList().get(0);
+        // GEORGE (ID 7) is displayed first, but the IDs select ALICE (ID 1) and BENSON (ID 2)
+        assertEquals(GEORGE, model.getFilteredPersonList().get(0));
         execute("archive 1");
-        execute("archive 1");
+        execute("archive 2");
         execute("list archived");
         model.sortFilteredPersonList(Comparator.comparing((Person person) -> person.getName().fullName).reversed());
-        assertEquals(new PersonBuilder(target).withArchiveStatus(true).build(), model.getFilteredPersonList().get(0));
+        assertEquals(List.of(new PersonBuilder(BENSON).withArchiveStatus(true).build(),
+                new PersonBuilder(ALICE).withArchiveStatus(true).build()), model.getFilteredPersonList());
         execute("restore 1");
-        assertTrue(model.getAddressBook().getPersonList().contains(target));
+        assertTrue(model.getAddressBook().getPersonList().contains(ALICE));
         assertEquals(1, model.getFilteredPersonList().size());
     }
 
@@ -118,30 +121,29 @@ public class ArchiveWorkflowTest {
     }
 
     @Test
-    public void archiveAndRestore_outOfBounds_doesNotChangeData() throws Exception {
+    public void archiveAndRestore_unknownId_doesNotChangeData() throws Exception {
         AddressBook before = new AddressBook(model.getAddressBook());
-        assertThrows(CommandException.class, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
-                execute("archive 8"));
+        String expectedMessage = String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, 8);
+        assertThrows(CommandException.class, expectedMessage, () -> execute("archive 8"));
         execute("list archived");
-        assertThrows(CommandException.class, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
-                execute("restore 1"));
+        assertThrows(CommandException.class, expectedMessage, () -> execute("restore 8"));
         assertEquals(before, model.getAddressBook());
     }
 
     @Test
     public void parser_invalidArchiveArguments_rejected() {
         for (String command : List.of("archive", "restore")) {
-            for (String args : List.of("", " 0", " -1", " C1", " abc", " 1 2", " 2147483648")) {
+            for (String args : List.of("", " 0", " -1", " C1", " id/1", " abc", " 1 2", " 2147483648")) {
                 assertThrows(ParseException.class, () -> parser.parseCommand(command + args));
             }
         }
     }
 
     @Test
-    public void delete_archiveView_deletesDisplayedArchivedContact() throws Exception {
+    public void delete_archivedContact_deletedById() throws Exception {
         execute("archive 2");
         execute("list archived");
-        execute("delete 1");
+        execute("delete 2");
         assertFalse(model.hasPerson(BENSON));
         assertTrue(model.hasPerson(ALICE));
     }
@@ -149,13 +151,13 @@ public class ArchiveWorkflowTest {
     @Test
     public void archiveAndRestoreById_fromActiveView() throws Exception {
         execute("list active");
-        execute("archive id/C2");
+        execute("archive 2");
         Person archivedBenson = new PersonBuilder(BENSON).withArchiveStatus(true).build();
         assertEquals(archivedBenson, model.getAddressBook().getPersonList().get(1));
         assertFalse(model.getFilteredPersonList().contains(archivedBenson));
 
         // BENSON is hidden in the active view, but his ID still selects him
-        execute("restore id/C2");
+        execute("restore 2");
         assertEquals(BENSON, model.getAddressBook().getPersonList().get(1));
         assertTrue(model.getFilteredPersonList().contains(BENSON));
     }
@@ -163,31 +165,10 @@ public class ArchiveWorkflowTest {
     @Test
     public void archiveById_personHiddenByFind() throws Exception {
         execute("find Alice");
-        execute("archive id/C2");
+        execute("archive 2");
         assertEquals(ALICE, model.getAddressBook().getPersonList().get(0));
         assertEquals(new PersonBuilder(BENSON).withArchiveStatus(true).build(),
                 model.getAddressBook().getPersonList().get(1));
-    }
-
-    @Test
-    public void archiveAndRestoreById_wrongStatus_doesNotChangeData() throws Exception {
-        AddressBook before = new AddressBook(model.getAddressBook());
-        assertThrows(CommandException.class, RestoreCommand.MESSAGE_WRONG_STATUS, () -> execute("restore id/C1"));
-        assertEquals(before, model.getAddressBook());
-
-        execute("archive id/C1");
-        AddressBook afterArchive = new AddressBook(model.getAddressBook());
-        assertThrows(CommandException.class, ArchiveCommand.MESSAGE_WRONG_STATUS, () -> execute("archive id/C1"));
-        assertEquals(afterArchive, model.getAddressBook());
-    }
-
-    @Test
-    public void archiveAndRestoreById_unknownId_doesNotChangeData() {
-        AddressBook before = new AddressBook(model.getAddressBook());
-        String expectedMessage = String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, "C99");
-        assertThrows(CommandException.class, expectedMessage, () -> execute("archive id/C99"));
-        assertThrows(CommandException.class, expectedMessage, () -> execute("restore id/C99"));
-        assertEquals(before, model.getAddressBook());
     }
 
     private void execute(String command) throws Exception {

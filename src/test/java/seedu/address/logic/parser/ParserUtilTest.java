@@ -3,10 +3,7 @@ package seedu.address.logic.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
-import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Set;
@@ -41,44 +38,26 @@ public class ParserUtilTest {
     private static final String MESSAGE_USAGE = "command: usage";
 
     @Test
-    public void parseIndex_invalidInput_throwsParseException() {
-        assertThrows(ParseException.class, () -> ParserUtil.parseIndex("10 a"));
-    }
-
-    @Test
-    public void parseIndex_outOfRangeInput_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
-            -> ParserUtil.parseIndex(Long.toString(Integer.MAX_VALUE + 1)));
-    }
-
-    @Test
-    public void parseIndex_validInput_success() throws Exception {
-        // No whitespaces
-        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("1"));
-
-        // Leading and trailing whitespaces
-        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
-    }
-
-    @Test
     public void parsePersonId_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parsePersonId(null));
     }
 
     @Test
     public void parsePersonId_invalidValue_throwsParseException() {
-        assertThrows(ParseException.class, PersonId.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePersonId("hello"));
-        assertThrows(ParseException.class, PersonId.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePersonId("c42"));
+        for (String invalid : new String[] {"", "hello", "0", "-1", "+1", "C42", "c42", "1 2", "2147483648"}) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_PERSON_ID, () ->
+                    ParserUtil.parsePersonId(invalid));
+        }
     }
 
     @Test
     public void parsePersonId_validValueWithoutWhitespace_returnsPersonId() throws Exception {
-        assertEquals(new PersonId("C42"), ParserUtil.parsePersonId("C42"));
+        assertEquals(new PersonId(42), ParserUtil.parsePersonId("42"));
     }
 
     @Test
     public void parsePersonId_validValueWithWhitespace_returnsTrimmedPersonId() throws Exception {
-        assertEquals(new PersonId("C42"), ParserUtil.parsePersonId(WHITESPACE + "C42" + WHITESPACE));
+        assertEquals(new PersonId(42), ParserUtil.parsePersonId(WHITESPACE + "42" + WHITESPACE));
     }
 
     @Test
@@ -87,37 +66,18 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parsePersonTarget_id_returnsIdTarget() throws Exception {
-        assertEquals(PersonTarget.ofId(new PersonId("C42")),
-                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize(" id/C42", PREFIX_ID), MESSAGE_USAGE));
+    public void parsePersonTarget_validId_returnsTarget() throws Exception {
+        assertEquals(PersonTarget.ofId(new PersonId(42)),
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("  42  "), MESSAGE_USAGE));
     }
 
     @Test
-    public void parsePersonTarget_index_returnsIndexTarget() throws Exception {
-        assertEquals(PersonTarget.ofIndex(INDEX_FIRST_PERSON),
-                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("  1  ", PREFIX_ID), MESSAGE_USAGE));
-    }
-
-    @Test
-    public void parsePersonTarget_invalidIndexOrNoTarget_throwsParseException() {
+    public void parsePersonTarget_invalidOrMissingId_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE);
-        assertThrows(ParseException.class, expectedMessage, () ->
-                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("a", PREFIX_ID), MESSAGE_USAGE));
-        assertThrows(ParseException.class, expectedMessage, () ->
-                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("", PREFIX_ID), MESSAGE_USAGE));
-    }
-
-    @Test
-    public void parsePersonTarget_indexAndId_throwsParseException() {
-        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE), () ->
-                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("1 id/C42", PREFIX_ID), MESSAGE_USAGE));
-    }
-
-    @Test
-    public void parsePersonTarget_invalidId_throwsParseException() {
-        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                PersonId.MESSAGE_CONSTRAINTS), () ->
-                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize(" id/2", PREFIX_ID), MESSAGE_USAGE));
+        for (String invalid : new String[] {"", "a", "0", "C42", "id/42"}) {
+            assertThrows(ParseException.class, expectedMessage, () ->
+                    ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize(invalid), MESSAGE_USAGE));
+        }
     }
 
     @Test

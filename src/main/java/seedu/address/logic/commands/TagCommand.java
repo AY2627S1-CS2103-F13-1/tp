@@ -1,14 +1,12 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -26,9 +24,9 @@ public class TagCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Adds tags to a contact without removing existing tags.\n"
-            + "Parameters: INDEX (positive integer) or " + PREFIX_ID + "ID "
+            + "Parameters: ID (must be a positive whole number) "
             + PREFIX_TAG + "TAG [" + PREFIX_TAG + "TAG]...\n"
-            + "Example: tag 1 t/housing policy t/expert or tag " + PREFIX_ID + "C3 t/expert";
+            + "Example: tag 3 t/housing policy t/expert";
 
     public static final String MESSAGE_SUCCESS = "Tagged contact: %1$s";
 
@@ -43,13 +41,6 @@ public class TagCommand extends Command {
         requireNonNull(tagsToAdd);
         this.target = target;
         this.tagsToAdd = new HashSet<>(tagsToAdd);
-    }
-
-    /**
-     * Creates a command that adds tags to the contact at {@code index} in the displayed list.
-     */
-    public TagCommand(Index index, Set<Tag> tagsToAdd) {
-        this(PersonTarget.ofIndex(index), tagsToAdd);
     }
 
     @Override
