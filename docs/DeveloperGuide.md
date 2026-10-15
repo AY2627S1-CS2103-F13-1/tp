@@ -381,7 +381,7 @@ _{Explain here how the data archiving feature will be implemented}_
 
 --------------------------------------------------------------------------------------------------------------------
 
-## **Documentation, logging, testing, dev-ops**FF
+## **Documentation, logging, testing, dev-ops**
 
 * [Documentation guide](Documentation.md)
 * [Testing guide](Testing.md)
@@ -468,14 +468,14 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1.  Journalist requests to add a contact, providing the contact's name, phone number, email, and optionally an address and tags
+1.  Journalist requests to add a contact, providing the contact's name, phone number, email and address, and optionally tags
 2.  Byline adds the contact and shows the details of the added contact
 
     Use case ends.
 
 **Extensions**
 
-* 1a. A compulsory detail (name, phone number or email) is missing.
+* 1a. A compulsory detail (name, phone number, email or address) is missing.
 
     * 1a1. Byline shows an error message stating the correct format.
 
@@ -487,11 +487,17 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1c. No address is given.
+* 1c. A contact with the same name already exists.
 
-    * 1c1. Byline records the address as "NA" and shows a warning that no address was given.
+    * 1c1. Byline shows an error message stating that the person already exists.
 
-      Use case resumes at step 2.
+      Use case resumes at step 1.
+
+* 1d. Every contact ID up to 999999 has been used.
+
+    * 1d1. Byline shows an error message stating that no more contacts can be added.
+
+      Use case ends.
 
 **Guarantees**
 
@@ -593,8 +599,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
     * 2a1. Byline shows an empty list and a message that 0 persons are listed.
 
       Use case ends.
-
-*{More to be added}*
 
 **System:** Byline<br>
 **Use case:** UC06 - Sort displayed contacts<br>
@@ -786,9 +790,8 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
 * **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
-* **Duplicate contact**: A contact whose normalised name is the same as that of an existing contact. Name comparison ignores letter case and leading, trailing, or repeated spaces.
+* **Duplicate contact**: A contact whose name is exactly the same as an existing contact's name, including upper/lower case and spaces. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
-* **Exact tag match**: A match that occurs only when the complete search value is equal to a contact's complete tag, ignoring letter case.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
 * **Filtered contact list**: The internal list of contacts that satisfy the current search criteria. It provides the data shown in the displayed contact list.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
@@ -796,11 +799,9 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Journalist**: The target user of ByLine, who manages professional contacts for reporting purposes and prefers a command-driven desktop application.
 * **Mainstream OS**: Windows, Linux, Unix, or macOS.
 * **MVP (Minimum Viable Product)**: The smallest set of features required for ByLine to provide its intended core value to journalists.
-* **Normalised name**: A contact name converted to a standard form for comparison by ignoring letter case and leading, trailing, or repeated spaces.
 * **Partial match**: A match that occurs when a search value appears within a stored field without being equal to the complete field value.
 * **Person**: The internal model entity used to represent a contact. This term is inherited from AB3 and appears in class names such as `Person` and `UniquePersonList`; user-facing documentation should use **contact** instead.
 * **Potential source**: A contact who may be able to provide information for a story but has not necessarily been approached or interviewed.
-* **Private contact detail**: Contact information that is not intended to be shown or shared with others.
 * **Search criterion**: A field and value used to restrict search results, such as a name, phone number, email address, address, or tag.
 * **Source**: A contact who provides, or may provide, information, evidence, background, or commentary for a journalist's reporting.
 * **Story**: A news article, investigation, or other reporting assignment on which a journalist is working.
