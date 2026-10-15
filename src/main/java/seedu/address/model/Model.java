@@ -51,6 +51,12 @@ public interface Model {
     boolean hasPerson(Person person);
 
     /**
+     * Returns true if a new person can still be assigned an ID.
+     * IDs are never reused, so this stays false once {@code PersonId.MAX_VALUE} has been assigned.
+     */
+    boolean hasAvailablePersonId();
+
+    /**
      * Returns the person with the ID {@code id}, or {@code Optional.empty()} if no person has that ID.
      * The whole address book is searched, including persons hidden from the filtered person list.
      */

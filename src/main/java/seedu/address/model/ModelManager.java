@@ -86,6 +86,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public boolean hasAvailablePersonId() {
+        return addressBook.hasAvailablePersonId();
+    }
+
+    @Override
     public Optional<Person> findPersonById(PersonId id) {
         requireNonNull(id);
         return addressBook.findPersonById(id);

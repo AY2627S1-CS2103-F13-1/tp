@@ -8,10 +8,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -45,6 +47,13 @@ public class AddCommandIntegrationTest {
         Person personInList = model.getAddressBook().getPersonList().get(0);
         assertCommandFailure(new AddCommand(personInList), model,
                 AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_noIdsLeft_throwsCommandException() {
+        Model fullModel = new ModelManager(new AddressBook(PersonId.MAX_VALUE + 1), new UserPrefs());
+        assertCommandFailure(new AddCommand(new PersonBuilder().build()), fullModel,
+                AddCommand.MESSAGE_NO_AVAILABLE_ID);
     }
 
 }
