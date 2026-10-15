@@ -9,8 +9,10 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class PersonId implements Comparable<PersonId> {
 
+    /** The largest ID. IDs are never reused, so this caps how many persons can ever be added. */
+    public static final int MAX_VALUE = 999_999;
     public static final String MESSAGE_CONSTRAINTS =
-            "Contact IDs should be a positive whole number without leading zeros, e.g. 1 or 42";
+            "Contact IDs should be a whole number from 1 to " + MAX_VALUE + ", without leading zeros";
     public static final String VALIDATION_REGEX = "[1-9]\\d*";
 
     private final int value;
@@ -29,10 +31,10 @@ public class PersonId implements Comparable<PersonId> {
     /**
      * Constructs a {@code PersonId} from its numeric value.
      *
-     * @param value A positive number, e.g. 42.
+     * @param value A number from 1 to {@link #MAX_VALUE}, e.g. 42.
      */
     public PersonId(int value) {
-        checkArgument(value > 0, MESSAGE_CONSTRAINTS);
+        checkArgument(isWithinRange(value), MESSAGE_CONSTRAINTS);
         this.value = value;
     }
 
@@ -45,11 +47,14 @@ public class PersonId implements Comparable<PersonId> {
         }
 
         try {
-            Integer.parseInt(test);
-            return true;
+            return isWithinRange(Integer.parseInt(test));
         } catch (NumberFormatException nfe) {
             return false; // number is too large to fit in an int
         }
+    }
+
+    private static boolean isWithinRange(int value) {
+        return value >= 1 && value <= MAX_VALUE;
     }
 
     public int getValue() {

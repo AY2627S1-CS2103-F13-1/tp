@@ -33,6 +33,12 @@ public class JsonSerializableAddressBookTest {
     private static final Path DUPLICATE_PERSON_ID_FILE = TEST_DATA_FOLDER.resolve("duplicatePersonIdAddressBook.json");
     private static final Path INVALID_NEXT_PERSON_ID_FILE =
             TEST_DATA_FOLDER.resolve("invalidNextPersonIdAddressBook.json");
+    private static final Path NEXT_PERSON_ID_ABOVE_LIMIT_FILE =
+            TEST_DATA_FOLDER.resolve("nextPersonIdAboveLimitAddressBook.json");
+    private static final Path PERSON_ID_ABOVE_LIMIT_FILE =
+            TEST_DATA_FOLDER.resolve("personIdAboveLimitAddressBook.json");
+    private static final Path NO_IDS_LEFT_FILE = TEST_DATA_FOLDER.resolve("noIdsLeftAddressBook.json");
+    private static final Path ALL_IDS_USED_FILE = TEST_DATA_FOLDER.resolve("allIdsUsedAddressBook.json");
 
     @Test
     public void toModelType_typicalPersonsFile_success() throws Exception {
@@ -95,6 +101,33 @@ public class JsonSerializableAddressBookTest {
         JsonSerializableAddressBook dataFromFile = readFile(INVALID_NEXT_PERSON_ID_FILE);
         assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_INVALID_NEXT_PERSON_ID,
                 dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_nextPersonIdAboveLimit_throwsIllegalValueException() throws Exception {
+        JsonSerializableAddressBook dataFromFile = readFile(NEXT_PERSON_ID_ABOVE_LIMIT_FILE);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_INVALID_NEXT_PERSON_ID,
+                dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_personIdAboveLimit_throwsIllegalValueException() throws Exception {
+        JsonSerializableAddressBook dataFromFile = readFile(PERSON_ID_ABOVE_LIMIT_FILE);
+        assertThrows(IllegalValueException.class, PersonId.MESSAGE_CONSTRAINTS, dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_personWithoutIdWhenNoIdsLeft_throwsIllegalValueException() throws Exception {
+        JsonSerializableAddressBook dataFromFile = readFile(NO_IDS_LEFT_FILE);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_NO_AVAILABLE_PERSON_ID,
+                dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_allIdsUsed_loadsWithNoIdsLeft() throws Exception {
+        AddressBook addressBookFromFile = readFile(ALL_IDS_USED_FILE).toModelType();
+        assertEquals(new PersonId(PersonId.MAX_VALUE), addressBookFromFile.getPersonList().get(0).getId().get());
+        assertFalse(addressBookFromFile.hasAvailablePersonId());
     }
 
     @Test

@@ -30,9 +30,10 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     /**
      * Creates an empty AddressBook that assigns IDs starting from {@code nextPersonId}.
+     * {@code nextPersonId} is {@code PersonId.MAX_VALUE + 1} if no IDs are left.
      */
     public AddressBook(int nextPersonId) {
-        checkArgument(nextPersonId >= 1, PersonId.MESSAGE_CONSTRAINTS);
+        checkArgument(nextPersonId >= 1 && nextPersonId <= PersonId.MAX_VALUE + 1, PersonId.MESSAGE_CONSTRAINTS);
         this.nextPersonId = nextPersonId;
     }
 
@@ -50,6 +51,8 @@ public class AddressBook implements ReadOnlyAddressBook {
      * Replaces the contents of the person list with {@code persons}.
      * {@code persons} must not contain duplicate persons.
      * Persons without an ID are assigned one.
+     *
+     * @throws IllegalArgumentException if a person has no ID and no IDs are left. The list is then unchanged.
      */
     public void setPersons(List<Person> persons) {
         requireNonNull(persons);
@@ -86,6 +89,14 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Returns true if a person without an ID can still be assigned one.
+     * IDs are never reused, so this stays false once {@code PersonId.MAX_VALUE} has been assigned.
+     */
+    public boolean hasAvailablePersonId() {
+        return nextPersonId <= PersonId.MAX_VALUE;
+    }
+
+    /**
      * Returns the person with the ID {@code id}, or {@code Optional.empty()} if no person has that ID.
      * All persons in the address book are searched.
      */
@@ -102,6 +113,7 @@ public class AddressBook implements ReadOnlyAddressBook {
      * If the person does not have an ID, it is assigned the next available one.
      *
      * @return the person as stored in the address book, with its ID.
+     * @throws IllegalArgumentException if the person has no ID and no IDs are left. Nothing is added then.
      */
     public Person addPerson(Person p) {
         requireNonNull(p);
@@ -134,6 +146,8 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     /**
      * Returns {@code person} if it already has an ID, otherwise a copy of it with the ID {@code nextId}.
+     *
+     * @throws IllegalArgumentException if a new ID is needed and {@code nextId} is above {@code PersonId.MAX_VALUE}.
      */
     private static Person withId(Person person, int nextId) {
         if (person.getId().isPresent()) {

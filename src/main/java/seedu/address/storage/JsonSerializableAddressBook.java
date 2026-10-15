@@ -24,7 +24,10 @@ class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
     public static final String MESSAGE_DUPLICATE_PERSON_ID = "Persons list contains duplicate person ID(s).";
-    public static final String MESSAGE_INVALID_NEXT_PERSON_ID = "The next person ID must be a positive whole number.";
+    public static final String MESSAGE_INVALID_NEXT_PERSON_ID =
+            "The next person ID must be a whole number from 1 to " + (PersonId.MAX_VALUE + 1) + ".";
+    public static final String MESSAGE_NO_AVAILABLE_PERSON_ID =
+            "There are no contact IDs left for persons saved without one.";
 
     private final Integer nextPersonId;
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
@@ -66,7 +69,7 @@ class JsonSerializableAddressBook {
      * @throws IllegalValueException if there were any data constraints violated.
      */
     public AddressBook toModelType() throws IllegalValueException {
-        if (nextPersonId != null && nextPersonId < 1) {
+        if (nextPersonId != null && (nextPersonId < 1 || nextPersonId > PersonId.MAX_VALUE + 1)) {
             throw new IllegalValueException(MESSAGE_INVALID_NEXT_PERSON_ID);
         }
 
@@ -92,6 +95,9 @@ class JsonSerializableAddressBook {
         for (Person person : modelPersons) {
             if (addressBook.hasPerson(person)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
+            }
+            if (person.getId().isEmpty() && !addressBook.hasAvailablePersonId()) {
+                throw new IllegalValueException(MESSAGE_NO_AVAILABLE_PERSON_ID);
             }
             addressBook.addPerson(person);
         }
