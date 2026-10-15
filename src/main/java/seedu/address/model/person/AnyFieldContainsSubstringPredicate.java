@@ -16,8 +16,14 @@ public class AnyFieldContainsSubstringPredicate implements Predicate<Person> {
 
     @Override
     public boolean test(Person person) {
-        return person.toString().toLowerCase().contains(substring.toLowerCase());
-        // Assumes person.toString() prints all fields
+        String substringLowerCase = substring.toLowerCase();
+        boolean isNameMatch = person.getName().fullName.toLowerCase().contains(substringLowerCase);
+        boolean isPhoneMatch = person.getPhone().value.toLowerCase().contains(substringLowerCase);
+        boolean isEmailMatch = person.getEmail().value.toLowerCase().contains(substringLowerCase);
+        boolean isAddressMatch = person.getAddress().value.toLowerCase().contains(substringLowerCase);
+        boolean isTagsMatch = person.getTags().stream().anyMatch(
+                tag -> tag.tagName.toLowerCase().contains(substringLowerCase));
+        return isNameMatch || isPhoneMatch || isEmailMatch || isAddressMatch || isTagsMatch;
     }
 
     @Override
