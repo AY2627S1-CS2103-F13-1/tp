@@ -94,7 +94,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
+A person can have any number of tags, including zero. Tags can contain letters, numbers and spaces, and are saved in lowercase.
 </div>
 
 Examples:
@@ -123,10 +123,40 @@ Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
+* To add or remove only some tags, use [`tag`](#adding-tags-to-a-contact-tag) or [`untag`](#removing-tags-from-a-contact-untag) instead.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the contact with ID 1 to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the contact with ID 2 to be `Betsy Crower` and clears all existing tags.
+
+### Adding tags to a contact: `tag`
+
+Adds one or more tags to a contact, keeping the tags it already has.
+
+Format: `tag ID t/TAG [t/TAG]…​`
+
+* Adds the given tags to the contact with the given `ID`. See [Contact IDs](#contact-ids).
+* At least one tag must be given.
+* A tag can contain letters, numbers and spaces, e.g. `housing policy`.
+* Tags are saved in lowercase, so `t/Expert` is saved as `expert`. Tags that differ only in upper/lower case count as the same tag.
+
+Examples:
+* `tag 3 t/expert` adds the tag `expert` to the contact with ID 3.
+* `tag 3 t/housing policy t/interviewee` adds the tags `housing policy` and `interviewee` to the contact with ID 3.
+
+### Removing tags from a contact: `untag`
+
+Removes one or more tags from a contact, keeping its other tags.
+
+Format: `untag ID t/TAG [t/TAG]…​`
+
+* Removes the given tags from the contact with the given `ID`. See [Contact IDs](#contact-ids).
+* At least one tag must be given.
+* Tags are matched ignoring upper/lower case, so `t/Expert` removes the tag `expert`.
+
+Examples:
+* `untag 3 t/expert` removes the tag `expert` from the contact with ID 3.
+* `untag 3 t/housing policy t/interviewee` removes both tags from the contact with ID 3.
 
 ### Finding persons: `find`
 
@@ -317,3 +347,5 @@ Action | Format, Examples
 **Help** | `help`
 **Restore** | `restore ID`<br> e.g., `restore 4`
 **Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
+**Tag** | `tag ID t/TAG [t/TAG]…​`<br> e.g., `tag 3 t/expert t/housing policy`
+**Untag** | `untag ID t/TAG [t/TAG]…​`<br> e.g., `untag 3 t/expert`

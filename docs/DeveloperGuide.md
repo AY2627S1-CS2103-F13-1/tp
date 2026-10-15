@@ -207,6 +207,36 @@ New commands that act on one contact should use `parsePersonTarget` and `PersonT
   * Pros: IDs stay small and have no gaps.
   * Cons: An old ID can suddenly mean a different contact, which is the problem persistent IDs are meant to solve.
 
+### Tag and untag feature
+
+`TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonTarget` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
+
+When executed, both commands find the contact with `PersonTarget#resolve` and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
+
+`Tag` saves its name in lowercase, and tags are compared by that name. A contact's tags are a `Set<Tag>`, so adding a tag the contact already has, in any upper/lower case, does not create a second copy, and removing a tag matches it regardless of case.
+
+Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` change only the tags given.
+
+#### Design considerations
+
+**Aspect: How tags are added and removed**
+
+* **Alternative 1 (current choice): Separate `tag` and `untag` commands.**
+  * Pros: A journalist can add or remove one tag without retyping the contact's other tags.
+  * Cons: Two more commands to learn.
+* **Alternative 2: Only `edit t/…`.**
+  * Pros: Fewer commands.
+  * Cons: Changing one tag means retyping every other tag, and leaving one out removes it by mistake.
+
+**Aspect: Upper/lower case in tags**
+
+* **Alternative 1 (current choice): Save tags in lowercase.**
+  * Pros: `Expert` and `expert` are the same tag, so a contact cannot end up with both, and tags look consistent in the list.
+  * Cons: The capitalisation the journalist typed is lost.
+* **Alternative 2: Keep tags as typed.**
+  * Pros: Tags look exactly as typed.
+  * Cons: Every comparison would need to ignore case separately, or near-identical tags would pile up.
+
 ### Find feature
 
 `AddressBookParser` delegates `find` arguments to `FindCommandParser`, which selects one of two search modes. Both modes match consecutive substrings case-insensitively:
@@ -394,6 +424,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
 | `* *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
+| `* *` | journalist | remove tags from a contact | keep a contact's tags accurate when their role or relevance changes |
 | `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
 | `* *` | journalist | restore an archived contact | work with that contact again |
 | `* *` | journalist | view only my active or only my archived contacts | focus on the contacts I need right now |
@@ -510,17 +541,23 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 2.
 
-* 3b. A given tag contains non-alphanumeric characters.
+* 3b. A given tag contains characters other than letters, numbers and spaces.
 
-    * 3b1. Byline shows an error message stating that tags must be alphanumeric.
+    * 3b1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
 
       Use case resumes at step 2.
 
 * 3c. The contact already has one of the given tags (ignoring upper/lower case).
 
-    * 3c1. Byline does not add the duplicate tag and informs the journalist that the contact already has it.
+    * 3c1. Byline keeps the existing tag and adds the remaining tags.
 
-      Use case resumes at step 4 for the remaining tags.
+      Use case resumes at step 4.
+
+* 3d. No tag is given.
+
+    * 3d1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 2.
 
 **Guarantees**
 
@@ -656,6 +693,47 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 **Guarantees**
 
 * The contact's details and ID are unchanged.
+
+**System:** Byline<br>
+**Use case:** UC09 - Remove tags from a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to list contacts
+2.  Byline shows a list of contacts
+3.  Journalist requests to remove one or more tags from a specific contact by its ID
+4.  Byline removes the tags from the contact and shows the updated contact
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given ID is not valid, or no contact has that ID.
+
+    * 3a1. Byline shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. No tag is given.
+
+    * 3b1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 2.
+
+* 3c. A given tag contains characters other than letters, numbers and spaces.
+
+    * 3c1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
+
+      Use case resumes at step 2.
+
+**Guarantees**
+
+* The contact's other tags and details are unchanged.
 
 ### Non-Functional Requirements
 
@@ -847,6 +925,34 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `restore 2` again<br>
       Expected: Nothing changes. The status message is `This person is not archived.`
+
+### Tagging and untagging contacts
+
+1. Adding tags
+
+   1. Prerequisites: Start with the sample data, in which the contact with ID 2 has the tags `colleagues` and `friends`.
+
+   1. Test case: `tag 2 t/Expert t/housing policy`<br>
+      Expected: The card for ID 2 shows `colleagues`, `expert`, `friends` and `housing policy`. The status message shows the updated contact.
+
+   1. Test case: `tag 2`<br>
+      Expected: No tags are changed. The status message shows the invalid command format message.
+
+   1. Test case: `tag 2 t/#expert`<br>
+      Expected: No tags are changed. The status message is `Tag names should contain only letters, numbers and spaces`.
+
+   1. Test case: `tag 99 t/expert`, when no contact has ID 99<br>
+      Expected: No tags are changed. The status message is `No contact has the ID 99.`
+
+1. Removing tags
+
+   1. Prerequisites: The contact with ID 2 has the tags `colleagues`, `expert`, `friends` and `housing policy`.
+
+   1. Test case: `untag 2 t/EXPERT t/housing policy`<br>
+      Expected: The card for ID 2 shows only `colleagues` and `friends`.
+
+   1. Test case: `untag 2`<br>
+      Expected: No tags are changed. The status message shows the invalid command format message.
 
 ### Saving data
 
