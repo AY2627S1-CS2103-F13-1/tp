@@ -92,6 +92,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
 * The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
+* After the contact is added, ByLine shows all contacts again.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero. Tags can contain letters, numbers and spaces, and are saved in lowercase.
@@ -124,6 +125,7 @@ Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 * To add or remove only some tags, use [`tag`](#adding-tags-to-a-contact-tag) or [`untag`](#removing-tags-from-a-contact-untag) instead.
+* After the edit, ByLine shows all contacts again.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the contact with ID 1 to be `91234567` and `johndoe@example.com` respectively.
@@ -176,6 +178,7 @@ For a field-specific search, specify at least one prefix.
 * Prefixes may appear in any order. Use each prefix at most once, except `t/`, which may be repeated.
 * For multiple `t/` prefixes, every tag substring must match at least one of the person's tags.
 * Do not put unprefixed search text before a prefix. For example, `find Alex e/example.com` is invalid; use `find n/Alex e/example.com`.
+* Archived contacts are included in the results.
 
 Examples:
 
@@ -196,12 +199,12 @@ Format: `sort FIELD [ORDER]`
 * `FIELD` is mandatory. Supported fields are `name`, `phone`, `email`, `address`, and `tag`.
 * `ORDER` is optional. Supported orders are `asc` and `desc`; omitting `ORDER` uses `asc`.
 * `FIELD` and `ORDER` are case-insensitive. For example, `sort NAME DESC` is valid.
-* Name, email, and address values are compared alphabetically without regard to letter case. The complete stored value is compared, and the address `NA` is treated as ordinary text.
+* Name, email, and address values are compared alphabetically without regard to letter case. The complete stored value is compared.
 * Phone numbers are compared numerically. Leading zeroes do not affect their numeric value, so `000123` and `123` tie on phone number.
 * For tag sorting, a contact's primary tag is the alphabetically first tag, ignoring letter case. Only that tag is used. Contacts without tags remain after tagged contacts in both ascending and descending order.
 * Contacts that tie on the selected field are ordered by name in ascending order, regardless of the selected `ORDER`. If both the selected value and name tie, their existing relative order is preserved.
 * Only the contacts currently displayed are sorted. A search result remains the same subset, and the stored contact order remains unchanged.
-* Running `list` or a new search replaces the sorted display. Run `sort` again to sort the new displayed list.
+* Running `list`, a new search, `add` or `edit` replaces the sorted display. Run `sort` again to sort the new displayed list.
 * Sorting an empty list or a list containing one contact succeeds even though its visible order does not change.
 
 On success, ByLine shows the following message, substituting the selected field and the full order name:

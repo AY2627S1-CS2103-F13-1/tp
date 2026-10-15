@@ -241,14 +241,14 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 `AddressBookParser` delegates `find` arguments to `FindCommandParser`, which selects one of two search modes. Both modes match consecutive substrings case-insensitively:
 
-* **Search across all fields:** When no recognised prefixes are present, the parser trims the input and passes it as one substring to `AnyFieldContainsSubstringPredicate`. This predicate searches `Person.toString()`, so the searchable details depend on that string representation.
+* **Search across all fields:** When no recognised prefixes are present, the parser trims the input and passes it as one substring to `AnyFieldContainsSubstringPredicate`. This predicate checks the name, phone number, email, address and each tag separately, and matches the person if the substring appears in any of them.
 * **Search by field:** When prefixes are present, the parser creates an `EachFieldContainsSubstringPredicate`. Each substring is matched only against its corresponding field, and all specified conditions must match. Adding field or tag conditions therefore narrows the results. The parser rejects text before the first prefix and duplicate non-tag prefixes.
 
 For field searches, `ArgumentMultimap.getValue(...)` returns an `Optional<String>` for each of the name, phone, email, and address prefixes. The parser passes these objects directly into the predicate constructor. An absent prefix produces `Optional.empty()`, so the predicate skips that field; a present value is used as the field's substring. For example, `find n/Al e/example.com` supplies `Optional.of("Al")` and `Optional.of("example.com")` for name and email, with empty optionals for phone and address.
 
 Tags use `getAllValues(PREFIX_TAG)` instead, producing a `List<String>` to support repeated `t/` prefixes. Every tag substring must match at least one of the person's tags; an empty list imposes no tag restriction.
 
-Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons.
+Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. Neither predicate checks the archive flag, so archived contacts appear in search results.
 
 ### Sort feature
 
@@ -256,7 +256,7 @@ Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. O
 
 When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `AddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the persistent `AddressBook` list.
 
-Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list` and commands that apply a new filter call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
+Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
 
 #### Design considerations
 
@@ -582,9 +582,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
+* 1b. Journalist gives search text without any prefix.
+
+    * 1b1. Byline shows the contacts that have the text in any of their details.
+
+      Use case ends.
+
 * 2a. No contacts match all the given criteria.
 
-    * 2a1. Byline shows an empty list and a message that no contacts were found.
+    * 2a1. Byline shows an empty list and a message that 0 persons are listed.
 
       Use case ends.
 
@@ -857,6 +863,29 @@ testers are expected to do more *exploratory* testing.
       Expected: The new contact gets the next ID after the deleted one, not the deleted ID.
 
 1. _{ more test cases …​ }_
+
+### Finding contacts
+
+1. Searching all fields
+
+   1. Prerequisites: Start with the sample data.
+
+   1. Test case: `find yu`<br>
+      Expected: Only contacts with `yu` somewhere in their details, in any upper/lower case, are shown. The status message shows how many contacts are listed.
+
+   1. Test case: `find`<br>
+      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+
+1. Searching specific fields
+
+   1. Test case: `find n/al t/fri`<br>
+      Expected: Only contacts whose name contains `al` and that have a tag containing `fri` are shown.
+
+   1. Test case: `find hello n/Alex`<br>
+      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+
+   1. Test case: `find n/Al n/Be`<br>
+      Expected: The displayed list is unchanged. The status message says that `n/` was given more than once.
 
 ### Sorting displayed contacts
 
