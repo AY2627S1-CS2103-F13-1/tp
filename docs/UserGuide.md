@@ -125,7 +125,7 @@ Format: `find SUBSTRING` or `find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TA
 Examples: // TODO: update examples
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png) // TODO: update Find Command image
+  ![result for 'find alex david'](images/findNameAl.png) // TODO: update Find Command image
 
 ### Sorting displayed contacts: `sort`
 
