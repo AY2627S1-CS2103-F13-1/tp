@@ -123,6 +123,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* gives every `Person` a `PersonId` when it is added, using a counter of the next ID to give out (see [Contact ID feature](#contact-id-feature)).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -142,6 +143,7 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* saves each person's ID and the next ID to give out, so that IDs stay the same after a restart and are never reused.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -154,6 +156,56 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Contact ID feature
+
+Every contact has a `PersonId`, a whole number from 1 to `PersonId.MAX_VALUE` (999999). Commands that act on one contact, such as `edit`, `delete`, `tag`, `untag`, `archive` and `restore`, select the contact by this ID instead of by its position in the displayed list.
+
+#### Assigning IDs
+
+`AddressBook` holds a counter, `nextPersonId`, starting at 1. When `AddressBook#addPerson(Person)` receives a person without an ID, it gives the person the ID `nextPersonId` and moves the counter on. A person that already has an ID keeps it, and the counter moves past that ID if needed, so a new ID is always higher than every ID in use.
+
+The counter only moves forward. Deleting a person does not lower it, and `clear` creates the new, empty address book with the same counter, so a deleted ID is never given out again.
+
+`EditCommand`, `TagCommand`, `UntagCommand`, `ArchiveCommand` and `RestoreCommand` replace a person with an updated copy. Each copy keeps the original's ID, and `AddressBook#setPerson` rejects a copy whose ID differs.
+
+Once ID 999999 has been given out, the counter is 1000000 and `AddressBook#hasAvailablePersonId()` returns false. `AddCommand` checks `Model#hasAvailablePersonId()` and shows an error instead of adding the person. Because the largest ID is far below the largest `int`, the counter can never overflow and wrap around to an ID in use.
+
+#### Selecting a contact by ID
+
+1. The command's parser calls `ParserUtil#parsePersonTarget`, which reads the number before the first prefix, e.g. the `3` in `edit 3 p/91234567`. Anything that is not a whole number from 1 to 999999 gives the invalid command format message.
+1. The parser creates the command with a `PersonTarget` for that ID.
+1. When the command runs, `PersonTarget#resolve(Model)` calls `Model#findPersonById`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. If no contact has the ID, `resolve` throws a `CommandException` with `No contact has the ID 3.`
+
+New commands that act on one contact should use `parsePersonTarget` and `PersonTarget`, so that every command reads IDs the same way.
+
+#### Saving IDs
+
+`JsonAdaptedPerson` saves each ID as text, e.g. `"id" : "3"`, and `JsonSerializableAddressBook` saves the counter as `"nextPersonId"`. When the file is loaded:
+
+* The counter is raised above the highest saved ID if needed, so a hand-edited counter cannot cause an ID to be reused.
+* The file is rejected as invalid if two persons have the same ID, an ID is outside 1 to 999999, or `nextPersonId` is outside 1 to 1000000.
+* Persons saved without an ID (data from before IDs were added) are given new IDs, and `JsonAddressBookStorage` saves the file again straight away so that those IDs are kept.
+
+#### Design considerations
+
+**Aspect: How commands select a contact**
+
+* **Alternative 1 (current choice): A persistent ID.**
+  * Pros: The same number always means the same contact, whatever is displayed. A contact hidden by `find` or moved by `sort` can still be edited or deleted, and there is no risk of acting on the wrong contact after the list changes.
+  * Cons: Users read the ID from the card instead of counting positions, and IDs must be saved and kept unique.
+* **Alternative 2: The position in the displayed list (AB3's original design).**
+  * Pros: Nothing extra needs to be stored.
+  * Cons: The same number points to a different contact after `find`, `sort` or a deletion, so it is easy to edit or delete the wrong contact.
+
+**Aspect: Whether deleted IDs are reused**
+
+* **Alternative 1 (current choice): Never reuse IDs.**
+  * Pros: An ID that a journalist has noted down never points to a different contact later.
+  * Cons: IDs have gaps, and the limit of 999999 applies to every contact ever added, not just the ones currently stored.
+* **Alternative 2: Reuse the lowest free ID.**
+  * Pros: IDs stay small and have no gaps.
+  * Cons: An old ID can suddenly mean a different contact, which is the problem persistent IDs are meant to solve.
 
 ### Find feature
 
@@ -205,7 +257,7 @@ Step 1. The user launches the application for the first time. The `VersionedAddr
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5` command to delete the contact with ID 5. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
@@ -314,6 +366,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | journalist | add a new contact | keep track of people who may be useful for my reporting |
 | `* * *` | journalist | list my contacts | see the contacts I have saved |
 | `* * *` | journalist | delete a contact | remove contacts that I no longer need |
+| `* * *` | journalist | refer to a contact by a fixed ID | act on the right contact even after searching or sorting the list |
 | `* * *` | journalist | search for contacts by their details | quickly locate relevant contacts without going through the entire list |
 | `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
 | `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
@@ -331,7 +384,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist requests to list persons
 2.  Byline shows a list of persons
-3.  Journalist requests to delete a specific person in the list
+3.  Journalist requests to delete a specific person by its ID
 4.  Byline deletes the person
 
     Use case ends.
@@ -342,9 +395,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The given ID is not a whole number from 1 to 999999.
 
-    * 3a1. Byline shows an error message.
+    * 3a1. Byline shows an error message stating the correct format.
+
+      Use case resumes at step 2.
+
+* 3b. No person has the given ID.
+
+    * 3b1. Byline shows an error message stating that no contact has that ID.
 
       Use case resumes at step 2.
 
@@ -410,7 +469,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist requests to list contacts
 2.  Byline shows a list of contacts
-3.  Journalist requests to add one or more tags to a specific contact in the list
+3.  Journalist requests to add one or more tags to a specific contact by its ID
 4.  Byline adds the tags to the contact and shows the updated contact
 
     Use case ends.
@@ -421,7 +480,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The given ID is not valid, or no contact has that ID.
 
     * 3a1. Byline shows an error message.
 
@@ -530,7 +589,7 @@ These requirements define the quality targets and operating constraints for ByLi
    should save the updated data without a separate save action. Restarting ByLine should restore
    the saved contact details and tags.
 7. **Input reliability:** A command rejected because of invalid syntax, invalid field values, or
-   an invalid contact index should leave existing contact records unchanged and allow the user
+   an invalid or unknown contact ID should leave existing contact records unchanged and allow the user
    to enter another command without restarting ByLine.
 8. **Storage failure reporting:** If saving contact data fails, ByLine should show a visible error
    indicating that the save failed, rather than reporting the command as successfully completed.
@@ -550,7 +609,7 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Command prefix**: A marker that identifies the meaning of a command parameter, such as `n/` for a name or `t/` for a tag.
 * **Complete contact list**: All contacts stored in ByLine, regardless of the contacts currently displayed in the UI.
 * **Contact**: A person whose details a journalist stores in ByLine because the person may be relevant to current or future reporting.
-* **Contact index**: The one-based number assigned to a contact in the currently displayed contact list. Commands that accept an index operate on the contact at that position.
+* **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
 * **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
 * **Duplicate contact**: A contact whose normalised name is the same as that of an existing contact. Name comparison ignores letter case and leading, trailing, or repeated spaces.
@@ -605,18 +664,29 @@ testers are expected to do more *exploratory* testing.
 
 ### Deleting a person
 
-1. Deleting a person while all persons are being shown
+1. Deleting a person by ID
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: Multiple contacts exist. Note the ID shown on one contact's card, e.g. `ID: 2`.
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+   1. Test case: `delete 2`<br>
+      Expected: The contact with ID 2 is deleted, wherever it appears in the list. The status message shows the deleted contact's details.
+
+   1. Test case: Run `find` so that the contact with ID 3 is not shown, then enter `delete 3`.<br>
+      Expected: The contact with ID 3 is deleted even though it was not shown.
+
+   1. Test case: `delete 2` again<br>
+      Expected: Nothing is deleted. The status message is `No contact has the ID 2.`
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: Nothing is deleted. The status message shows the invalid command format message.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
+   1. Other incorrect delete commands to try: `delete`, `delete x`, `delete C3`, `delete 1000000`<br>
       Expected: Similar to previous.
+
+1. IDs are not reused
+
+   1. Test case: Delete the contact with the highest ID, then add a new contact.<br>
+      Expected: The new contact gets the next ID after the deleted one, not the deleted ID.
 
 1. _{ more test cases …​ }_
 
