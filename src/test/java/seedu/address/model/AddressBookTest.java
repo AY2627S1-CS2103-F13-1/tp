@@ -52,6 +52,18 @@ public class AddressBookTest {
     }
 
     @Test
+    public void constructor_nextPersonIdAboveLimit_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new AddressBook(PersonId.MAX_VALUE + 2));
+    }
+
+    @Test
+    public void hasAvailablePersonId() {
+        assertTrue(addressBook.hasAvailablePersonId());
+        assertTrue(new AddressBook(PersonId.MAX_VALUE).hasAvailablePersonId());
+        assertFalse(new AddressBook(PersonId.MAX_VALUE + 1).hasAvailablePersonId());
+    }
+
+    @Test
     public void resetData_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> addressBook.resetData(null));
     }
@@ -135,6 +147,41 @@ public class AddressBookTest {
         addressBook.addPerson(HOON);
         assertThrows(DuplicatePersonException.class, () -> addressBook.addPerson(HOON));
         assertEquals(2, addressBook.getNextPersonId());
+    }
+
+    @Test
+    public void addPerson_lastAvailableId_assignsMaxValue() {
+        AddressBook almostFullAddressBook = new AddressBook(PersonId.MAX_VALUE);
+        Person addedHoon = almostFullAddressBook.addPerson(HOON);
+
+        assertEquals(new PersonId(PersonId.MAX_VALUE), addedHoon.getId().get());
+        assertFalse(almostFullAddressBook.hasAvailablePersonId());
+    }
+
+    @Test
+    public void addPerson_noIdsLeft_throwsIllegalArgumentException() {
+        AddressBook fullAddressBook = new AddressBook(PersonId.MAX_VALUE + 1);
+
+        assertThrows(IllegalArgumentException.class, () -> fullAddressBook.addPerson(HOON));
+        assertEquals(List.of(), fullAddressBook.getPersonList());
+        assertEquals(PersonId.MAX_VALUE + 1, fullAddressBook.getNextPersonId());
+    }
+
+    @Test
+    public void addPerson_personWithIdWhenNoIdsLeft_success() {
+        AddressBook fullAddressBook = new AddressBook(PersonId.MAX_VALUE + 1);
+        fullAddressBook.addPerson(ALICE); // already has ID 1, so no new ID is needed
+
+        assertEquals(List.of(ALICE), fullAddressBook.getPersonList());
+    }
+
+    @Test
+    public void setPersons_personWithoutIdWhenNoIdsLeft_throwsIllegalArgumentException() {
+        AddressBook fullAddressBook = new AddressBook(PersonId.MAX_VALUE + 1);
+        fullAddressBook.addPerson(ALICE);
+
+        assertThrows(IllegalArgumentException.class, () -> fullAddressBook.setPersons(List.of(GEORGE, HOON)));
+        assertEquals(List.of(ALICE), fullAddressBook.getPersonList());
     }
 
     @Test

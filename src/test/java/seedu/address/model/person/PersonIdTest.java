@@ -27,6 +27,16 @@ public class PersonIdTest {
     }
 
     @Test
+    public void constructor_valueAboveMaxValue_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new PersonId(PersonId.MAX_VALUE + 1));
+    }
+
+    @Test
+    public void constructor_maxValue_success() {
+        assertEquals(999999, new PersonId(PersonId.MAX_VALUE).getValue());
+    }
+
+    @Test
     public void constructor_validValue_matchesStringForm() {
         assertEquals(new PersonId("42"), new PersonId(42));
         assertEquals(42, new PersonId("42").getValue());
@@ -49,12 +59,14 @@ public class PersonIdTest {
         assertFalse(PersonId.isValidPersonId(" 42")); // leading space
         assertFalse(PersonId.isValidPersonId("42 ")); // trailing space
         assertFalse(PersonId.isValidPersonId("4a")); // alphabets within number
-        assertFalse(PersonId.isValidPersonId("2147483648")); // too large
+        assertFalse(PersonId.isValidPersonId("1000000")); // just above the largest ID
+        assertFalse(PersonId.isValidPersonId("2147483647")); // largest int
+        assertFalse(PersonId.isValidPersonId("2147483648")); // too large to fit in an int
 
         // valid person IDs
         assertTrue(PersonId.isValidPersonId("1")); // smallest ID
         assertTrue(PersonId.isValidPersonId("42"));
-        assertTrue(PersonId.isValidPersonId("2147483647")); // largest ID
+        assertTrue(PersonId.isValidPersonId("999999")); // largest ID
     }
 
     @Test

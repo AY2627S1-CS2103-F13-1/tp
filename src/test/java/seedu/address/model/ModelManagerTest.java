@@ -84,6 +84,14 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void hasAvailablePersonId() {
+        assertTrue(modelManager.hasAvailablePersonId());
+
+        ModelManager fullModelManager = new ModelManager(new AddressBook(PersonId.MAX_VALUE + 1), new UserPrefs());
+        assertFalse(fullModelManager.hasAvailablePersonId());
+    }
+
+    @Test
     public void addPerson_personWithoutId_returnsPersonWithAssignedId() {
         Person addedPerson = modelManager.addPerson(new PersonBuilder().build());
         assertEquals(new PersonId("1"), addedPerson.getId().get());

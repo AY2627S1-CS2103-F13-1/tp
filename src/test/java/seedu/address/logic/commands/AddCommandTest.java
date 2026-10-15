@@ -58,6 +58,14 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_noIdsLeft_throwsCommandException() {
+        AddCommand addCommand = new AddCommand(new PersonBuilder().build());
+        ModelStubWithNoIdsLeft modelStub = new ModelStubWithNoIdsLeft();
+
+        assertThrows(CommandException.class, AddCommand.MESSAGE_NO_AVAILABLE_ID, () -> addCommand.execute(modelStub));
+    }
+
+    @Test
     public void equals() {
         Person alice = new PersonBuilder().withName("Alice").build();
         Person bob = new PersonBuilder().withName("Bob").build();
@@ -128,6 +136,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public boolean hasAvailablePersonId() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public Optional<Person> findPersonById(PersonId id) {
             throw new AssertionError("This method should not be called.");
         }
@@ -194,6 +207,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public boolean hasAvailablePersonId() {
+            return true;
+        }
+
+        @Override
         public Person addPerson(Person person) {
             requireNonNull(person);
             personsAdded.add(person);
@@ -204,6 +222,22 @@ public class AddCommandTest {
         @Override
         public ReadOnlyAddressBook getAddressBook() {
             return new AddressBook();
+        }
+    }
+
+    /**
+     * A Model stub with no persons, where every ID has already been used.
+     */
+    private class ModelStubWithNoIdsLeft extends ModelStub {
+        @Override
+        public boolean hasPerson(Person person) {
+            requireNonNull(person);
+            return false;
+        }
+
+        @Override
+        public boolean hasAvailablePersonId() {
+            return false;
         }
     }
 

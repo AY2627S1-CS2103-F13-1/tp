@@ -22,18 +22,21 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
 
-    public static final String MESSAGE_INVALID_PERSON_ID = "Contact ID must be a positive whole number.";
+    public static final String MESSAGE_INVALID_PERSON_ID =
+            "Contact ID must be a whole number from 1 to " + PersonId.MAX_VALUE + ".";
 
     /**
      * Parses a {@code String personId}, the contact ID as users type it (e.g. {@code 42}), into a
      * {@code PersonId}. Leading and trailing whitespaces will be trimmed.
      *
-     * @throws ParseException if the given {@code personId} is not a positive whole number.
+     * @throws ParseException if the given {@code personId} is not a whole number from 1 to
+     *     {@link PersonId#MAX_VALUE}.
      */
     public static PersonId parsePersonId(String personId) throws ParseException {
         requireNonNull(personId);
         String trimmedPersonId = personId.trim();
-        if (!StringUtil.isNonZeroUnsignedInteger(trimmedPersonId)) {
+        if (!StringUtil.isNonZeroUnsignedInteger(trimmedPersonId)
+                || Integer.parseInt(trimmedPersonId) > PersonId.MAX_VALUE) {
             throw new ParseException(MESSAGE_INVALID_PERSON_ID);
         }
         return new PersonId(Integer.parseInt(trimmedPersonId));

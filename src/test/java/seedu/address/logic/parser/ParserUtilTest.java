@@ -44,7 +44,8 @@ public class ParserUtilTest {
 
     @Test
     public void parsePersonId_invalidValue_throwsParseException() {
-        for (String invalid : new String[] {"", "hello", "0", "-1", "+1", "C42", "c42", "1 2", "2147483648"}) {
+        for (String invalid : new String[] {"", "hello", "0", "-1", "+1", "C42", "c42", "1 2", "1000000",
+            "2147483648"}) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_PERSON_ID, () ->
                     ParserUtil.parsePersonId(invalid));
         }
@@ -53,6 +54,11 @@ public class ParserUtilTest {
     @Test
     public void parsePersonId_validValueWithoutWhitespace_returnsPersonId() throws Exception {
         assertEquals(new PersonId(42), ParserUtil.parsePersonId("42"));
+    }
+
+    @Test
+    public void parsePersonId_maxValue_returnsPersonId() throws Exception {
+        assertEquals(new PersonId(PersonId.MAX_VALUE), ParserUtil.parsePersonId("999999"));
     }
 
     @Test
