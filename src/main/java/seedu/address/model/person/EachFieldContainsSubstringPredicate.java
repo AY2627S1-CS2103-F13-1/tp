@@ -24,32 +24,35 @@ public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
      * @param phoneKey Optional phone substring.
      * @param emailKey Optional email substring.
      * @param addressKey Optional address substring.
-     * @param tagKeysKey Tag substrings that must all match.
+     * @param tagKeys Tag substrings that must all match.
      */
     public EachFieldContainsSubstringPredicate(
             Optional<String> nameKey, Optional<String> phoneKey, Optional<String> emailKey,
-            Optional<String> addressKey, List<String> tagKeysKey) {
+            Optional<String> addressKey, List<String> tagKeys) {
         this.nameKey = nameKey;
         this.phoneKey = phoneKey;
         this.emailKey = emailKey;
         this.addressKey = addressKey;
-        this.tagKeys = tagKeysKey;
+        this.tagKeys = tagKeys;
     }
 
     @Override
     public boolean test(Person person) {
+        boolean isNameNotSpecifiedOrMatch = nameKey.isEmpty()
+                || person.getName().fullName.toLowerCase().contains(nameKey.get().toLowerCase());
+        boolean isPhoneNotSpecifiedOrMatch = phoneKey.isEmpty()
+                || person.getPhone().value.toLowerCase().contains(phoneKey.get().toLowerCase());
+        boolean isEmailNotSpecifiedOrMatch = emailKey.isEmpty()
+                || person.getEmail().value.toLowerCase().contains(emailKey.get().toLowerCase());
+        boolean isAddressNotSpecifiedOrMatch = addressKey.isEmpty()
+                || person.getAddress().value.toLowerCase().contains(addressKey.get().toLowerCase());
+        boolean isTagsNotSpecifiedOrMatch = tagKeys.isEmpty()
+                || tagKeys.stream().allMatch(
+                        tagKey -> person.getTags().stream().anyMatch(
+                                tag -> tag.tagName.toLowerCase().contains(tagKey.toLowerCase())));
 
-        return (nameKey.isEmpty() || person.getName().fullName.toLowerCase().contains(nameKey.get().toLowerCase()))
-                && (phoneKey.isEmpty()
-                        || person.getPhone().value.toLowerCase().contains(phoneKey.get().toLowerCase()))
-                && (emailKey.isEmpty()
-                        || person.getEmail().value.toLowerCase().contains(emailKey.get().toLowerCase()))
-                && (addressKey.isEmpty()
-                        || person.getAddress().value.toLowerCase().contains(addressKey.get().toLowerCase()))
-                && (tagKeys.isEmpty()
-                        || tagKeys.stream().allMatch(
-                                tagKey -> person.getTags().stream().anyMatch(
-                                        tag -> tag.tagName.toLowerCase().contains(tagKey.toLowerCase()))));
+        return isNameNotSpecifiedOrMatch && isPhoneNotSpecifiedOrMatch && isEmailNotSpecifiedOrMatch
+                && isAddressNotSpecifiedOrMatch && isTagsNotSpecifiedOrMatch;
     }
 
     @Override
@@ -59,15 +62,15 @@ public class EachFieldContainsSubstringPredicate implements Predicate<Person> {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof EachFieldContainsSubstringPredicate otherNameContainsKeywordsPredicate)) {
+        if (!(other instanceof EachFieldContainsSubstringPredicate eachFieldContainsSubstringPredicate)) {
             return false;
         }
 
-        return nameKey.equals(otherNameContainsKeywordsPredicate.nameKey)
-                && phoneKey.equals(otherNameContainsKeywordsPredicate.phoneKey)
-                && emailKey.equals(otherNameContainsKeywordsPredicate.emailKey)
-                && addressKey.equals(otherNameContainsKeywordsPredicate.addressKey)
-                && tagKeys.equals(otherNameContainsKeywordsPredicate.tagKeys);
+        return nameKey.equals(eachFieldContainsSubstringPredicate.nameKey)
+                && phoneKey.equals(eachFieldContainsSubstringPredicate.phoneKey)
+                && emailKey.equals(eachFieldContainsSubstringPredicate.emailKey)
+                && addressKey.equals(eachFieldContainsSubstringPredicate.addressKey)
+                && tagKeys.equals(eachFieldContainsSubstringPredicate.tagKeys);
     }
 
     @Override
