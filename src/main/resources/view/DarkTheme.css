@@ -502,3 +502,39 @@
 .list-view .virtual-flow .sheet {
     -fx-background-color: #f6f0e8;
 }
+
+/* ByLine command interface: clear input, understated feedback. */
+#commandTextField {
+    -fx-background-color: #fffaf4;
+    -fx-background-radius: 5;
+    -fx-border-color: #cdbab1;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+    -fx-padding: 9 12 9 12;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 14px;
+    -fx-text-fill: #30282a;
+    -fx-prompt-text-fill: #8e7b78;
+}
+
+#commandTextField:focused {
+    -fx-border-color: #7a2630;
+    -fx-border-width: 2;
+    -fx-background-color: #ffffff;
+}
+
+.result-display {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: #30282a;
+    -fx-background-color: #fffaf4;
+}
+
+#resultDisplay .content {
+    -fx-background-color: #fffaf4;
+    -fx-padding: 7 9 7 9;
+}
+
+.list-cell .cell_small_label {
+    -fx-font-size: 13px;
+}
