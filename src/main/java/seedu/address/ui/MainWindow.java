@@ -168,17 +168,34 @@ public class MainWindow extends UiPart<Stage> {
         detailPrompt.setVisible(!selected);
         detailPrompt.setManaged(!selected);
 
-        detailName.setText(selected ? person.getName().fullName : "Your newsroom, organised.");
-        detailId.setText(selected ? person.getId()
-                .map(id -> "CONTACT ID  " + id.getValue()).orElse("CONTACT ID  Unassigned") : "");
-        detailPhone.setText(selected ? "PHONE  " + person.getPhone().value : "");
-        detailEmail.setText(selected ? "EMAIL  " + person.getEmail().value : "");
-        detailAddress.setText(selected ? "ADDRESS  " + person.getAddress().value : "");
-        detailTags.setText(selected ? "TAGS  " + person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .map(tag -> tag.tagName)
-                .collect(Collectors.joining(", ")) : "");
-        detailStatus.setText(selected ? "STATUS  " + (person.isArchived() ? "Archived" : "Active") : "");
+        String[] details = formatContactDetails(person);
+        detailName.setText(details[0]);
+        detailId.setText(details[1]);
+        detailPhone.setText(details[2]);
+        detailEmail.setText(details[3]);
+        detailAddress.setText(details[4]);
+        detailTags.setText(details[5]);
+        detailStatus.setText(details[6]);
+    }
+
+    /** Returns display-ready contact fields, including the empty state. */
+    static String[] formatContactDetails(Person person) {
+        if (person == null) {
+            return new String[] {"Your newsroom, organised.", "", "", "", "", "", ""};
+        }
+
+        return new String[] {
+            person.getName().fullName,
+            person.getId().map(id -> "CONTACT ID  " + id.getValue()).orElse("CONTACT ID  Unassigned"),
+            "PHONE  " + person.getPhone().value,
+            "EMAIL  " + person.getEmail().value,
+            "ADDRESS  " + person.getAddress().value,
+            "TAGS  " + person.getTags().stream()
+                    .sorted(Comparator.comparing(tag -> tag.tagName))
+                    .map(tag -> tag.tagName)
+                    .collect(Collectors.joining(", ")),
+            "STATUS  " + (person.isArchived() ? "Archived" : "Active")
+        };
     }
 
     /**

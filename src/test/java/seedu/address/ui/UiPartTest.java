@@ -1,8 +1,10 @@
 package seedu.address.ui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javafx.fxml.FXML;
 import seedu.address.MainApp;
+import seedu.address.testutil.PersonBuilder;
 
 public class UiPartTest {
 
@@ -73,6 +76,36 @@ public class UiPartTest {
     public void constructor_invalidFileName_throwsAssertionError() {
         assertThrows(AssertionError.class, () -> new TestUiPart<Object>(INVALID_FILE_PATH));
         assertThrows(AssertionError.class, () -> new TestUiPart<Object>(INVALID_FILE_PATH, new Object()));
+    }
+
+    @Test
+    public void formatContactDetails_nullPerson_returnsEmptyState() {
+        assertArrayEquals(new String[] {"Your newsroom, organised.", "", "", "", "", "", ""},
+                MainWindow.formatContactDetails(null));
+    }
+
+    @Test
+    public void formatContactDetails_activePerson_formatsFields() {
+        String[] fields = MainWindow.formatContactDetails(ALICE);
+
+        assertEquals(ALICE.getName().fullName, fields[0]);
+        assertEquals("CONTACT ID  " + ALICE.getId().orElseThrow().getValue(), fields[1]);
+        assertEquals("PHONE  " + ALICE.getPhone().value, fields[2]);
+        assertEquals("EMAIL  " + ALICE.getEmail().value, fields[3]);
+        assertEquals("ADDRESS  " + ALICE.getAddress().value, fields[4]);
+        assertEquals("STATUS  Active", fields[6]);
+    }
+
+    @Test
+    public void formatContactDetails_archivedPerson_formatsStatus() {
+        assertEquals("STATUS  Archived", MainWindow.formatContactDetails(
+                new PersonBuilder(ALICE).withArchiveStatus(true).build())[6]);
+    }
+
+    @Test
+    public void formatContactDetails_personWithoutId_formatsUnassigned() {
+        assertEquals("CONTACT ID  Unassigned", MainWindow.formatContactDetails(
+                new PersonBuilder().build())[1]);
     }
 
     private URL getTestFileUrl(String testFilePath) {
