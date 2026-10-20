@@ -491,3 +491,14 @@
     -fx-background-radius: 9;
     -fx-font-size: 11px;
 }
+
+/* Keep empty contact-list space consistent with the newsroom theme. */
+.list-cell:empty {
+    -fx-background-color: #f6f0e8;
+}
+
+.list-view .virtual-flow,
+.list-view .virtual-flow .clipped-container,
+.list-view .virtual-flow .sheet {
+    -fx-background-color: #f6f0e8;
+}
