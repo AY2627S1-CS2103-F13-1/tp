@@ -198,6 +198,7 @@ public class MainWindow extends UiPart<Stage> {
      */
     @FXML
     public void handleHelp() {
+        personListPanel.clearSelection();
         contactDetailsPanel.setVisible(false);
         contactDetailsPanel.setManaged(false);
         helpPanel.setVisible(true);
