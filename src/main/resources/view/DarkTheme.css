@@ -381,3 +381,50 @@
     -fx-font-size: 12px;
     -fx-text-fill: #f2d9d3;
 }
+
+/* ByLine newsroom palette: warm canvas and burgundy accents. */
+.root {
+    -fx-base: #f6f0e8;
+    -fx-background: #f6f0e8;
+    -fx-control-inner-background: #fffaf4;
+    -fx-accent: #7a2630;
+    -fx-focus-color: #7a2630;
+    -fx-faint-focus-color: rgba(122, 38, 48, 0.15);
+}
+
+.pane-with-border, .stack-pane {
+    -fx-background-color: #f6f0e8;
+    -fx-border-color: #e3d7cc;
+}
+
+.menu-bar {
+    -fx-background-color: #efe5db;
+}
+
+.menu-bar .label {
+    -fx-text-fill: #4b3031;
+}
+
+#commandTextField {
+    -fx-background-color: #fffaf4;
+    -fx-border-color: transparent transparent #7a2630 transparent;
+    -fx-text-fill: #30282a;
+    -fx-prompt-text-fill: #8e7b78;
+}
+
+#resultDisplay .content {
+    -fx-background-color: #fffaf4;
+}
+
+.result-display {
+    -fx-text-fill: #30282a;
+}
+
+.status-bar, .status-bar-with-border {
+    -fx-background-color: #efe5db;
+    -fx-border-color: #e3d7cc;
+}
+
+.status-bar .label, .status-bar-with-border .label {
+    -fx-text-fill: #4b3031;
+}
