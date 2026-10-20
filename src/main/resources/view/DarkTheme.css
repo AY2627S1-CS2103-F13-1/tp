@@ -428,3 +428,66 @@
 .status-bar .label, .status-bar-with-border .label {
     -fx-text-fill: #4b3031;
 }
+
+/* ByLine contact cards: warm, readable, and keyboard-friendly. */
+.list-view {
+    -fx-background-color: #f6f0e8;
+    -fx-control-inner-background: #f6f0e8;
+}
+
+.list-cell:filled:even, .list-cell:filled:odd {
+    -fx-background-color: #f6f0e8;
+    -fx-padding: 5 8 5 8;
+}
+
+.list-cell:filled #cardPane {
+    -fx-background-color: #fffaf4;
+    -fx-background-radius: 6;
+    -fx-border-color: #e3d7cc;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #f6f0e8;
+}
+
+.list-cell:filled:selected #cardPane {
+    -fx-background-color: #f5e7e2;
+    -fx-border-color: #7a2630;
+    -fx-border-width: 2;
+}
+
+.list-cell .label {
+    -fx-text-fill: #30282a;
+}
+
+.list-cell .cell_big_label {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #651c22;
+}
+
+.list-cell .cell_small_label {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 12px;
+    -fx-text-fill: #5c4d4c;
+}
+
+.list-cell .person_id_label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #7a2630;
+    -fx-border-color: #bd9b98;
+    -fx-background-color: #f7ebe5;
+    -fx-background-radius: 3;
+    -fx-padding: 1 5 1 5;
+}
+
+#tags .label {
+    -fx-text-fill: #651c22;
+    -fx-background-color: #f0ddd7;
+    -fx-padding: 2 7 2 7;
+    -fx-background-radius: 9;
+    -fx-font-size: 11px;
+}
