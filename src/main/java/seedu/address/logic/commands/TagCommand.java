@@ -14,6 +14,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
+import seedu.address.model.util.ModifyPersonUtil;
 
 /**
  * Adds one or more tags to an existing contact.
@@ -52,16 +53,7 @@ public class TagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.addAll(tagsToAdd);
 
-        PersonId id = original.getId().orElseThrow();
-
-        Person updated = new Person(
-                id,
-                original.getName(),
-                original.getPhone(),
-                original.getEmail(),
-                original.getAddress(),
-                updatedTags,
-                original.isArchived());
+        Person updated = ModifyPersonUtil.setTags(original, updatedTags);
 
         model.setPerson(original, updated);
 

@@ -14,6 +14,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
+import seedu.address.model.util.ModifyPersonUtil;
 
 /**
  * Removes one or more tags from an existing contact.
@@ -53,16 +54,7 @@ public class UntagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.removeAll(tagsToRemove);
 
-        PersonId id = original.getId().orElseThrow();
-
-        Person updated = new Person(
-                id,
-                original.getName(),
-                original.getPhone(),
-                original.getEmail(),
-                original.getAddress(),
-                updatedTags,
-                original.isArchived());
+        Person updated = ModifyPersonUtil.setTags(original, updatedTags);
 
         model.setPerson(original, updated);
 
