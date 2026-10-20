@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import java.util.logging.Logger;
 
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
@@ -27,6 +28,17 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+        personList.addListener((javafx.collections.ListChangeListener<Person>) change -> {
+            Person selected = personListView.getSelectionModel().getSelectedItem();
+            if (selected != null && !personList.contains(selected)) {
+                personListView.getSelectionModel().clearSelection();
+            }
+        });
+    }
+
+    /** Registers a listener for contact selection changes. */
+    public void addSelectionListener(ChangeListener<? super Person> listener) {
+        personListView.getSelectionModel().selectedItemProperty().addListener(listener);
     }
 
     /**

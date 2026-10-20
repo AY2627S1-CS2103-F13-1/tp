@@ -64,8 +64,15 @@
           <VBox styleClass="byline-detail-panel" minWidth="250" HBox.hgrow="ALWAYS" spacing="12">
             <padding><Insets top="28" right="28" bottom="28" left="28" /></padding>
             <Label text="CONTACT DESK" styleClass="byline-detail-eyebrow" />
-            <Label text="Your newsroom, organised." styleClass="byline-detail-heading" wrapText="true" />
-            <Label text="Select a contact to view details here."
+            <Label fx:id="detailName" text="Your newsroom, organised."
+                   styleClass="byline-detail-heading" wrapText="true" />
+            <Label fx:id="detailId" styleClass="byline-detail-eyebrow" wrapText="true" />
+            <Label fx:id="detailPhone" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailEmail" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailAddress" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailTags" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailStatus" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailPrompt" text="Select a contact to view details here."
                    styleClass="byline-detail-description" wrapText="true" />
           </VBox>
         </HBox>

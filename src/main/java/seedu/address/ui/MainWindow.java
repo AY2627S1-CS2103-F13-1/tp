@@ -1,10 +1,13 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
@@ -17,6 +20,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -36,6 +40,23 @@ public class MainWindow extends UiPart<Stage> {
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
+
+    @FXML
+    private Label detailName;
+    @FXML
+    private Label detailId;
+    @FXML
+    private Label detailPhone;
+    @FXML
+    private Label detailEmail;
+    @FXML
+    private Label detailAddress;
+    @FXML
+    private Label detailTags;
+    @FXML
+    private Label detailStatus;
+    @FXML
+    private Label detailPrompt;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -116,6 +137,8 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+        personListPanel.addSelectionListener((observable, previous, selected) -> showContactDetails(selected));
+        showContactDetails(null);
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -125,6 +148,26 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+    }
+
+    /** Displays the selected contact or the empty state. */
+    private void showContactDetails(Person person) {
+        boolean selected = person != null;
+
+        detailPrompt.setVisible(!selected);
+        detailPrompt.setManaged(!selected);
+
+        detailName.setText(selected ? person.getName().fullName : "Your newsroom, organised.");
+        detailId.setText(selected ? person.getId()
+                .map(id -> "CONTACT ID  " + id.getValue()).orElse("CONTACT ID  Unassigned") : "");
+        detailPhone.setText(selected ? "PHONE  " + person.getPhone().value : "");
+        detailEmail.setText(selected ? "EMAIL  " + person.getEmail().value : "");
+        detailAddress.setText(selected ? "ADDRESS  " + person.getAddress().value : "");
+        detailTags.setText(selected ? "TAGS  " + person.getTags().stream()
+                .sorted(Comparator.comparing(tag -> tag.tagName))
+                .map(tag -> tag.tagName)
+                .collect(Collectors.joining(", ")) : "");
+        detailStatus.setText(selected ? "STATUS  " + (person.isArchived() ? "Archived" : "Active") : "");
     }
 
     /**
