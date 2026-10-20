@@ -3,6 +3,8 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 
@@ -12,6 +14,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import seedu.address.MainApp;
 import seedu.address.testutil.PersonBuilder;
@@ -106,6 +109,24 @@ public class UiPartTest {
     public void formatContactDetails_personWithoutId_formatsUnassigned() {
         assertEquals("CONTACT ID  Unassigned", MainWindow.formatContactDetails(
                 new PersonBuilder().build())[1]);
+    }
+
+    @Test
+    public void shouldClearSelection_noSelection_returnsFalse() {
+        assertFalse(PersonListPanel.shouldClearSelection(
+                null, FXCollections.observableArrayList(ALICE)));
+    }
+
+    @Test
+    public void shouldClearSelection_selectedPersonPresent_returnsFalse() {
+        assertFalse(PersonListPanel.shouldClearSelection(
+                ALICE, FXCollections.observableArrayList(ALICE)));
+    }
+
+    @Test
+    public void shouldClearSelection_selectedPersonRemoved_returnsTrue() {
+        assertTrue(PersonListPanel.shouldClearSelection(
+                ALICE, FXCollections.observableArrayList()));
     }
 
     private URL getTestFileUrl(String testFilePath) {

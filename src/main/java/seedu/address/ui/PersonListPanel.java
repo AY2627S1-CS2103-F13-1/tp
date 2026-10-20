@@ -30,10 +30,15 @@ public class PersonListPanel extends UiPart<Region> {
         personListView.setCellFactory(listView -> new PersonListViewCell());
         personList.addListener((javafx.collections.ListChangeListener<Person>) change -> {
             Person selected = personListView.getSelectionModel().getSelectedItem();
-            if (selected != null && !personList.contains(selected)) {
+            if (shouldClearSelection(selected, personList)) {
                 personListView.getSelectionModel().clearSelection();
             }
         });
+    }
+
+    /** Returns whether the selected contact is no longer in the displayed list. */
+    static boolean shouldClearSelection(Person selected, ObservableList<Person> persons) {
+        return selected != null && !persons.contains(selected);
     }
 
     /** Registers a listener for contact selection changes. */
@@ -41,9 +46,7 @@ public class PersonListPanel extends UiPart<Region> {
         personListView.getSelectionModel().selectedItemProperty().addListener(listener);
     }
 
-    /**
-     * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
-     */
+    /** Clears the currently selected contact. */
     public void clearSelection() {
         personListView.getSelectionModel().clearSelection();
     }
