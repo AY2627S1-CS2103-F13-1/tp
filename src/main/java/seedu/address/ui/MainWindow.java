@@ -9,10 +9,12 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -39,7 +41,12 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
-    private HelpWindow helpWindow;
+
+    @FXML
+    private VBox contactDetailsPanel;
+
+    @FXML
+    private ScrollPane helpPanel;
 
     @FXML
     private Label detailName;
@@ -90,7 +97,7 @@ public class MainWindow extends UiPart<Stage> {
 
         setAccelerators();
 
-        helpWindow = new HelpWindow();
+
     }
 
     public Stage getPrimaryStage() {
@@ -152,6 +159,10 @@ public class MainWindow extends UiPart<Stage> {
 
     /** Displays the selected contact or the empty state. */
     private void showContactDetails(Person person) {
+        contactDetailsPanel.setVisible(true);
+        contactDetailsPanel.setManaged(true);
+        helpPanel.setVisible(false);
+        helpPanel.setManaged(false);
         boolean selected = person != null;
 
         detailPrompt.setVisible(!selected);
@@ -183,15 +194,14 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Opens the help window or focuses on it if it's already opened.
+     * Displays the command guide in the right-hand panel.
      */
     @FXML
     public void handleHelp() {
-        if (!helpWindow.isShowing()) {
-            helpWindow.show();
-        } else {
-            helpWindow.focus();
-        }
+        contactDetailsPanel.setVisible(false);
+        contactDetailsPanel.setManaged(false);
+        helpPanel.setVisible(true);
+        helpPanel.setManaged(true);
     }
 
     void show() {
@@ -206,7 +216,6 @@ public class MainWindow extends UiPart<Stage> {
         GuiSettings guiSettings = new GuiSettings(primaryStage.getWidth(), primaryStage.getHeight(),
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
-        helpWindow.hide();
         primaryStage.hide();
     }
 

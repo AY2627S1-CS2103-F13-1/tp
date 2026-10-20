@@ -565,3 +565,16 @@
     -fx-font-size: 14px;
     -fx-text-fill: #5c4d4c;
 }
+
+
+/* Integrated newsroom command guide. */
+.byline-help-scroll {
+    -fx-background-color: #fffaf4;
+    -fx-background: #fffaf4;
+    -fx-border-color: #e3d7cc;
+    -fx-border-width: 0 0 0 1;
+}
+
+.byline-help-scroll > .viewport {
+    -fx-background-color: #fffaf4;
+}

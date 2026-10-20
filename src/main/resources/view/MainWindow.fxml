@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.layout.HBox?>
@@ -61,7 +62,8 @@
             <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
             <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
           </VBox>
-          <VBox styleClass="byline-detail-panel" minWidth="250" HBox.hgrow="ALWAYS" spacing="12">
+          <StackPane minWidth="250" HBox.hgrow="ALWAYS">
+          <VBox fx:id="contactDetailsPanel" styleClass="byline-detail-panel" spacing="12">
             <padding><Insets top="28" right="28" bottom="28" left="28" /></padding>
             <Label text="CONTACT DESK" styleClass="byline-detail-eyebrow" />
             <Label fx:id="detailName" text="Your newsroom, organised."
@@ -75,6 +77,39 @@
             <Label fx:id="detailPrompt" text="Select a contact to view details here."
                    styleClass="byline-detail-description" wrapText="true" />
           </VBox>
+
+          <ScrollPane fx:id="helpPanel" fitToWidth="true" visible="false" managed="false"
+                      styleClass="byline-help-scroll">
+            <content>
+              <VBox spacing="12" styleClass="byline-detail-panel">
+                <padding>
+                  <Insets top="28" right="28" bottom="28" left="28" />
+                </padding>
+
+                <Label text="COMMAND GUIDE" styleClass="byline-detail-eyebrow" />
+                <Label text="The newsroom handbook" styleClass="byline-detail-heading" wrapText="true" />
+                <Label text="Use these commands in the input above."
+                       styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="CONTACTS" styleClass="byline-detail-eyebrow" />
+                <Label text="add  •  Add a contact&#10;edit  •  Edit a contact&#10;delete  •  Delete a contact&#10;clear  •  Clear all contacts"
+                       styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="DISCOVER" styleClass="byline-detail-eyebrow" />
+                <Label text="list  •  List contacts&#10;find  •  Find matching contacts&#10;sort  •  Sort contacts"
+                       styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="ORGANISE" styleClass="byline-detail-eyebrow" />
+                <Label text="tag  •  Add tags&#10;untag  •  Remove tags&#10;archive  •  Archive a contact&#10;restore  •  Restore a contact"
+                       styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="APPLICATION" styleClass="byline-detail-eyebrow" />
+                <Label text="help  •  Show this guide&#10;exit  •  Exit ByLine"
+                       styleClass="byline-detail-description" wrapText="true" />
+              </VBox>
+            </content>
+          </ScrollPane>
+          </StackPane>
         </HBox>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
