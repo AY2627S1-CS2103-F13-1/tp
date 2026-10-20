@@ -538,3 +538,30 @@
 .list-cell .cell_small_label {
     -fx-font-size: 13px;
 }
+
+
+/* Two-column newsroom workspace. */
+.byline-detail-panel {
+    -fx-background-color: #fffaf4;
+    -fx-border-color: #e3d7cc;
+    -fx-border-width: 0 0 0 1;
+}
+
+.byline-detail-eyebrow {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7a2630;
+}
+
+.byline-detail-heading {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 25px;
+    -fx-text-fill: #651c22;
+}
+
+.byline-detail-description {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 14px;
+    -fx-text-fill: #5c4d4c;
+}

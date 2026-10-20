@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <fx:root type="javafx.stage.Stage" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         title="ByLine | Journalist Contact Manager" minWidth="450" minHeight="600" onCloseRequest="#handleExit">
+         title="ByLine | Journalist Contact Manager" minWidth="650" minHeight="600" onCloseRequest="#handleExit">
   <icons>
     <Image url="@/images/address_book_32.png" />
   </icons>
@@ -55,12 +55,20 @@
           </padding>
         </StackPane>
 
-        <VBox fx:id="personList" styleClass="pane-with-border" minWidth="340" prefWidth="340" VBox.vgrow="ALWAYS">
-          <padding>
-            <Insets top="10" right="10" bottom="10" left="10" />
-          </padding>
-          <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
-        </VBox>
+        <HBox VBox.vgrow="ALWAYS" spacing="0">
+          <VBox fx:id="personList" styleClass="pane-with-border" minWidth="280" prefWidth="380"
+                HBox.hgrow="SOMETIMES">
+            <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
+            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+          </VBox>
+          <VBox styleClass="byline-detail-panel" minWidth="250" HBox.hgrow="ALWAYS" spacing="12">
+            <padding><Insets top="28" right="28" bottom="28" left="28" /></padding>
+            <Label text="CONTACT DESK" styleClass="byline-detail-eyebrow" />
+            <Label text="Your newsroom, organised." styleClass="byline-detail-heading" wrapText="true" />
+            <Label text="Select a contact to view details here."
+                   styleClass="byline-detail-description" wrapText="true" />
+          </VBox>
+        </HBox>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
       </VBox>
