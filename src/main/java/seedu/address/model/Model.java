@@ -83,6 +83,38 @@ public interface Model {
      */
     void setPerson(Person target, Person editedPerson);
 
+    /**
+     * Saves the current address book data as a new state in the undo history,
+     * unless it is the same as the last saved state.
+     */
+    void commitAddressBook();
+
+    /**
+     * Returns true if there is an earlier saved state to undo to.
+     */
+    boolean canUndoAddressBook();
+
+    /**
+     * Restores the address book to the saved state before the current one.
+     * The current filter and sort of the displayed list are kept.
+     *
+     * @throws IllegalStateException if there is no earlier saved state.
+     */
+    void undoAddressBook();
+
+    /**
+     * Returns true if there is an undone state to redo.
+     */
+    boolean canRedoAddressBook();
+
+    /**
+     * Restores the address book to the state most recently undone.
+     * The current filter and sort of the displayed list are kept.
+     *
+     * @throws IllegalStateException if there is no undone state.
+     */
+    void redoAddressBook();
+
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
 

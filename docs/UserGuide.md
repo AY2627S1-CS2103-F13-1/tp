@@ -59,7 +59,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+  For example, `help 123` is interpreted as `help`. The exceptions are `undo` and `redo`, which show an error instead, so that `undo 3` is not mistaken for undoing three changes.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -71,7 +71,7 @@ Every contact has an ID, a whole number shown as `ID: 3` on the contact's card. 
 * A new contact gets the next unused ID. The first contact is `1`, the next is `2`, and so on.
 * A contact keeps its ID for good. The ID does not change when you use `find`, `sort` or `list`, archive the contact, or restart ByLine.
 * Commands find the contact by its ID even if it is not in the list currently shown, e.g. after a `find`.
-* IDs are never reused. After you delete a contact or run `clear`, the next new contact still gets a new ID.
+* IDs are never reused. After you delete a contact or run `clear`, the next new contact still gets a new ID. The one exception is [undoing](#undoing-a-change-undo) an `add`, which frees that contact's ID for the next contact you add.
 * Type the ID as a plain number, e.g. `delete 3`.
 * IDs go up to 999999. Because IDs are never reused, no more contacts can be added once ID 999999 has been given out.
 
@@ -296,6 +296,44 @@ Format: `clear`
 
 IDs are not reset: the next contact you add still gets a new ID.
 
+### Undoing a change: `undo`
+
+Undoes the last change to your contacts.
+
+Format: `undo`
+
+* These commands can be undone: `add`, `edit`, `delete`, `clear`, `archive`, `restore`, `tag` and `untag`.
+* Commands that only change what is shown, such as `list`, `find` and `sort`, are not undone. `undo` skips over them to the last change.
+* You can undo up to 20 changes in a row. Older changes can no longer be undone.
+* `undo` keeps the current view. For example, after a `find`, ByLine still shows only the contacts that match the search.
+* The history of changes is cleared when you close ByLine, so changes made before a restart cannot be undone.
+* If there is nothing to undo, ByLine shows `There is nothing to undo.`
+* `undo` takes no parameters. Extra words, such as `undo 3`, show an error. Run `undo` again to undo more than one change.
+
+<div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
+Undoing an `add` also takes back the contact's ID, so the next contact you add gets that same ID. This is the only case in which an ID is used again.
+</div>
+
+Examples:
+* `delete 3` followed by `undo` brings back the contact with ID 3.
+* `tag 2 t/expert`, then `tag 2 t/source`, then `undo` twice removes both tags.
+
+### Redoing an undone change: `redo`
+
+Redoes the last change you undid.
+
+Format: `redo`
+
+* You can redo each change you undid, in order, until you make a new change.
+* After an `undo`, making a new change, e.g. with `add` or `edit`, means the undone changes can no longer be redone. Commands that only change what is shown, such as `list` or `find`, do not affect this.
+* Redoing an undone `add` brings the contact back with the same ID.
+* Like `undo`, `redo` keeps the current view, and its history is cleared when you close ByLine.
+* If there is nothing to redo, ByLine shows `There is nothing to redo.`
+* `redo` takes no parameters. Extra words, such as `redo 2`, show an error.
+
+Examples:
+* `delete 3`, then `undo`, then `redo` deletes the contact with ID 3 again.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -345,7 +383,9 @@ Action | Format, Examples
 **Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
 **List** | `list`, `list all` or `list archive`
 **Help** | `help`
+**Redo** | `redo`
 **Restore** | `restore ID`<br> e.g., `restore 4`
 **Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
 **Tag** | `tag ID t/TAG [t/TAG]…​`<br> e.g., `tag 3 t/expert t/housing policy`
+**Undo** | `undo`
 **Untag** | `untag ID t/TAG [t/TAG]…​`<br> e.g., `untag 3 t/expert`
