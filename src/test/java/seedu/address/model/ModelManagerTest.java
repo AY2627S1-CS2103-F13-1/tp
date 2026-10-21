@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
+import static seedu.address.model.Model.PREDICATE_SHOW_ARCHIVED_PERSONS;
 import static seedu.address.model.person.PersonComparator.getComparator;
 import static seedu.address.model.person.SortField.ADDRESS;
 import static seedu.address.model.person.SortField.EMAIL;
@@ -40,6 +41,15 @@ public class ModelManagerTest {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
         assertEquals(new AddressBook(), new AddressBook(modelManager.getAddressBook()));
+    }
+
+    @Test
+    public void constructor_archivedContact_hiddenFromDisplayedList() {
+        Person archivedAlice = new PersonBuilder(ALICE).withArchiveStatus(true).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(archivedAlice).withPerson(BENSON).build();
+        ModelManager typicalModelManager = new ModelManager(addressBook, new UserPrefs());
+
+        assertEquals(List.of(BENSON), typicalModelManager.getFilteredPersonList());
     }
 
     @Test
@@ -96,6 +106,18 @@ public class ModelManagerTest {
         Person addedPerson = modelManager.addPerson(new PersonBuilder().build());
         assertEquals(new PersonId("1"), addedPerson.getId().get());
         assertEquals(List.of(addedPerson), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void addPerson_archivedView_switchesToActiveView() {
+        Person archivedAlice = new PersonBuilder(ALICE).withArchiveStatus(true).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(archivedAlice).build();
+        ModelManager typicalModelManager = new ModelManager(addressBook, new UserPrefs());
+        typicalModelManager.updateFilteredPersonList(PREDICATE_SHOW_ARCHIVED_PERSONS);
+
+        Person addedPerson = typicalModelManager.addPerson(BENSON);
+
+        assertEquals(List.of(addedPerson), typicalModelManager.getFilteredPersonList());
     }
 
     @Test

@@ -107,13 +107,12 @@ public class ArchiveWorkflowTest {
     }
 
     @Test
-    public void startup_allContactsVisible() {
+    public void startup_onlyActiveContactsVisible() {
         AddressBook book = new AddressBook();
         book.addPerson(new PersonBuilder(ALICE).withArchiveStatus(true).build());
         book.addPerson(BENSON);
         Model restarted = new ModelManager(book, new UserPrefs());
-        assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build(),
-                BENSON), restarted.getFilteredPersonList());
+        assertEquals(List.of(BENSON), restarted.getFilteredPersonList());
         assertTrue(restarted.hasPerson(ALICE));
     }
 
