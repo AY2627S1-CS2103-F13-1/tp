@@ -156,6 +156,43 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void undoAddressBook_noEarlierState_throwsIllegalStateException() {
+        assertFalse(modelManager.canUndoAddressBook());
+        assertThrows(IllegalStateException.class, modelManager::undoAddressBook);
+    }
+
+    @Test
+    public void undoAddressBook_afterCommittedChange_restoresAddressBook() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.deletePerson(BENSON);
+        modelManager.commitAddressBook();
+        assertTrue(modelManager.canUndoAddressBook());
+
+        modelManager.undoAddressBook();
+
+        assertEquals(addressBook, modelManager.getAddressBook());
+        assertFalse(modelManager.canUndoAddressBook());
+    }
+
+    @Test
+    public void undoAddressBook_filteredAndSortedList_keepsFilterAndSort() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.updateFilteredPersonList(person -> !person.equals(BENSON));
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+        modelManager.deletePerson(ALICE);
+        modelManager.commitAddressBook();
+        assertEquals(List.of(CARL), modelManager.getFilteredPersonList());
+
+        modelManager.undoAddressBook();
+
+        // ALICE is back, BENSON is still hidden and the reversed name order is kept
+        assertEquals(List.of(CARL, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
     public void updateFilteredPersonList_sortedList_clearsSort() {
         AddressBook addressBook = new AddressBookBuilder()
                 .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
