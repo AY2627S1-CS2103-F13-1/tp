@@ -116,6 +116,71 @@ public class BackupWorkflowTest {
     }
 
     @Test
+    public void load_defaultStateSaveFailure_keepsOriginalAndDoesNotClaimBackup() throws Exception {
+        AddressBook replacement = new AddressBook();
+        replacement.addPerson(new PersonBuilder().build());
+        new BackupStorage().exportAddressBook(replacement, backup);
+        String sourceBefore = Files.readString(backup);
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failed.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw new IOException("Simulated save failure");
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
+
+        for (ReadOnlyAddressBook original : new ReadOnlyAddressBook[] {
+            new AddressBook(), SampleDataUtil.getSampleAddressBook()}) {
+            model.setAddressBook(original);
+            CommandException failure = assertThrows(CommandException.class, () -> logic.execute("load " + backup));
+            assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure"),
+                    failure.getMessage());
+            assertEquals(original, model.getAddressBook());
+            assertTrue(backupFiles().isEmpty());
+            assertEquals(sourceBefore, Files.readString(backup));
+        }
+    }
+
+    @Test
+    public void load_success_isUndoableAndRedoable() throws Exception {
+        model.addPerson(new PersonBuilder().withName("Original").build());
+        model.commitAddressBook();
+        AddressBook original = new AddressBook(model.getAddressBook());
+        AddressBook replacement = new AddressBook(30);
+        replacement.addPerson(new PersonBuilder().withName("Loaded").withArchiveStatus(true).build());
+        new BackupStorage().exportAddressBook(replacement, backup);
+
+        logic.execute("load " + backup);
+        assertEquals(replacement, model.getAddressBook());
+        logic.execute("undo");
+        assertEquals(original, model.getAddressBook());
+        assertEquals(original, storage.readAddressBook().orElseThrow());
+        logic.execute("redo");
+        assertEquals(replacement, model.getAddressBook());
+        assertEquals(replacement, storage.readAddressBook().orElseThrow());
+        assertEquals(1, backupFiles().size());
+    }
+
+    @Test
+    public void exportAndFailedLoad_preserveRedoHistory() throws Exception {
+        model.addPerson(new PersonBuilder().build());
+        model.commitAddressBook();
+        AddressBook original = new AddressBook(model.getAddressBook());
+        logic.execute("archive 1");
+        AddressBook archived = new AddressBook(model.getAddressBook());
+        logic.execute("undo");
+
+        logic.execute("export " + backup);
+        assertTrue(model.canRedoAddressBook());
+        assertThrows(CommandException.class, () -> logic.execute("load " + temporaryFolder.resolve("missing.json")));
+        assertEquals(original, model.getAddressBook());
+        assertTrue(model.canRedoAddressBook());
+        logic.execute("redo");
+        assertEquals(archived, model.getAddressBook());
+    }
+
+    @Test
     public void export_missingParent_reportsFailure() {
         Path missingParent = temporaryFolder.resolve("missing").resolve("backup.json");
         assertThrows(CommandException.class, () -> logic.execute("export " + missingParent));
