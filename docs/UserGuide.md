@@ -304,6 +304,37 @@ Exits the program.
 
 Format: `exit`
 
+### Exporting a backup: `export`
+
+Saves **all contacts**, including archived contacts, their tags, IDs, and the next ID counter, to a JSON file.
+
+Format: `export PATH`<br>
+Example: `export C:/My Contacts/October backup`
+
+* The destination folder must already exist. Existing files are not overwritten; choose a new filename for each backup.
+* The `.json` extension is added automatically when omitted; explicit `.json` filenames also work. For example, `C:/My Contacts/October backup` refers to `C:/My Contacts/October backup.json`.
+* Paths may contain spaces, with or without surrounding double quotes. Relative paths start from the application's working directory.
+* Export does not depend on the current list or search filter. It backs up contact data, not application preferences.
+
+### Loading a backup: `load`
+
+Format: `load PATH`<br>
+Example: `load C:/My Contacts/October backup`
+
+As with `export`, `.json` is optional and spaces do not require quotes.
+
+Loading replaces the **entire address book**, including archived contacts, with the backup's contacts and saved ID counter. Contacts absent from the backup are removed.
+
+The app validates the requested file first. If the current address book contains user data, it automatically saves that data to a uniquely named JSON file in the same folder as the file passed to `load`, using a `before-load-` filename to avoid overwriting the source before replacing it. The success message shows the backup path, which you can use with `load PATH` to recover the previous contacts. Earlier backups are retained.
+
+No automatic backup is created when the current address book is empty or exactly matches the unchanged starter sample data. Editing, tagging, or archiving a sample contact makes it non-default, so it will be backed up. The current list or search filter does not affect this decision.
+
+Loading requires no confirmation. If validation or a required backup fails, loading stops without replacing current contacts. If saving the loaded data fails after the backup succeeds, the error message includes the backup path. These backups are created before loading, not after every command.
+
+The source backup is not modified.
+
+`restore ID` continues to unarchive one contact; use `load` to recover a backup. `export` creates a manual backup; `load` automatically backs up non-default current data before replacement.
+
 ### Saving the data
 
 ByLine automatically saves data after every command. You do not need to save manually.
