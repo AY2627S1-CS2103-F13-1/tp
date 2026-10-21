@@ -42,22 +42,23 @@ public class Person {
      * Used when loading records whose IDs have not yet been assigned.
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
-        this(name, phone, email, address, tags, archived, null);
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean isArchived) {
+        this(name, phone, email, address, tags, isArchived, null);
     }
 
     /**
      * Creates a person with the given ID and archive status.
      * Every field must be present and not null.
      */
-    public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
-        this(name, phone, email, address, tags, archived, requireNonNull(id));
+    public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            boolean isArchived) {
+        this(name, phone, email, address, tags, isArchived, requireNonNull(id));
     }
 
     /**
      * Initialises every field. {@code id} is null for a person who has not been assigned an ID yet.
      */
-    private Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived,
+    private Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean isArchived,
             PersonId id) {
         requireAllNonNull(name, phone, email, address, tags);
         this.id = id;
