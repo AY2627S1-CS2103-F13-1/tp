@@ -26,7 +26,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all active (not archived) contacts.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
@@ -92,7 +92,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
 * The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
-* After the contact is added, ByLine shows all contacts again.
+* After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero. Tags can contain letters, numbers and spaces, and are saved in lowercase.
@@ -108,9 +108,11 @@ Shows contacts in the address book.
 
 Formats:
 
-* `list` shows all contacts, including archived ones.
-* `list active` shows only contacts that are not archived.
-* `list archived` shows only archived contacts.
+* `list` shows only active contacts, i.e. contacts that are not archived. ByLine also shows these when it starts.
+* `list all` shows all contacts, including archived ones.
+* `list archive` shows only archived contacts.
+* `all` and `archive` can be typed in upper or lower case, e.g. `list ARCHIVE`.
+* Any other input, such as `list archived`, shows an error listing the accepted formats, and the displayed list stays the same.
 
 ### Editing a person: `edit`
 
@@ -125,7 +127,7 @@ Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 * To add or remove only some tags, use [`tag`](#adding-tags-to-a-contact-tag) or [`untag`](#removing-tags-from-a-contact-untag) instead.
-* After the edit, ByLine shows all contacts again.
+* After the edit, ByLine shows the group the contact is in: your active contacts, or your archived contacts if the edited contact is archived. The edited contact stays in view.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the contact with ID 1 to be `91234567` and `johndoe@example.com` respectively.
@@ -268,7 +270,8 @@ Format: `archive ID`
 
 * Archives the contact with the given `ID`. See [Contact IDs](#contact-ids).
 * An archived contact keeps all its details and its ID. Its card shows `[Archived]` after the name.
-* Archived contacts are still shown by `list` and `find`. Use `list active` to hide them, or `list archived` to see only them.
+* Archived contacts are hidden by `list` and when ByLine starts. Use `list archive` to see only archived contacts, or `list all` to see every contact. `find` still includes archived contacts in its results.
+* If archived contacts are not being shown, e.g. after `list`, the contact disappears from the list once it is archived.
 * An archived contact can still be edited, tagged or deleted.
 * If the contact is already archived, ByLine shows `This person is already archived.`
 
@@ -285,7 +288,7 @@ Format: `restore ID`
 * If the contact is not archived, ByLine shows `This person is not archived.`
 
 Examples:
-* `list archived` shows the archived contacts. If one of them shows `ID: 4`, `restore 4` restores it.
+* `list archive` shows the archived contacts. If one of them shows `ID: 4`, `restore 4` restores it and it disappears from the archived list. Run `list` to see it among your active contacts.
 
 ### Clearing all entries: `clear`
 
@@ -342,7 +345,7 @@ Action | Format, Examples
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find SUBSTRING` or `find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak` or `find n/Al t/fri`
-**List** | `list`, `list active` or `list archived`
+**List** | `list`, `list all` or `list archive`
 **Help** | `help`
 **Restore** | `restore ID`<br> e.g., `restore 4`
 **Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
