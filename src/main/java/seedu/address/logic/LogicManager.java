@@ -73,6 +73,7 @@ public class LogicManager implements Logic {
                 throw e;
             }
             model.setAddressBook(executionModel.getAddressBook());
+            model.commitAddressBook();
             return new CommandResult(commandResult.getFeedbackToUser() + (backupPath == null
                     ? " No backup needed: the previous address book was empty or unchanged sample data."
                     : " Previous data is backed up at " + backupPath));
@@ -80,6 +81,8 @@ public class LogicManager implements Logic {
         if (command instanceof ExportCommand) {
             return commandResult;
         }
+        // Unchanged data and undo/redo do not add duplicate history entries.
+        model.commitAddressBook();
         saveAddressBook(executionModel);
         return commandResult;
     }

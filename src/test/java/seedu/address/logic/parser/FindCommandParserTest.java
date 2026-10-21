@@ -1,144 +1,113 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.address.testutil.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
+import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FindCommand;
-import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
-import seedu.address.model.person.EachFieldContainsSubstringPredicate;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 
 public class FindCommandParserTest {
 
-    private FindCommandParser parser = new FindCommandParser();
+    private final FindCommandParser parser = new FindCommandParser();
 
     @Test
-    public void parse_emptyArg_throwsParseException() {
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "", expectedMessage);
-        assertParseFailure(parser, "     ", expectedMessage);
-        assertParseFailure(parser, " \n \t ", expectedMessage);
-    }
-
-    @Test
-    public void parse_noPrefix_returnsAnyFieldFindCommand() {
-        FindCommand expectedFindCommand =
-                new FindCommand(new AnyFieldContainsSubstringPredicate("Al"));
-        assertParseSuccess(parser, "Al", expectedFindCommand);
-        assertParseSuccess(parser, " \n \t Al \t \n ", expectedFindCommand);
+    public void parse_emptyInput_matchesNoPersons() throws Exception {
+        assertMatches("");
+        assertMatches("     ");
+        assertMatches(" \n \t ");
     }
 
     @Test
-    public void parse_noPrefixMultipleWords_preservesSubstring() {
-        FindCommand expectedFindCommand =
-                new FindCommand(new AnyFieldContainsSubstringPredicate("Alice Bob"));
-        assertParseSuccess(parser, " Alice Bob ", expectedFindCommand);
-
-        // Only surrounding whitespace is removed; internal whitespace remains part of the substring
-        expectedFindCommand = new FindCommand(new AnyFieldContainsSubstringPredicate("Alice  \t Bob"));
-        assertParseSuccess(parser, " Alice  \t Bob ", expectedFindCommand);
+    public void parse_generalSubstring_preservesWholePhrase() throws Exception {
+        assertMatches(" Alice Pauline ", ALICE);
+        assertMatches(" \n \t Alice Pauline \t \n ", ALICE);
+        assertMatches(" Pauline Alice ");
+        assertMatches(" Alice  Pauline ");
     }
 
     @Test
-    public void parse_noPrefixOtherFieldValues_returnsAnyFieldFindCommand() {
-        assertParseSuccess(parser, " 12345",
-                new FindCommand(new AnyFieldContainsSubstringPredicate("12345")));
-        assertParseSuccess(parser, " @example.com",
-                new FindCommand(new AnyFieldContainsSubstringPredicate("@example.com")));
-        assertParseSuccess(parser, " Main Street",
-                new FindCommand(new AnyFieldContainsSubstringPredicate("Main Street")));
-        assertParseSuccess(parser, " friends",
-                new FindCommand(new AnyFieldContainsSubstringPredicate("friends")));
+    public void parse_eachPrefix_matchesItsField() throws Exception {
+        assertMatches(" n/Mei", BENSON, DANIEL);
+        assertMatches(" p/9435", ALICE);
+        assertMatches(" e/johnd", BENSON);
+        assertMatches(" a/Clementi", BENSON);
+        assertMatches(" t/Money", BENSON);
     }
 
     @Test
-    public void parse_duplicateNamePrefix_throwsParseException() {
-        assertParseFailure(parser, " n/Alice n/Bob",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
-        assertParseFailure(parser, " n/Alice n/Alice",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
+    public void parse_generalAndPrefixes_requiresEveryCondition() throws Exception {
+        assertMatches(" example n/Mei", BENSON, DANIEL);
+        assertMatches(" Clementi n/Mei t/fri", BENSON);
+        assertMatches(" nonexistent n/Mei");
+        assertMatches(" Clementi n/Alice");
     }
 
     @Test
-    public void parse_namePrefix_returnsFieldFindCommand() {
-        FindCommand expectedFindCommand = createFieldFindCommand("Alice Bob", "", "", "", List.of());
-        assertParseSuccess(parser, " n/Alice Bob", expectedFindCommand);
-        assertParseSuccess(parser, " \n n/ Alice Bob \t", expectedFindCommand);
-
-        // Internal whitespace remains part of the substring
-        expectedFindCommand = createFieldFindCommand("Alice \n \t Bob", "", "", "", List.of());
-        assertParseSuccess(parser, " \n n/ Alice \n \t Bob  \t", expectedFindCommand);
+    public void parse_allPrefixCombinations_acceptsOptionalGeneralSubstring() throws Exception {
+        String[] fields = {"n/Benson", "p/987", "e/johnd", "a/Clementi", "t/Money"};
+        for (int mask = 1; mask < (1 << fields.length); mask++) {
+            StringBuilder arguments = new StringBuilder();
+            for (int index = 0; index < fields.length; index++) {
+                if ((mask & (1 << index)) != 0) {
+                    arguments.append(" ").append(fields[index]);
+                }
+            }
+            assertMatches(arguments.toString(), BENSON);
+            assertMatches("example" + arguments, BENSON);
+        }
     }
 
     @Test
-    public void parse_namePrefixPartialName_returnsFieldFindCommand() {
-        FindCommand expectedFindCommand = createFieldFindCommand("Al", "", "", "", List.of());
-        assertParseSuccess(parser, " n/Al", expectedFindCommand);
+    public void parse_prefixesInDifferentOrders_matchesSamePersons() throws Exception {
+        assertMatches(" example n/Ben p/987 e/johnd a/Clementi t/fri t/Money", BENSON);
+        assertMatches(" example t/fri a/Clementi e/johnd t/Money p/987 n/Ben", BENSON);
     }
 
     @Test
-    public void parse_otherSinglePrefixes_returnsFieldFindCommand() {
-        assertParseSuccess(parser, " p/2345", createFieldFindCommand("", "2345", "", "", List.of()));
-        assertParseSuccess(parser, " e/@example", createFieldFindCommand("", "", "@example", "", List.of()));
-        assertParseSuccess(parser, " a/Main Street",
-                createFieldFindCommand("", "", "", "Main Street", List.of()));
-        assertParseSuccess(parser, " t/fri", createFieldFindCommand("", "", "", "", List.of("fri")));
+    public void parse_textAfterPrefix_belongsToThatPrefix() throws Exception {
+        assertMatches(" example n/Alice Pauline", ALICE);
+        assertMatches(" n/Alice Pauline example");
+        assertMatches(" n/Alice Pauline example e/example");
+        assertMatches(" n/ Alice Pauline \t", ALICE);
+        assertMatches(" n/Alice  Pauline");
     }
 
     @Test
-    public void parse_multiplePrefixesInAnyOrder_returnsFieldFindCommand() {
-        FindCommand expectedFindCommand =
-                createFieldFindCommand("Al", "2345", "@example", "Main Street", List.of("fri", "col"));
-        assertParseSuccess(parser, " n/Al p/2345 e/@example a/Main Street t/fri t/col", expectedFindCommand);
-        assertParseSuccess(parser, " t/fri a/Main Street e/@example t/col p/2345 n/Al", expectedFindCommand);
+    public void parse_repeatedTags_requiresEveryTagSubstring() throws Exception {
+        assertMatches(" t/fri t/Money", BENSON);
+        assertMatches(" t/Money t/Money", BENSON);
+        assertMatches(" t/Money t/missing");
     }
 
     @Test
-    public void parse_repeatedTagPrefixes_returnsFieldFindCommand() {
-        assertParseSuccess(parser, " t/fri t/col",
-                createFieldFindCommand("", "", "", "", List.of("fri", "col")));
-        assertParseSuccess(parser, " t/fri t/fri",
-                createFieldFindCommand("", "", "", "", List.of("fri", "fri")));
+    public void parse_repeatedNonTagPrefixes_usesLastValue() throws Exception {
+        assertMatches(" n/Alice n/Benson", BENSON);
+        assertMatches(" p/9435 p/987", BENSON);
+        assertMatches(" e/alice e/johnd", BENSON);
+        assertMatches(" a/Jurong a/Clementi", BENSON);
     }
 
     @Test
-    public void parse_duplicateOtherFieldPrefixes_throwsParseException() {
-        assertParseFailure(parser, " p/123 p/456",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
-        assertParseFailure(parser, " e/alice e/bob",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
-        assertParseFailure(parser, " a/Main a/Orchard",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ADDRESS));
+    public void parse_emptyFieldSubstring_doesNotRestrictThatField() throws Exception {
+        assertMatches(" Clementi n/ p/ e/ a/", BENSON);
     }
 
-    @Test
-    public void parse_preambleBeforePrefix_throwsParseException() {
-        assertThrows(ParseException.class, () -> parser.parse(" Alice n/Bob"));
-        assertThrows(ParseException.class, () -> parser.parse(" Alice t/fri"));
+    private void assertMatches(String arguments, Person... expectedPersons) throws Exception {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        FindCommand command = parser.parse(arguments);
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, expectedPersons.length),
+                command.execute(model).getFeedbackToUser(), arguments);
+        assertEquals(List.of(expectedPersons), model.getFilteredPersonList(), arguments);
     }
-
-    /**
-     * Creates a field search command, using empty strings for unspecified fields.
-     */
-    private FindCommand createFieldFindCommand(String name, String phone, String email,
-            String address, List<String> tags) {
-        return new FindCommand(new EachFieldContainsSubstringPredicate(
-                Optional.of(name).filter(value -> !value.isEmpty()),
-                Optional.of(phone).filter(value -> !value.isEmpty()),
-                Optional.of(email).filter(value -> !value.isEmpty()),
-                Optional.of(address).filter(value -> !value.isEmpty()), tags));
-    }
-
 }
