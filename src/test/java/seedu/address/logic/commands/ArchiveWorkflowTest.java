@@ -34,7 +34,7 @@ public class ArchiveWorkflowTest {
 
     @Test
     public void archiveThenRestore_preservesDetailsIdAndCounter() throws Exception {
-        execute("list active");
+        execute("list");
         int nextId = model.getAddressBook().getNextPersonId();
         execute("archive 1");
         assertFalse(model.getFilteredPersonList().contains(ALICE));
@@ -42,11 +42,11 @@ public class ArchiveWorkflowTest {
                 model.getAddressBook().getPersonList().get(0));
         assertEquals(getTypicalAddressBook().getPersonList().size(), model.getAddressBook().getPersonList().size());
 
-        execute("list archived");
+        execute("list archive");
         assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build()), model.getFilteredPersonList());
         execute("restore 1");
         assertTrue(model.getFilteredPersonList().isEmpty());
-        execute("list");
+        execute("list all");
         assertEquals(getTypicalAddressBook().getPersonList(), model.getFilteredPersonList());
         assertEquals(nextId, model.getAddressBook().getNextPersonId());
     }
@@ -64,13 +64,13 @@ public class ArchiveWorkflowTest {
 
     @Test
     public void archiveAndRestore_sortedList_targetsId() throws Exception {
-        execute("list active");
+        execute("list");
         model.sortFilteredPersonList(Comparator.comparing((Person person) -> person.getName().fullName).reversed());
         // GEORGE (ID 7) is displayed first, but the IDs select ALICE (ID 1) and BENSON (ID 2)
         assertEquals(GEORGE, model.getFilteredPersonList().get(0));
         execute("archive 1");
         execute("archive 2");
-        execute("list archived");
+        execute("list archive");
         model.sortFilteredPersonList(Comparator.comparing((Person person) -> person.getName().fullName).reversed());
         assertEquals(List.of(new PersonBuilder(BENSON).withArchiveStatus(true).build(),
                 new PersonBuilder(ALICE).withArchiveStatus(true).build()), model.getFilteredPersonList());
@@ -80,33 +80,39 @@ public class ArchiveWorkflowTest {
     }
 
     @Test
-    public void listViews_selectRequestedContactsAndPreserveDefault() throws Exception {
+    public void listViews_selectRequestedContacts() throws Exception {
         execute("archive 1");
-        assertEquals(7, model.getFilteredPersonList().size());
-        assertTrue(model.getFilteredPersonList().get(0).isArchived());
-        execute("list active");
+        execute("list");
         assertEquals(6, model.getFilteredPersonList().size());
         assertTrue(model.getFilteredPersonList().stream().noneMatch(Person::isArchived));
-        execute("list archived");
+        execute("list archive");
         assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build()), model.getFilteredPersonList());
-        execute("list");
+        execute("list all");
         assertEquals(model.getAddressBook().getPersonList(), model.getFilteredPersonList());
         execute("restore 1");
         assertEquals(ALICE, model.getFilteredPersonList().get(0));
-        execute("list archived");
+        execute("list archive");
         assertTrue(model.getFilteredPersonList().isEmpty());
-        execute("list 3"); // Existing list behavior ignores unrelated arguments.
-        assertEquals(7, model.getFilteredPersonList().size());
     }
 
     @Test
-    public void startup_allContactsVisible() {
+    public void list_unknownKeyword_rejectedAndKeepsView() throws Exception {
+        execute("archive 1");
+        execute("list archive");
+        String expectedMessage = String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE);
+        for (String args : List.of(" 3", " active", " archived", " archiv", " all archive")) {
+            assertThrows(ParseException.class, expectedMessage, () -> execute("list" + args));
+        }
+        assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build()), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void startup_onlyActiveContactsVisible() {
         AddressBook book = new AddressBook();
         book.addPerson(new PersonBuilder(ALICE).withArchiveStatus(true).build());
         book.addPerson(BENSON);
         Model restarted = new ModelManager(book, new UserPrefs());
-        assertEquals(List.of(new PersonBuilder(ALICE).withArchiveStatus(true).build(),
-                BENSON), restarted.getFilteredPersonList());
+        assertEquals(List.of(BENSON), restarted.getFilteredPersonList());
         assertTrue(restarted.hasPerson(ALICE));
     }
 
@@ -114,7 +120,7 @@ public class ArchiveWorkflowTest {
     public void archiveAndRestore_wrongStatus_doesNotChangeData() throws Exception {
         assertThrows(CommandException.class, RestoreCommand.MESSAGE_WRONG_STATUS, () -> execute("restore 1"));
         execute("archive 1");
-        execute("list archived");
+        execute("list archive");
         AddressBook before = new AddressBook(model.getAddressBook());
         assertThrows(CommandException.class, ArchiveCommand.MESSAGE_WRONG_STATUS, () -> execute("archive 1"));
         assertEquals(before, model.getAddressBook());
@@ -125,7 +131,7 @@ public class ArchiveWorkflowTest {
         AddressBook before = new AddressBook(model.getAddressBook());
         String expectedMessage = String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, 8);
         assertThrows(CommandException.class, expectedMessage, () -> execute("archive 8"));
-        execute("list archived");
+        execute("list archive");
         assertThrows(CommandException.class, expectedMessage, () -> execute("restore 8"));
         assertEquals(before, model.getAddressBook());
     }
@@ -142,7 +148,7 @@ public class ArchiveWorkflowTest {
     @Test
     public void delete_archivedContact_deletedById() throws Exception {
         execute("archive 2");
-        execute("list archived");
+        execute("list archive");
         execute("delete 2");
         assertFalse(model.hasPerson(BENSON));
         assertTrue(model.hasPerson(ALICE));
@@ -150,7 +156,7 @@ public class ArchiveWorkflowTest {
 
     @Test
     public void archiveAndRestoreById_fromActiveView() throws Exception {
-        execute("list active");
+        execute("list");
         execute("archive 2");
         Person archivedBenson = new PersonBuilder(BENSON).withArchiveStatus(true).build();
         assertEquals(archivedBenson, model.getAddressBook().getPersonList().get(1));

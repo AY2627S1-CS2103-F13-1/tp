@@ -1,15 +1,20 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -17,6 +22,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -35,7 +41,29 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
-    private HelpWindow helpWindow;
+
+    @FXML
+    private VBox contactDetailsPanel;
+
+    @FXML
+    private ScrollPane helpPanel;
+
+    @FXML
+    private Label detailName;
+    @FXML
+    private Label detailId;
+    @FXML
+    private Label detailPhone;
+    @FXML
+    private Label detailEmail;
+    @FXML
+    private Label detailAddress;
+    @FXML
+    private Label detailTags;
+    @FXML
+    private Label detailStatus;
+    @FXML
+    private Label detailPrompt;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -69,7 +97,7 @@ public class MainWindow extends UiPart<Stage> {
 
         setAccelerators();
 
-        helpWindow = new HelpWindow();
+
     }
 
     public Stage getPrimaryStage() {
@@ -116,6 +144,8 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+        personListPanel.addSelectionListener((observable, previous, selected) -> showContactDetails(selected));
+        showContactDetails(null);
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -125,6 +155,47 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+    }
+
+    /** Displays the selected contact or the empty state. */
+    private void showContactDetails(Person person) {
+        contactDetailsPanel.setVisible(true);
+        contactDetailsPanel.setManaged(true);
+        helpPanel.setVisible(false);
+        helpPanel.setManaged(false);
+        boolean selected = person != null;
+
+        detailPrompt.setVisible(!selected);
+        detailPrompt.setManaged(!selected);
+
+        String[] details = formatContactDetails(person);
+        detailName.setText(details[0]);
+        detailId.setText(details[1]);
+        detailPhone.setText(details[2]);
+        detailEmail.setText(details[3]);
+        detailAddress.setText(details[4]);
+        detailTags.setText(details[5]);
+        detailStatus.setText(details[6]);
+    }
+
+    /** Returns display-ready contact fields, including the empty state. */
+    static String[] formatContactDetails(Person person) {
+        if (person == null) {
+            return new String[] {"Your newsroom, organised.", "", "", "", "", "", ""};
+        }
+
+        return new String[] {
+            person.getName().fullName,
+            person.getId().map(id -> "CONTACT ID  " + id.getValue()).orElse("CONTACT ID  Unassigned"),
+            "PHONE  " + person.getPhone().value,
+            "EMAIL  " + person.getEmail().value,
+            "ADDRESS  " + person.getAddress().value,
+            "TAGS  " + person.getTags().stream()
+                    .sorted(Comparator.comparing(tag -> tag.tagName))
+                    .map(tag -> tag.tagName)
+                    .collect(Collectors.joining(", ")),
+            "STATUS  " + (person.isArchived() ? "Archived" : "Active")
+        };
     }
 
     /**
@@ -140,15 +211,15 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Opens the help window or focuses on it if it's already opened.
+     * Displays the command guide in the right-hand panel.
      */
     @FXML
     public void handleHelp() {
-        if (!helpWindow.isShowing()) {
-            helpWindow.show();
-        } else {
-            helpWindow.focus();
-        }
+        personListPanel.clearSelection();
+        contactDetailsPanel.setVisible(false);
+        contactDetailsPanel.setManaged(false);
+        helpPanel.setVisible(true);
+        helpPanel.setManaged(true);
     }
 
     void show() {
@@ -163,7 +234,6 @@ public class MainWindow extends UiPart<Stage> {
         GuiSettings guiSettings = new GuiSettings(primaryStage.getWidth(), primaryStage.getHeight(),
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
-        helpWindow.hide();
         primaryStage.hide();
     }
 

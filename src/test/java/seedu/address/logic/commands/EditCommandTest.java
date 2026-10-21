@@ -69,7 +69,31 @@ public class EditCommandTest {
         assertEquals(original.getEmail(), updated.getEmail());
         assertEquals(original.getAddress(), updated.getAddress());
         assertEquals(original.getTags(), updated.getTags());
-        new ListCommand(ListCommand.View.ARCHIVED).execute(model);
+        assertEquals(List.of(updated), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_activeContactAfterListAll_hidesArchivedContacts() throws Exception {
+        new ArchiveCommand(TARGET_BENSON).execute(model);
+        new ListCommand(ListCommand.View.ALL).execute(model);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("91234567").build();
+
+        new EditCommand(TARGET_ALICE, descriptor).execute(model);
+
+        Person updated = model.findPersonById(ALICE.getId().orElseThrow()).orElseThrow();
+        assertTrue(model.getFilteredPersonList().contains(updated));
+        assertTrue(model.getFilteredPersonList().stream().noneMatch(Person::isArchived));
+    }
+
+    @Test
+    public void execute_archivedContactFromActiveView_showsArchivedView() throws Exception {
+        new ArchiveCommand(TARGET_BENSON).execute(model);
+        new ListCommand(ListCommand.View.ACTIVE).execute(model);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("91234567").build();
+
+        new EditCommand(TARGET_BENSON, descriptor).execute(model);
+
+        Person updated = model.findPersonById(BENSON.getId().orElseThrow()).orElseThrow();
         assertEquals(List.of(updated), model.getFilteredPersonList());
     }
 

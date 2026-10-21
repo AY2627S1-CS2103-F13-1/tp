@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
@@ -42,22 +43,7 @@ public class Person {
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
-        requireAllNonNull(name, phone, email, address, tags);
-        this.id = null;
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-        this.address = address;
-        this.tags.addAll(tags);
-        this.archived = archived;
-    }
-
-    /**
-     * Creates an active person with the given ID.
-     * Every field must be present and not null.
-     */
-    public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(id, name, phone, email, address, tags, false);
+        this(name, phone, email, address, tags, archived, null);
     }
 
     /**
@@ -65,7 +51,15 @@ public class Person {
      * Every field must be present and not null.
      */
     public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
-        requireAllNonNull(id, name, phone, email, address, tags);
+        this(name, phone, email, address, tags, archived, requireNonNull(id));
+    }
+
+    /**
+     * Initialises every field. {@code id} is null for a person who has not been assigned an ID yet.
+     */
+    private Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived,
+            PersonId id) {
+        requireAllNonNull(name, phone, email, address, tags);
         this.id = id;
         this.name = name;
         this.phone = phone;

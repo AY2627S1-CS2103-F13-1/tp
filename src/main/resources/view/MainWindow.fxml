@@ -3,16 +3,19 @@
 <?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Scene?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <fx:root type="javafx.stage.Stage" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         title="Address App" minWidth="450" minHeight="600" onCloseRequest="#handleExit">
+         title="ByLine | Journalist Contact Manager" minWidth="650" minHeight="600" onCloseRequest="#handleExit">
   <icons>
     <Image url="@/images/address_book_32.png" />
   </icons>
@@ -24,12 +27,19 @@
       </stylesheets>
 
       <VBox>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="byline-header" VBox.vgrow="NEVER">
+          <padding>
+            <Insets top="15" right="20" bottom="15" left="20" />
+          </padding>
+          <Label text="ByLine" styleClass="byline-title" />
+          <Label text="People. Stories. Connections." styleClass="byline-subtitle" />
+        </HBox>
         <MenuBar fx:id="menuBar" VBox.vgrow="NEVER">
           <Menu mnemonicParsing="false" text="File">
             <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
-            <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help" />
+            <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Command Guide" />
           </Menu>
         </MenuBar>
 
@@ -46,12 +56,57 @@
           </padding>
         </StackPane>
 
-        <VBox fx:id="personList" styleClass="pane-with-border" minWidth="340" prefWidth="340" VBox.vgrow="ALWAYS">
-          <padding>
-            <Insets top="10" right="10" bottom="10" left="10" />
-          </padding>
-          <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
-        </VBox>
+        <HBox VBox.vgrow="ALWAYS" spacing="0">
+          <VBox fx:id="personList" styleClass="pane-with-border" minWidth="280" prefWidth="380"
+                HBox.hgrow="SOMETIMES">
+            <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
+            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+          </VBox>
+          <StackPane minWidth="250" HBox.hgrow="ALWAYS">
+          <VBox fx:id="contactDetailsPanel" styleClass="byline-detail-panel" spacing="12">
+            <padding><Insets top="28" right="28" bottom="28" left="28" /></padding>
+            <Label text="CONTACT DESK" styleClass="byline-detail-eyebrow" />
+            <Label fx:id="detailName" text="Your newsroom, organised."
+                   styleClass="byline-detail-heading" wrapText="true" />
+            <Label fx:id="detailId" styleClass="byline-detail-eyebrow" wrapText="true" />
+            <Label fx:id="detailPhone" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailEmail" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailAddress" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailTags" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailStatus" styleClass="byline-detail-description" wrapText="true" />
+            <Label fx:id="detailPrompt" text="Select a contact to view details here."
+                   styleClass="byline-detail-description" wrapText="true" />
+          </VBox>
+
+          <ScrollPane fx:id="helpPanel" fitToWidth="true" visible="false" managed="false"
+                      styleClass="byline-help-scroll">
+            <content>
+              <VBox spacing="12" styleClass="byline-detail-panel">
+                <padding>
+                  <Insets top="28" right="28" bottom="28" left="28" />
+                </padding>
+
+                <Label text="COMMAND GUIDE" styleClass="byline-detail-eyebrow" />
+                <Label text="The newsroom handbook" styleClass="byline-detail-heading" wrapText="true" />
+                <Label text="Use these commands in the input above."
+                       styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="CONTACTS" styleClass="byline-detail-eyebrow" />
+                <Label text="add n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...&#10;Required: name, phone, email, address.&#10;Example: add n/John Doe p/98765432 e/john@example.com a/Clementi&#10;&#10;edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...&#10;Required: contact ID and at least one change.&#10;Example: edit 3 p/91234567&#10;&#10;delete ID&#10;Example: delete 3&#10;&#10;clear&#10;Removes all contacts." styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="DISCOVER" styleClass="byline-detail-eyebrow" />
+                <Label text="list&#10;Displays all contacts.&#10;&#10;find SUBSTRING&#10;Searches all fields.&#10;Example: find oak&#10;&#10;find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...&#10;Searches specified fields. All conditions must match.&#10;Example: find n/Al e/example.com&#10;&#10;sort FIELD [ORDER]&#10;Sorts contacts by field and optional order." styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="ORGANISE" styleClass="byline-detail-eyebrow" />
+                <Label text="tag ID t/TAG [t/TAG]...&#10;Adds tags without removing existing tags.&#10;Example: tag 3 t/housing policy t/expert&#10;&#10;untag ID t/TAG [t/TAG]...&#10;Removes specified tags.&#10;Example: untag 3 t/expert&#10;&#10;archive ID&#10;Archives a contact.&#10;Example: archive 3&#10;&#10;restore ID&#10;Restores an archived contact.&#10;Example: restore 3" styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="APPLICATION" styleClass="byline-detail-eyebrow" />
+                <Label text="help&#10;Displays this command guide.&#10;&#10;exit&#10;Closes ByLine." styleClass="byline-detail-description" wrapText="true" />
+              </VBox>
+            </content>
+          </ScrollPane>
+          </StackPane>
+        </HBox>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
       </VBox>

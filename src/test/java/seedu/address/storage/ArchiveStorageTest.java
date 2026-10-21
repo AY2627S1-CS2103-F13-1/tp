@@ -74,7 +74,7 @@ public class ArchiveStorageTest {
         logic.execute("archive 1");
         assertEquals(new PersonBuilder(ALICE).withArchiveStatus(true).build(),
                 storage.readAddressBook().orElseThrow().getPersonList().get(0));
-        logic.execute("list archived");
+        logic.execute("list archive");
         logic.execute("restore 1");
         assertEquals(ALICE, storage.readAddressBook().orElseThrow().getPersonList().get(0));
     }

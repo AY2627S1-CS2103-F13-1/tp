@@ -8,11 +8,20 @@ start
 'Since the beta syntax does not support placing the condition outside the
 'diamond we place it as the true branch instead.
 
-if () then ([command commits AddressBook])
-    :Purge redundant states;
-    :Save AddressBook to
-    addressBookStateList;
-else ([else])
+if () then ([command succeeds])
+    :LogicManager calls
+    Model#commitAddressBook();
+    if () then ([AddressBook changed])
+        :Purge redundant states;
+        :Save AddressBook to
+        states;
+        if () then ([over 20 changes])
+            :Remove oldest state;
+        else ([else])
+        endif
+    else ([else])
+    endif
+else ([command fails])
 endif
 stop
 @enduml
