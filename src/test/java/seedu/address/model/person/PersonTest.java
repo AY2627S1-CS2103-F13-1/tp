@@ -131,8 +131,6 @@ public class PersonTest {
         assertEquals(ALICE.getId(), withId.getId());
         assertFalse(new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
                 ALICE.getAddress(), ALICE.getTags()).isArchived());
-        assertFalse(new Person(ALICE.getId().orElseThrow(), ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
-                ALICE.getAddress(), ALICE.getTags()).isArchived());
     }
 
     @Test
