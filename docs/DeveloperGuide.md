@@ -275,9 +275,11 @@ Each `Person` has an `archived` flag, which is `false` for new contacts. `Archiv
 
 `JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
 
-`ListCommandParser` turns `list active` and `list archived` into a `ListCommand` with the view `ACTIVE` or `ARCHIVED`. These views call `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`. Plain `list` uses `PREDICATE_SHOW_ALL_PERSONS`, so it still shows archived contacts.
+`ListCommandParser` turns `list`, `list all` and `list archive` into a `ListCommand` with the view `ACTIVE`, `ALL` or `ARCHIVED`. The keyword is trimmed and compared case-insensitively, and any other input throws a `ParseException` with `ListCommand.MESSAGE_USAGE`. Each view calls `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS`, `PREDICATE_SHOW_ALL_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`.
 
-Other commands, such as `find`, `edit`, `tag` and `delete`, treat archived contacts like any other contact. `EditCommand`, `TagCommand` and `UntagCommand` copy the flag into the updated person, so changing a contact's details does not restore it.
+`ModelManager` starts with `PREDICATE_SHOW_ACTIVE_PERSONS`, so archived contacts are hidden when ByLine starts. `Model#addPerson` switches back to this predicate, since a new contact is never archived. `EditCommand` switches to `PREDICATE_SHOW_ARCHIVED_PERSONS` if the edited contact is archived and to `PREDICATE_SHOW_ACTIVE_PERSONS` otherwise, so the edited contact stays displayed.
+
+Other commands, such as `find`, `tag` and `delete`, treat archived contacts like any other contact. `EditCommand`, `TagCommand` and `UntagCommand` copy the flag into the updated person, so changing a contact's details does not restore it.
 
 #### Design considerations
 
@@ -499,21 +501,39 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * The contact is added only if all given details are valid.
 
 **System:** Byline<br>
-**Use case:** UC03 - List all contacts<br>
+**Use case:** UC03 - List contacts<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list all contacts
-2.  Byline shows the list of all contacts
+1.  Journalist requests to list active contacts
+2.  Byline shows the contacts that are not archived
 
     Use case ends.
 
 **Extensions**
 
-* 2a. There are no contacts.
+* 1a. Journalist requests to list all contacts instead.
 
-    * 2a1. Byline shows a message that there are no contacts.
+    * 1a1. Byline shows all contacts, including archived ones.
+
+      Use case ends.
+
+* 1b. Journalist requests to list archived contacts instead.
+
+    * 1b1. Byline shows only the archived contacts.
+
+      Use case ends.
+
+* 1c. The request is not in a valid format.
+
+    * 1c1. Byline shows an error message with the accepted formats. The displayed list is unchanged.
+
+      Use case ends.
+
+* 2a. There are no contacts to show.
+
+    * 2a1. Byline shows an empty list.
 
       Use case ends.
 
@@ -927,26 +947,36 @@ testers are expected to do more *exploratory* testing.
 
 1. Archiving a contact
 
-   1. Prerequisites: A contact with ID 2 exists and is not archived.
+   1. Prerequisites: Run `list`. A contact with ID 2 exists and is not archived.
 
    1. Test case: `archive 2`<br>
-      Expected: The card for ID 2 shows `[Archived]` after the name. The status message shows the archived contact.
+      Expected: The contact with ID 2 disappears from the displayed list. The status message shows the archived contact.
 
    1. Test case: `archive 2` again<br>
       Expected: Nothing changes. The status message is `This person is already archived.`
 
-   1. Test case: `list active`, then `list archived`, then `list`<br>
-      Expected: `list active` hides the contact with ID 2. `list archived` shows only archived contacts, including ID 2. `list` shows all contacts, including ID 2.
+   1. Test case: `list`, then `list archive`, then `list all`<br>
+      Expected: `list` hides the contact with ID 2. `list archive` shows only archived contacts, including ID 2, whose card shows `[Archived]` after the name. `list all` shows all contacts, including ID 2.
+
+   1. Test case: `list archived`, then `list ALL`<br>
+      Expected: For `list archived`, the displayed list is unchanged and the status message shows `Invalid command format!` followed by the accepted `list` formats. `list ALL` shows all contacts.
 
    1. Test case: Close and reopen ByLine.<br>
-      Expected: The contact with ID 2 is still archived.
+      Expected: The contact with ID 2 is not shown at startup. `list archive` shows it, still archived.
+
+1. Editing an archived contact
+
+   1. Prerequisites: The contact with ID 2 is archived. Run `list`.
+
+   1. Test case: `edit 2 p/91234567`<br>
+      Expected: Byline switches to the archived contacts. The contact with ID 2 is shown with the new phone number and is still archived.
 
 1. Restoring a contact
 
-   1. Prerequisites: The contact with ID 2 is archived.
+   1. Prerequisites: The contact with ID 2 is archived. Run `list archive`.
 
    1. Test case: `restore 2`<br>
-      Expected: `[Archived]` disappears from the card. The status message shows the restored contact.
+      Expected: The contact with ID 2 disappears from the archived list. The status message shows the restored contact. `list` shows it without `[Archived]`.
 
    1. Test case: `restore 2` again<br>
       Expected: Nothing changes. The status message is `This person is not archived.`
