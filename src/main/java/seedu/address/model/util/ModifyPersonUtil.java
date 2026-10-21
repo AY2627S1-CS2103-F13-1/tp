@@ -11,6 +11,10 @@ import seedu.address.model.tag.Tag;
  * Preserves all other fields without modifying the original person.
  */
 public class ModifyPersonUtil {
+
+    private ModifyPersonUtil() {
+    }
+
     /**
      * Returns a specified Person with a changed isArchived value.
      *
