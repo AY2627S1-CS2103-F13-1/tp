@@ -164,22 +164,19 @@ Examples:
 
 ### Finding persons: `find`
 
-Finds persons using part of their details. Search across all fields, or use prefixes to search specific fields.
+Finds persons using part of their details. Combine one general substring with any selection of field-specific substrings, or use either kind of search on its own.
 
-Formats:
-
-* Search across all fields: `find SUBSTRING`
-* Search specific fields: `find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`
-
-For a field-specific search, specify at least one prefix.
+Format: `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`
 
 * Searches are case-insensitive: `al` matches both `Alex` and `Balakrishnan`.
-* Without prefixes, a person matches if the search text appears in any field.
-* With prefixes, each substring is searched only within its corresponding field. A person must match every condition, so adding conditions narrows the results.
+* The general substring searches the name, phone number, email, address and tags. It must appear within at least one of these fields or one tag.
+* Each prefixed substring searches only its corresponding field. A person must match the general substring, if supplied, and every field and tag condition.
 * Search text is matched as one consecutive substring, including internal spaces. For example, `Alex Ye` matches `Alex Yeoh`, but `Ye Alex` does not.
-* Prefixes may appear in any order. Use each prefix at most once, except `t/`, which may be repeated.
+* Put the general substring before the first prefix. Text after a prefix belongs to that prefix until the next recognised prefix or the end of the command. For example, `find example n/Alex` combines a general search for `example` with a name search for `Alex`; `find n/Alex example` searches the name for the single substring `Alex example`.
+* Prefixes may appear in any order. If `n/`, `p/`, `e/` or `a/` is repeated, only its last value is used.
 * For multiple `t/` prefixes, every tag substring must match at least one of the person's tags.
-* Do not put unprefixed search text before a prefix. For example, `find Alex e/example.com` is invalid; use `find n/Alex e/example.com`.
+* `find` without search text or prefixes shows no persons.
+* An empty value after `n/`, `p/`, `e/` or `a/` imposes no restriction on that field. An empty `t/` value matches any contact with at least one tag.
 * Archived contacts are included in the results.
 
 Examples:
@@ -189,6 +186,7 @@ Examples:
   ![Results for 'find n/Al'](images/findNameAl.png)
 * `find p/2345` finds persons whose phone numbers contain `2345`.
 * `find n/Al e/example.com` finds persons whose names contain `Al` and whose email addresses contain `example.com`.
+* `find example n/Al t/fri` finds persons with `example` in any searchable field, `Al` in their name and `fri` in at least one tag.
 * `find t/fri t/col` finds persons whose tags match **both** substrings, such as someone tagged with both `friends` and `colleagues`. Persons tagged only with `friends` or only with `colleagues` are excluded. Adding field or tag conditions narrows the search instead of broadening it.
   ![Results for 'find t/fri t/col', requiring both tag conditions to match](images/findTagsFriCol.png)
 
@@ -344,7 +342,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find SUBSTRING` or `find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak` or `find n/Al t/fri`
+**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
 **List** | `list`, `list all` or `list archive`
 **Help** | `help`
 **Restore** | `restore ID`<br> e.g., `restore 4`

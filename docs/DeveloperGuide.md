@@ -239,16 +239,21 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 ### Find feature
 
-`AddressBookParser` delegates `find` arguments to `FindCommandParser`, which selects one of two search modes. Both modes match consecutive substrings case-insensitively:
+`AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`. Find no longer uses `AnyFieldContainsSubstringPredicate` or `EachFieldContainsSubstringPredicate`.
 
-* **Search across all fields:** When no recognised prefixes are present, the parser trims the input and passes it as one substring to `AnyFieldContainsSubstringPredicate`. This predicate checks the name, phone number, email, address and each tag separately, and matches the person if the substring appears in any of them.
-* **Search by field:** When prefixes are present, the parser creates an `EachFieldContainsSubstringPredicate`. Each substring is matched only against its corresponding field, and all specified conditions must match. Adding field or tag conditions therefore narrows the results. The parser rejects text before the first prefix and duplicate non-tag prefixes.
+The predicate combines the following conditions with AND. Matching is case-insensitive and uses consecutive substrings:
 
-For field searches, `ArgumentMultimap.getValue(...)` returns an `Optional<String>` for each of the name, phone, email, and address prefixes. The parser passes these objects directly into the predicate constructor. An absent prefix produces `Optional.empty()`, so the predicate skips that field; a present value is used as the field's substring. For example, `find n/Al e/example.com` supplies `Optional.of("Al")` and `Optional.of("example.com")` for name and email, with empty optionals for phone and address.
+* **General substring:** `getPreamble()` returns the text before the first recognised prefix. A non-empty preamble must occur within the name, phone number, email, address or an individual tag. An empty preamble imposes no general restriction when prefixes are supplied.
+* **Field substrings:** `getValue(...)` returns an `Optional<String>` for each of the name, phone, email and address prefixes. An absent prefix imposes no restriction. A present substring must occur within its corresponding field. If a prefix is repeated, `getValue(...)` returns its last value.
+* **Tag substrings:** `getAllValues(PREFIX_TAG)` returns every supplied tag substring. Each must match at least one tag, but multiple substrings may match the same tag. An empty list imposes no tag restriction.
 
-Tags use `getAllValues(PREFIX_TAG)` instead, producing a `List<String>` to support repeated `t/` prefixes. Every tag substring must match at least one of the person's tags; an empty list imposes no tag restriction.
+The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix. For example, `find example n/Alex` requires `example` in any searchable field and `Alex` in the name, whereas `find n/Alex example` requires the name to contain `Alex example`.
 
-Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. Neither predicate checks the archive flag, so archived contacts appear in search results.
+The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
+
+`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results.
+
+`MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
 
 ### Sort feature
 
@@ -890,7 +895,7 @@ testers are expected to do more *exploratory* testing.
       Expected: Only contacts with `yu` somewhere in their details, in any upper/lower case, are shown. The status message shows how many contacts are listed.
 
    1. Test case: `find`<br>
-      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+      Expected: No contacts are displayed. The status message is `0 person(s) listed!`.
 
 1. Searching specific fields
 
@@ -898,10 +903,23 @@ testers are expected to do more *exploratory* testing.
       Expected: Only contacts whose name contains `al` and that have a tag containing `fri` are shown.
 
    1. Test case: `find hello n/Alex`<br>
-      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+      Expected: No contacts are displayed with the sample data, because Alex's details do not contain `hello`.
 
    1. Test case: `find n/Al n/Be`<br>
-      Expected: The displayed list is unchanged. The status message says that `n/` was given more than once.
+      Expected: Only Bernice Yu is displayed with the sample data. The last name substring, `Be`, is used.
+
+1. Combining general and field searches
+
+   1. Prerequisites: Start with the sample data.
+
+   1. Test case: `find example n/Alex t/fri`<br>
+      Expected: Only Alex Yeoh is displayed. His email contains `example`, his name contains `Alex`, and his `friends` tag contains `fri`.
+
+   1. Test case: `find n/Alex example`<br>
+      Expected: No contacts are displayed. The whole text `Alex example` is searched within the name.
+
+   1. Test case: `find example t/fri n/Alex`<br>
+      Expected: Only Alex Yeoh is displayed, as with the first combined search. Prefix order does not affect the result.
 
 ### Sorting displayed contacts
 
