@@ -93,7 +93,7 @@ public class MatchPersonPredicate implements Predicate<Person> {
                             tag -> tag.tagName.toLowerCase().contains(tagKey.toLowerCase())));
         }
 
-        return isPreamble || isName || isPhone || isEmail || isAddress || isTags;
+        return isPreamble && isName && isPhone && isEmail && isAddress && isTags;
     }
 
     @Override
