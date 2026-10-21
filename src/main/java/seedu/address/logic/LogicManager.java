@@ -47,6 +47,8 @@ public class LogicManager implements Logic {
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
         commandResult = command.execute(model);
+        // Saved only if the command changed the data, so commands like list or undo add nothing
+        model.commitAddressBook();
 
         try {
             storage.saveAddressBook(model.getAddressBook());

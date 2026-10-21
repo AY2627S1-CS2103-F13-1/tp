@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSON_ID_NOT_FOUND;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -25,6 +26,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,13 +35,16 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -111,6 +116,58 @@ public class LogicManagerTest {
 
         assertEquals(expectedDisplayedOrder, logic.getFilteredPersonList());
         assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_undoAfterAdd_removesPersonAndRestoresIdCounter() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        logic.execute(addCommand);
+        assertEquals(2, model.getAddressBook().getNextPersonId());
+
+        CommandResult result = logic.execute(UndoCommand.COMMAND_WORD);
+
+        assertEquals(UndoCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(new AddressBook(), model.getAddressBook());
+        JsonAddressBookStorage savedFile = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(new AddressBook(), savedFile.readAddressBook().orElseThrow());
+
+        // the ID of the undone contact is given to the next contact added
+        logic.execute(addCommand);
+        assertEquals(Optional.of(new PersonId(1)), model.getAddressBook().getPersonList().get(0).getId());
+    }
+
+    @Test
+    public void execute_undoAfterViewCommands_nothingToUndo() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("list");
+        logic.execute("find Alice");
+        logic.execute("sort name desc");
+
+        assertThrows(CommandException.class, UndoCommand.MESSAGE_NOTHING_TO_UNDO, ()
+            -> logic.execute(UndoCommand.COMMAND_WORD));
+    }
+
+    @Test
+    public void execute_undoAfterFailedCommand_nothingToUndo() {
+        assertCommandException("delete 9", String.format(MESSAGE_PERSON_ID_NOT_FOUND, 9));
+
+        assertCommandException(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_NOTHING_TO_UNDO);
+    }
+
+    @Test
+    public void execute_undoAfterFind_keepsSearchResults() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("delete 2");
+        logic.execute("find Alice");
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
+
+        logic.execute(UndoCommand.COMMAND_WORD);
+
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
+        assertTrue(model.hasPerson(BENSON));
     }
 
     @Test
