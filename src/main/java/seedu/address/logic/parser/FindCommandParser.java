@@ -15,6 +15,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
 import seedu.address.model.person.EachFieldContainsSubstringPredicate;
+import seedu.address.model.person.MatchPersonPredicate;
 
 /**
  * Parses input arguments and creates a new FindCommand object
@@ -27,7 +28,7 @@ public class FindCommandParser implements Parser<FindCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public FindCommand parse(String args) throws ParseException {
-        // TODO 1: add support for any number of any prefixes in any order.
+        // Any number of any prefixes in any order.
         // e.g. `find n/...` `find e/...` `find n/... a/...` `find a/... n/...`
 
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(
@@ -44,7 +45,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             return new FindCommand(new AnyFieldContainsSubstringPredicate(substring));
         }
 
-        // TODO 2: Allow different predicates for more kinds of person attributes, not just names.
+        // Allow different predicates for more kinds of person attributes, not just names.
         // This would require changing the predicate to allow searching by any number of different attributes
         // If more fields are specified, the search results should be more specific, not more broad.
 
@@ -61,7 +62,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         Optional<String> address = argMultimap.getValue(PREFIX_ADDRESS);
         List<String> tagList = argMultimap.getAllValues(PREFIX_TAG);
 
-        return new FindCommand(new EachFieldContainsSubstringPredicate(name, phone, email, address, tagList));
+        return new FindCommand(new MatchPersonPredicate(argMultimap));
     }
 
     /**
