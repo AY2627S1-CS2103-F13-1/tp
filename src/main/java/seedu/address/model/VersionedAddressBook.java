@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An {@code AddressBook} that remembers its earlier states, so that changes to it can be undone.
+ * An {@code AddressBook} that remembers its earlier states, so that changes to it can be undone and redone.
  * The history holds the state it started with, followed by up to {@code HISTORY_LIMIT} saved changes.
  * Each saved state includes the ID counter, so undoing an addition also frees the ID it used.
  */
@@ -14,6 +14,7 @@ public class VersionedAddressBook extends AddressBook {
     public static final int HISTORY_LIMIT = 20;
 
     public static final String MESSAGE_NO_EARLIER_STATE = "There is no earlier state to undo to.";
+    public static final String MESSAGE_NO_LATER_STATE = "There is no undone state to redo.";
 
     private final List<AddressBook> states = new ArrayList<>();
     private int currentStateIndex;
@@ -63,6 +64,27 @@ public class VersionedAddressBook extends AddressBook {
         }
 
         currentStateIndex--;
+        resetData(states.get(currentStateIndex));
+    }
+
+    /**
+     * Returns true if there is an undone state after the current one.
+     */
+    public boolean canRedo() {
+        return currentStateIndex < states.size() - 1;
+    }
+
+    /**
+     * Restores the data to the undone state after the current one.
+     *
+     * @throws IllegalStateException if there is no undone state.
+     */
+    public void redo() {
+        if (!canRedo()) {
+            throw new IllegalStateException(MESSAGE_NO_LATER_STATE);
+        }
+
+        currentStateIndex++;
         resetData(states.get(currentStateIndex));
     }
 }

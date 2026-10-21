@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSON_ID_NOT_FOUND;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -167,6 +169,49 @@ public class LogicManagerTest {
         logic.execute(UndoCommand.COMMAND_WORD);
 
         assertEquals(List.of(ALICE), logic.getFilteredPersonList());
+        assertTrue(model.hasPerson(BENSON));
+    }
+
+    @Test
+    public void execute_redoAfterUndoneAdd_restoresPersonWithSameId() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        logic.execute(addCommand);
+        Person addedPerson = model.getAddressBook().getPersonList().get(0);
+        logic.execute(UndoCommand.COMMAND_WORD);
+
+        CommandResult result = logic.execute(RedoCommand.COMMAND_WORD);
+
+        assertEquals(RedoCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(List.of(addedPerson), model.getAddressBook().getPersonList());
+        assertEquals(2, model.getAddressBook().getNextPersonId());
+        JsonAddressBookStorage savedFile = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), savedFile.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_redoAfterViewCommand_stillRedoes() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("delete 2");
+        logic.execute(UndoCommand.COMMAND_WORD);
+        logic.execute("list");
+
+        logic.execute(RedoCommand.COMMAND_WORD);
+
+        assertFalse(model.hasPerson(BENSON));
+    }
+
+    @Test
+    public void execute_redoAfterNewChange_nothingToRedo() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("delete 2");
+        logic.execute(UndoCommand.COMMAND_WORD);
+        logic.execute("delete 3");
+
+        assertThrows(CommandException.class, RedoCommand.MESSAGE_NOTHING_TO_REDO, ()
+            -> logic.execute(RedoCommand.COMMAND_WORD));
         assertTrue(model.hasPerson(BENSON));
     }
 

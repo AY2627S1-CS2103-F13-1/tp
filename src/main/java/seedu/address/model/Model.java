@@ -102,6 +102,19 @@ public interface Model {
      */
     void undoAddressBook();
 
+    /**
+     * Returns true if there is an undone state to redo.
+     */
+    boolean canRedoAddressBook();
+
+    /**
+     * Restores the address book to the state most recently undone.
+     * The current filter and sort of the displayed list are kept.
+     *
+     * @throws IllegalStateException if there is no undone state.
+     */
+    void redoAddressBook();
+
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
 

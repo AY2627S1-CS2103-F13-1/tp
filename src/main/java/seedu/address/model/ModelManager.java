@@ -130,6 +130,16 @@ public class ModelManager implements Model {
         addressBook.undo();
     }
 
+    @Override
+    public boolean canRedoAddressBook() {
+        return addressBook.canRedo();
+    }
+
+    @Override
+    public void redoAddressBook() {
+        addressBook.redo();
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**

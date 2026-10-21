@@ -28,6 +28,13 @@ public class VersionedAddressBookTest {
     }
 
     @Test
+    public void redo_noUndoneState_throwsIllegalStateException() {
+        assertFalse(versionedAddressBook.canRedo());
+        assertThrows(IllegalStateException.class, VersionedAddressBook.MESSAGE_NO_LATER_STATE,
+                versionedAddressBook::redo);
+    }
+
+    @Test
     public void commit_noChange_savesNothing() {
         versionedAddressBook.commit();
 
@@ -81,6 +88,62 @@ public class VersionedAddressBookTest {
         assertEquals(withAmy, versionedAddressBook);
         versionedAddressBook.undo();
         assertFalse(versionedAddressBook.canUndo());
+    }
+
+    @Test
+    public void redo_afterUndo_restoresPersonsAndIdCounter() {
+        versionedAddressBook.addPerson(personNamed("Amy Bee"));
+        versionedAddressBook.commit();
+        AddressBook withAmy = new AddressBook(versionedAddressBook);
+        versionedAddressBook.undo();
+        assertTrue(versionedAddressBook.canRedo());
+
+        versionedAddressBook.redo();
+
+        assertEquals(withAmy, versionedAddressBook);
+        assertEquals(2, versionedAddressBook.getNextPersonId());
+        assertFalse(versionedAddressBook.canRedo());
+    }
+
+    @Test
+    public void redo_multipleUndos_redoesEachStateInTurn() {
+        versionedAddressBook.addPerson(personNamed("Amy Bee"));
+        versionedAddressBook.commit();
+        AddressBook withAmy = new AddressBook(versionedAddressBook);
+        versionedAddressBook.addPerson(personNamed("Bob Choo"));
+        versionedAddressBook.commit();
+        AddressBook withAmyAndBob = new AddressBook(versionedAddressBook);
+        versionedAddressBook.undo();
+        versionedAddressBook.undo();
+
+        versionedAddressBook.redo();
+        assertEquals(withAmy, versionedAddressBook);
+        versionedAddressBook.redo();
+        assertEquals(withAmyAndBob, versionedAddressBook);
+        assertFalse(versionedAddressBook.canRedo());
+    }
+
+    @Test
+    public void commit_noChangeAfterUndo_keepsRedo() {
+        versionedAddressBook.addPerson(personNamed("Amy Bee"));
+        versionedAddressBook.commit();
+        versionedAddressBook.undo();
+
+        versionedAddressBook.commit();
+
+        assertTrue(versionedAddressBook.canRedo());
+    }
+
+    @Test
+    public void commit_changeAfterUndo_removesRedo() {
+        versionedAddressBook.addPerson(personNamed("Amy Bee"));
+        versionedAddressBook.commit();
+        versionedAddressBook.undo();
+
+        versionedAddressBook.addPerson(personNamed("Bob Choo"));
+        versionedAddressBook.commit();
+
+        assertFalse(versionedAddressBook.canRedo());
     }
 
     @Test

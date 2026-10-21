@@ -193,6 +193,32 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void redoAddressBook_noUndoneState_throwsIllegalStateException() {
+        assertFalse(modelManager.canRedoAddressBook());
+        assertThrows(IllegalStateException.class, modelManager::redoAddressBook);
+    }
+
+    @Test
+    public void redoAddressBook_filteredAndSortedList_keepsFilterAndSort() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.deletePerson(ALICE);
+        modelManager.commitAddressBook();
+        modelManager.undoAddressBook();
+        modelManager.updateFilteredPersonList(person -> !person.equals(BENSON));
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+        assertEquals(List.of(CARL, ALICE), modelManager.getFilteredPersonList());
+
+        modelManager.redoAddressBook();
+
+        // ALICE is deleted again, BENSON is still hidden and the reversed name order is kept
+        assertEquals(List.of(CARL), modelManager.getFilteredPersonList());
+        assertFalse(modelManager.hasPerson(ALICE));
+        assertTrue(modelManager.canUndoAddressBook());
+    }
+
+    @Test
     public void updateFilteredPersonList_sortedList_clearsSort() {
         AddressBook addressBook = new AddressBookBuilder()
                 .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
