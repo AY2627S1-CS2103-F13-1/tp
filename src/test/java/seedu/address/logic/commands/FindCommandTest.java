@@ -4,7 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
@@ -12,114 +16,84 @@ import static seedu.address.testutil.TypicalPersons.GEORGE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.parser.ArgumentTokenizer;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
-import seedu.address.model.person.EachFieldContainsSubstringPredicate;
+import seedu.address.model.person.MatchPersonPredicate;
+import seedu.address.model.person.Person;
 
 /**
- * Contains integration tests (interaction with the Model) for {@code FindCommand}.
+ * Contains integration tests for FindCommand with the combined search predicate.
  */
 public class FindCommandTest {
-    private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-    private Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+    private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
     public void equals_variousComparisons_returnsExpectedResult() {
-        AnyFieldContainsSubstringPredicate firstPredicate =
-                new AnyFieldContainsSubstringPredicate("first");
-        AnyFieldContainsSubstringPredicate secondPredicate =
-                new AnyFieldContainsSubstringPredicate("second");
-
-        FindCommand findFirstCommand = new FindCommand(firstPredicate);
-        FindCommand findSecondCommand = new FindCommand(secondPredicate);
-
-        // same object -> returns true
-        assertTrue(findFirstCommand.equals(findFirstCommand));
-
-        // same values -> returns true
-        FindCommand findFirstCommandCopy = new FindCommand(firstPredicate);
-        assertTrue(findFirstCommand.equals(findFirstCommandCopy));
-
-        // different types -> returns false
-        assertFalse(findFirstCommand.equals(1));
-
-        // null -> returns false
-        assertFalse(findFirstCommand.equals(null));
-
-        // different person -> returns false
-        assertFalse(findFirstCommand.equals(findSecondCommand));
+        MatchPersonPredicate firstPredicate = createPredicate("first");
+        FindCommand firstCommand = new FindCommand(firstPredicate);
+        assertTrue(firstCommand.equals(firstCommand));
+        assertTrue(firstCommand.equals(new FindCommand(firstPredicate)));
+        assertFalse(firstCommand.equals(new FindCommand(createPredicate("second"))));
+        assertFalse(firstCommand.equals(null));
+        assertFalse(firstCommand.equals(1));
     }
 
     @Test
-    public void execute_nonMatchingSubstring_noPersonFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0);
-        AnyFieldContainsSubstringPredicate predicate = new AnyFieldContainsSubstringPredicate("nonexistent");
+    public void execute_emptyOrNonMatchingSubstring_noPersonFound() {
+        assertSearchResults("");
+        assertSearchResults("nonexistent");
+    }
+
+    @Test
+    public void execute_generalSubstring_searchesAcrossFields() {
+        assertSearchResults("STREET", CARL, DANIEL, GEORGE);
+    }
+
+    @Test
+    public void execute_generalAndFieldSubstrings_narrowsResults() {
+        assertSearchResults(" n/Mei", BENSON, DANIEL);
+        assertSearchResults(" Clementi n/Mei", BENSON);
+        assertSearchResults(" Clementi n/Mei e/johnd t/Money", BENSON);
+        assertSearchResults(" missing n/Mei");
+        assertSearchResults(" Clementi n/Alice");
+    }
+
+    @Test
+    public void execute_multipleTags_requiresEveryTag() {
+        assertSearchResults(" t/FRI t/Money", BENSON);
+        assertSearchResults(" t/FRI t/nonexistent");
+    }
+
+    @Test
+    public void execute_previousSearch_doesNotRestrictNextSearch() {
+        assertSearchResults(" Clementi n/Mei", BENSON);
+        assertSearchResults(" n/Mei", BENSON, DANIEL);
+    }
+
+    @Test
+    public void toString_matchPredicate_returnsExpectedString() {
+        MatchPersonPredicate predicate = createPredicate("keyword n/Al");
         FindCommand command = new FindCommand(predicate);
-        expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
-        assertEquals(List.of(), model.getFilteredPersonList());
+        assertEquals(FindCommand.class.getCanonicalName() + "{predicate=" + predicate + "}", command.toString());
     }
 
-    @Test
-    public void execute_addressSubstring_multiplePersonsFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3);
-        AnyFieldContainsSubstringPredicate predicate = new AnyFieldContainsSubstringPredicate("STREET");
-        FindCommand command = new FindCommand(predicate);
-        expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
-        assertEquals(List.of(CARL, DANIEL, GEORGE), model.getFilteredPersonList());
+    private void assertSearchResults(String arguments, Person... expectedPersons) {
+        AddressBook originalAddressBook = new AddressBook(model.getAddressBook());
+        FindCommand command = new FindCommand(createPredicate(arguments));
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, expectedPersons.length),
+                command.execute(model).getFeedbackToUser());
+        assertEquals(List.of(expectedPersons), model.getFilteredPersonList());
+        assertEquals(originalAddressBook, model.getAddressBook());
     }
 
-    @Test
-    public void execute_additionalField_narrowsResults() {
-        EachFieldContainsSubstringPredicate namePredicate = new EachFieldContainsSubstringPredicate(
-                Optional.of("Mei"), Optional.empty(), Optional.empty(), Optional.empty(), List.of());
-        expectedModel.updateFilteredPersonList(namePredicate);
-        assertCommandSuccess(new FindCommand(namePredicate), model,
-                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), expectedModel);
-        assertEquals(List.of(BENSON, DANIEL), model.getFilteredPersonList());
-
-        EachFieldContainsSubstringPredicate combinedPredicate = new EachFieldContainsSubstringPredicate(
-                Optional.of("Mei"), Optional.empty(), Optional.empty(), Optional.of("Clementi"), List.of());
-        expectedModel.updateFilteredPersonList(combinedPredicate);
-        assertCommandSuccess(new FindCommand(combinedPredicate), model,
-                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
-        assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    private MatchPersonPredicate createPredicate(String arguments) {
+        return new MatchPersonPredicate(ArgumentTokenizer.tokenize(arguments,
+                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG));
     }
-
-    @Test
-    public void execute_multipleTags_onlyPersonMatchingEveryTagFound() {
-        EachFieldContainsSubstringPredicate predicate = new EachFieldContainsSubstringPredicate(
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of("FRI", "Money"));
-        expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(new FindCommand(predicate), model,
-                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
-        assertEquals(List.of(BENSON), model.getFilteredPersonList());
-    }
-
-    @Test
-    public void execute_oneFieldDoesNotMatch_noPersonFound() {
-        EachFieldContainsSubstringPredicate predicate = new EachFieldContainsSubstringPredicate(
-                Optional.of("Mei"), Optional.empty(), Optional.empty(), Optional.of("tokyo"), List.of());
-        expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(new FindCommand(predicate), model,
-                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), expectedModel);
-        assertEquals(List.of(), model.getFilteredPersonList());
-    }
-
-    @Test
-    public void toString_substringPredicate_returnsExpectedString() {
-        AnyFieldContainsSubstringPredicate predicate = new AnyFieldContainsSubstringPredicate("keyword");
-        FindCommand findCommand = new FindCommand(predicate);
-        String expected = FindCommand.class.getCanonicalName() + "{predicate=" + predicate + "}";
-        assertEquals(expected, findCommand.toString());
-    }
-
 }

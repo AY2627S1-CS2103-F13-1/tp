@@ -239,16 +239,21 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 ### Find feature
 
-`AddressBookParser` delegates `find` arguments to `FindCommandParser`, which selects one of two search modes. Both modes match consecutive substrings case-insensitively:
+`AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`. Find no longer uses `AnyFieldContainsSubstringPredicate` or `EachFieldContainsSubstringPredicate`.
 
-* **Search across all fields:** When no recognised prefixes are present, the parser trims the input and passes it as one substring to `AnyFieldContainsSubstringPredicate`. This predicate checks the name, phone number, email, address and each tag separately, and matches the person if the substring appears in any of them.
-* **Search by field:** When prefixes are present, the parser creates an `EachFieldContainsSubstringPredicate`. Each substring is matched only against its corresponding field, and all specified conditions must match. Adding field or tag conditions therefore narrows the results. The parser rejects text before the first prefix and duplicate non-tag prefixes.
+The predicate combines the following conditions with AND. Matching is case-insensitive and uses consecutive substrings:
 
-For field searches, `ArgumentMultimap.getValue(...)` returns an `Optional<String>` for each of the name, phone, email, and address prefixes. The parser passes these objects directly into the predicate constructor. An absent prefix produces `Optional.empty()`, so the predicate skips that field; a present value is used as the field's substring. For example, `find n/Al e/example.com` supplies `Optional.of("Al")` and `Optional.of("example.com")` for name and email, with empty optionals for phone and address.
+* **General substring:** `getPreamble()` returns the text before the first recognised prefix. A non-empty preamble must occur within the name, phone number, email, address or an individual tag. An empty preamble imposes no general restriction when prefixes are supplied.
+* **Field substrings:** `getValue(...)` returns an `Optional<String>` for each of the name, phone, email and address prefixes. An absent prefix imposes no restriction. A present substring must occur within its corresponding field. If a prefix is repeated, `getValue(...)` returns its last value.
+* **Tag substrings:** `getAllValues(PREFIX_TAG)` returns every supplied tag substring. Each must match at least one tag, but multiple substrings may match the same tag. An empty list imposes no tag restriction.
 
-Tags use `getAllValues(PREFIX_TAG)` instead, producing a `List<String>` to support repeated `t/` prefixes. Every tag substring must match at least one of the person's tags; an empty list imposes no tag restriction.
+The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix. For example, `find example n/Alex` requires `example` in any searchable field and `Alex` in the name, whereas `find n/Alex example` requires the name to contain `Alex example`.
 
-Both predicates implement `Predicate<Person>` and are passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. Neither predicate checks the archive flag, so archived contacts appear in search results.
+The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
+
+`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results.
+
+`MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
 
 ### Filter feature
 
@@ -307,9 +312,11 @@ Each `Person` has an `archived` flag, which is `false` for new contacts. `Archiv
 
 `JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
 
-`ListCommandParser` turns `list active` and `list archived` into a `ListCommand` with the view `ACTIVE` or `ARCHIVED`. These views call `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`. Plain `list` uses `PREDICATE_SHOW_ALL_PERSONS`, so it still shows archived contacts.
+`ListCommandParser` turns `list`, `list all` and `list archive` into a `ListCommand` with the view `ACTIVE`, `ALL` or `ARCHIVED`. The keyword is trimmed and compared case-insensitively, and any other input throws a `ParseException` with `ListCommand.MESSAGE_USAGE`. Each view calls `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS`, `PREDICATE_SHOW_ALL_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`.
 
-Other commands, such as `find`, `edit`, `tag` and `delete`, treat archived contacts like any other contact. `EditCommand`, `TagCommand` and `UntagCommand` copy the flag into the updated person, so changing a contact's details does not restore it.
+`ModelManager` starts with `PREDICATE_SHOW_ACTIVE_PERSONS`, so archived contacts are hidden when ByLine starts. `Model#addPerson` switches back to this predicate, since a new contact is never archived. `EditCommand` switches to `PREDICATE_SHOW_ARCHIVED_PERSONS` if the edited contact is archived and to `PREDICATE_SHOW_ACTIVE_PERSONS` otherwise, so the edited contact stays displayed.
+
+Other commands, such as `find`, `tag` and `delete`, treat archived contacts like any other contact. `EditCommand`, `TagCommand` and `UntagCommand` copy the flag into the updated person, so changing a contact's details does not restore it.
 
 #### Design considerations
 
@@ -322,42 +329,45 @@ Other commands, such as `find`, `edit`, `tag` and `delete`, treat archived conta
   * Pros: Active and archived contacts are clearly separated.
   * Cons: Looking up an ID would have to search two lists, and archiving would move a contact between lists.
 
-### \[Proposed\] Undo/redo feature
+### Undo/redo feature
 
-#### Proposed Implementation
+#### Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as `states`, a list of `AddressBook` copies, and `currentStateIndex`. It implements the following operations:
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+* `VersionedAddressBook#commit()` — Saves the current address book state in its history, unless it is the same as the current saved state.
+* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
+* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively, along with `Model#canUndoAddressBook()` and `Model#canRedoAddressBook()`.
+
+`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully; individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
+
+Each saved state is a copy made with `new AddressBook(...)`, which includes the ID counter `nextPersonId`. Undoing an `add` therefore also rolls the counter back, so the next contact added gets the undone contact's ID. The history keeps the initial state plus at most `VersionedAddressBook.HISTORY_LIMIT` (20) changes. When a commit would exceed this, the oldest state is removed.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+Step 1. The user launches the application. The `VersionedAddressBook` will be initialized with the initial address book state, and `currentStateIndex` pointing to that single address book state.
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete 5` command to delete the contact with ID 5. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5` command to delete the contact with ID 5. After the command runs, `LogicManager` calls `Model#commitAddressBook()`. The address book has changed, so its new state is saved in `states`, and `currentStateIndex` is shifted to the newly inserted address book state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new person. `LogicManager` again calls `Model#commitAddressBook()`, causing another modified address book state to be saved into `states`.
 
 ![UndoRedoState2](images/UndoRedoState2.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails, it throws an exception before `LogicManager` reaches `Model#commitAddressBook()`, so no state is saved.
 
 </div>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift `currentStateIndex` once to the left, pointing it to the previous address book state, and restores the address book to that state.
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If `currentStateIndex` is 0, pointing to the initial address book state, then there are no previous address book states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it shows `There is nothing to undo.` rather than attempting to perform the undo.
 
 </div>
 
@@ -373,19 +383,23 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts `currentStateIndex` once to the right, pointing to the previously undone state, and restores the address book to that state.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If `currentStateIndex` is at index `states.size() - 1`, pointing to the latest address book state, then there are no undone address book states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it shows `There is nothing to redo.` rather than attempting to perform the redo.
 
 </div>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list`. `LogicManager` still calls `Model#commitAddressBook()` after `list`, but the address book equals the current saved state, so `commit()` saves nothing. The same happens after `undo` and `redo`, since the address book then equals the state just restored. Thus, `states` remains unchanged.
 
 ![UndoRedoState4](images/UndoRedoState4.png)
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`. When `LogicManager` calls `Model#commitAddressBook()` after `clear`, the address book has changed and `currentStateIndex` is not at the end of `states`, so all states after it are purged before the new state is saved. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
 
 ![UndoRedoState5](images/UndoRedoState5.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If saving a new state makes `states` hold more than 21 states (the initial state and 20 changes), the oldest state is removed.
+
+</div>
 
 The following activity diagram summarizes what happens when a user executes a new command:
 
@@ -396,7 +410,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 **Aspect: How undo & redo execute:**
 
 * **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
+  * Pros: Easy to implement. Saved states share the same immutable `Person` objects, so each state costs only a list of references.
   * Cons: May have performance issues in terms of memory usage.
 
 * **Alternative 2:** Individual command knows how to undo/redo by
@@ -404,7 +418,25 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
+**Aspect: Where states are saved:**
+
+* **Alternative 1 (current choice):** `LogicManager` calls `Model#commitAddressBook()` after every successful command, and `VersionedAddressBook#commit()` skips states that equal the current one.
+  * Pros: Commands need no undo-related code, and new commands that change data are undoable automatically.
+  * Cons: Every command costs one comparison of the whole address book, even if it changed nothing.
+
+* **Alternative 2:** Each command that changes data calls `Model#commitAddressBook()` itself.
+  * Pros: Commands that do not change data cost nothing extra.
+  * Cons: Every new command that changes data must remember the call, or it silently cannot be undone.
+
+**Aspect: What happens to the ID counter on undo:**
+
+* **Alternative 1 (current choice):** The counter is part of each saved state, so undo rolls it back.
+  * Pros: Undo restores the address book exactly as it was, and an undone `add` leaves no gap in the IDs.
+  * Cons: The ID of an undone contact is given to the next contact added, so IDs are not strictly never reused.
+
+* **Alternative 2:** The counter is never rolled back.
+  * Pros: IDs are never reused, even after undo.
+  * Cons: The restored state differs from the saved one, and undone additions leave gaps in the IDs.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -455,6 +487,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
 | `* *` | journalist | restore an archived contact | work with that contact again |
 | `* *` | journalist | view only my active or only my archived contacts | focus on the contacts I need right now |
+| `* *` | journalist | undo my last change | quickly fix a mistake such as deleting the wrong contact |
+| `* *` | journalist | redo a change I undid | get back a change I did not mean to undo |
 
 ### Use cases
 
@@ -531,21 +565,39 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * The contact is added only if all given details are valid.
 
 **System:** Byline<br>
-**Use case:** UC03 - List all contacts<br>
+**Use case:** UC03 - List contacts<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list all contacts
-2.  Byline shows the list of all contacts
+1.  Journalist requests to list active contacts
+2.  Byline shows the contacts that are not archived
 
     Use case ends.
 
 **Extensions**
 
-* 2a. There are no contacts.
+* 1a. Journalist requests to list all contacts instead.
 
-    * 2a1. Byline shows a message that there are no contacts.
+    * 1a1. Byline shows all contacts, including archived ones.
+
+      Use case ends.
+
+* 1b. Journalist requests to list archived contacts instead.
+
+    * 1b1. Byline shows only the archived contacts.
+
+      Use case ends.
+
+* 1c. The request is not in a valid format.
+
+    * 1c1. Byline shows an error message with the accepted formats. The displayed list is unchanged.
+
+      Use case ends.
+
+* 2a. There are no contacts to show.
+
+    * 2a1. Byline shows an empty list.
 
       Use case ends.
 
@@ -804,6 +856,62 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * Filtering does not change contact data or stored contact order.
 
+**System:** Byline<br>
+**Use case:** UC11 - Undo a change<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist makes a change to the contacts, e.g. deletes a contact (UC01)
+2.  Journalist requests to undo the last change
+3.  Byline restores the contacts to how they were before the change, keeping the current view
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. There is no change to undo.
+
+    * 2a1. Byline shows an error message stating that there is nothing to undo.
+
+      Use case ends.
+
+* 2b. The request includes extra words, e.g. a number.
+
+    * 2b1. Byline shows an error message stating the correct format.
+
+      Use case ends.
+
+**Guarantees**
+
+* Only the most recent change is undone.
+
+**System:** Byline<br>
+**Use case:** UC12 - Redo an undone change<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist undoes a change (UC11)
+2.  Journalist requests to redo the change
+3.  Byline makes the change again, keeping the current view
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. There is no undone change to redo, e.g. because the journalist made a new change after undoing.
+
+    * 2a1. Byline shows an error message stating that there is nothing to redo.
+
+      Use case ends.
+
+* 2b. The request includes extra words, e.g. a number.
+
+    * 2b1. Byline shows an error message stating the correct format.
+
+      Use case ends.
+
 ### Non-Functional Requirements
 
 These requirements define the quality targets and operating constraints for ByLine.
@@ -935,7 +1043,7 @@ testers are expected to do more *exploratory* testing.
       Expected: Only contacts with `yu` somewhere in their details, in any upper/lower case, are shown. The status message shows how many contacts are listed.
 
    1. Test case: `find`<br>
-      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+      Expected: No contacts are displayed. The status message is `0 person(s) listed!`.
 
 1. Searching specific fields
 
@@ -943,10 +1051,23 @@ testers are expected to do more *exploratory* testing.
       Expected: Only contacts whose name contains `al` and that have a tag containing `fri` are shown.
 
    1. Test case: `find hello n/Alex`<br>
-      Expected: The displayed list is unchanged. The status message shows the invalid command format message.
+      Expected: No contacts are displayed with the sample data, because Alex's details do not contain `hello`.
 
    1. Test case: `find n/Al n/Be`<br>
-      Expected: The displayed list is unchanged. The status message says that `n/` was given more than once.
+      Expected: Only Bernice Yu is displayed with the sample data. The last name substring, `Be`, is used.
+
+1. Combining general and field searches
+
+   1. Prerequisites: Start with the sample data.
+
+   1. Test case: `find example n/Alex t/fri`<br>
+      Expected: Only Alex Yeoh is displayed. His email contains `example`, his name contains `Alex`, and his `friends` tag contains `fri`.
+
+   1. Test case: `find n/Alex example`<br>
+      Expected: No contacts are displayed. The whole text `Alex example` is searched within the name.
+
+   1. Test case: `find example t/fri n/Alex`<br>
+      Expected: Only Alex Yeoh is displayed, as with the first combined search. Prefix order does not affect the result.
 
 ### Filtering contacts by exact tags
 
@@ -1035,26 +1156,36 @@ testers are expected to do more *exploratory* testing.
 
 1. Archiving a contact
 
-   1. Prerequisites: A contact with ID 2 exists and is not archived.
+   1. Prerequisites: Run `list`. A contact with ID 2 exists and is not archived.
 
    1. Test case: `archive 2`<br>
-      Expected: The card for ID 2 shows `[Archived]` after the name. The status message shows the archived contact.
+      Expected: The contact with ID 2 disappears from the displayed list. The status message shows the archived contact.
 
    1. Test case: `archive 2` again<br>
       Expected: Nothing changes. The status message is `This person is already archived.`
 
-   1. Test case: `list active`, then `list archived`, then `list`<br>
-      Expected: `list active` hides the contact with ID 2. `list archived` shows only archived contacts, including ID 2. `list` shows all contacts, including ID 2.
+   1. Test case: `list`, then `list archive`, then `list all`<br>
+      Expected: `list` hides the contact with ID 2. `list archive` shows only archived contacts, including ID 2, whose card shows `[Archived]` after the name. `list all` shows all contacts, including ID 2.
+
+   1. Test case: `list archived`, then `list ALL`<br>
+      Expected: For `list archived`, the displayed list is unchanged and the status message shows `Invalid command format!` followed by the accepted `list` formats. `list ALL` shows all contacts.
 
    1. Test case: Close and reopen ByLine.<br>
-      Expected: The contact with ID 2 is still archived.
+      Expected: The contact with ID 2 is not shown at startup. `list archive` shows it, still archived.
+
+1. Editing an archived contact
+
+   1. Prerequisites: The contact with ID 2 is archived. Run `list`.
+
+   1. Test case: `edit 2 p/91234567`<br>
+      Expected: Byline switches to the archived contacts. The contact with ID 2 is shown with the new phone number and is still archived.
 
 1. Restoring a contact
 
-   1. Prerequisites: The contact with ID 2 is archived.
+   1. Prerequisites: The contact with ID 2 is archived. Run `list archive`.
 
    1. Test case: `restore 2`<br>
-      Expected: `[Archived]` disappears from the card. The status message shows the restored contact.
+      Expected: The contact with ID 2 disappears from the archived list. The status message shows the restored contact. `list` shows it without `[Archived]`.
 
    1. Test case: `restore 2` again<br>
       Expected: Nothing changes. The status message is `This person is not archived.`
@@ -1086,6 +1217,43 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `untag 2`<br>
       Expected: No tags are changed. The status message shows the invalid command format message.
+
+### Undoing and redoing changes
+
+1. Undoing changes
+
+   1. Prerequisites: Start ByLine with the sample data and run `list`.
+
+   1. Test case: `undo`<br>
+      Expected: Nothing changes. The status message is `There is nothing to undo.`
+
+   1. Test case: `delete 2`, then `undo`<br>
+      Expected: The contact with ID 2 is back. The status message is `Undid the last change.`
+
+   1. Test case: `delete 2`, then `find Alex`, then `undo`<br>
+      Expected: Only the contacts matching `Alex` are still shown. `list` shows the contact with ID 2 again.
+
+   1. Test case: `add n/Test p/123 e/t@example.com a/Street`, note the new contact's ID, then `undo`, then the same `add` again<br>
+      Expected: `undo` removes the contact, and the second `add` gives the new contact the same ID.
+
+   1. Test case: `undo 3`<br>
+      Expected: Nothing changes. The status message shows `Invalid command format!` followed by the `undo` usage.
+
+   1. Test case: Make a change, close and reopen ByLine, then `undo`<br>
+      Expected: The status message is `There is nothing to undo.`
+
+1. Redoing changes
+
+   1. Prerequisites: Run `delete 2`, then `undo`.
+
+   1. Test case: `list`, then `redo`<br>
+      Expected: The contact with ID 2 is deleted again. The status message is `Redid the last undone change.`
+
+   1. Test case: `redo` again<br>
+      Expected: Nothing changes. The status message is `There is nothing to redo.`
+
+   1. Test case: `undo`, then `add n/Test p/123 e/t@example.com a/Street`, then `redo`<br>
+      Expected: The status message is `There is nothing to redo.` The contact with ID 2 is still there.
 
 ### Saving data
 

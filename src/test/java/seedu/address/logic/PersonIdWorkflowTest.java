@@ -71,7 +71,7 @@ public class PersonIdWorkflowTest {
         // archived, then restored from the active view, where it is hidden
         execute("archive 8");
         assertTrue(findById(8).isArchived());
-        execute("list active");
+        execute("list");
         execute("restore 8");
 
         // after a restart, the contact keeps its ID and every change

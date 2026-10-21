@@ -2,13 +2,20 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.Model;
 
 /**
- * Lists all contacts by default, with optional active and archived views.
+ * Lists active contacts by default, with optional views for all or archived contacts.
  */
 public class ListCommand extends Command {
     public static final String COMMAND_WORD = "list";
+
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Shows contacts. With no keyword, only active (not archived) contacts are shown.\n"
+            + "Parameters: [all | archive]\n"
+            + "Examples: " + COMMAND_WORD + ", " + COMMAND_WORD + " all, " + COMMAND_WORD + " archive";
+
     public static final String MESSAGE_SUCCESS = "Listed all persons.";
     public static final String MESSAGE_ACTIVE_SUCCESS = "Listed all active persons.";
     public static final String MESSAGE_ARCHIVED_SUCCESS = "Listed all archived persons.";
@@ -21,10 +28,6 @@ public class ListCommand extends Command {
     }
 
     private final View view;
-
-    public ListCommand() {
-        this(View.ALL);
-    }
 
     public ListCommand(View view) {
         this.view = requireNonNull(view);
@@ -47,5 +50,26 @@ public class ListCommand extends Command {
                 yield new CommandResult(MESSAGE_ARCHIVED_SUCCESS);
             }
         };
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        // instanceof handles nulls
+        if (!(other instanceof ListCommand otherListCommand)) {
+            return false;
+        }
+
+        return view == otherListCommand.view;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .add("view", view)
+                .toString();
     }
 }

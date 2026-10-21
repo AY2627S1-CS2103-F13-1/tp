@@ -116,7 +116,7 @@ public class SortCommandTest {
     public void execute_listAfterSort_clearsSort() {
         new SortCommand(SortField.NAME, SortOrder.DESCENDING).execute(model);
 
-        new ListCommand().execute(model);
+        new ListCommand(ListCommand.View.ALL).execute(model);
 
         assertEquals(getTypicalPersons(), model.getFilteredPersonList());
     }

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
+import static seedu.address.model.Model.PREDICATE_SHOW_ARCHIVED_PERSONS;
 import static seedu.address.model.person.PersonComparator.getComparator;
 import static seedu.address.model.person.SortField.ADDRESS;
 import static seedu.address.model.person.SortField.EMAIL;
@@ -40,6 +41,15 @@ public class ModelManagerTest {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
         assertEquals(new AddressBook(), new AddressBook(modelManager.getAddressBook()));
+    }
+
+    @Test
+    public void constructor_archivedContact_hiddenFromDisplayedList() {
+        Person archivedAlice = new PersonBuilder(ALICE).withArchiveStatus(true).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(archivedAlice).withPerson(BENSON).build();
+        ModelManager typicalModelManager = new ModelManager(addressBook, new UserPrefs());
+
+        assertEquals(List.of(BENSON), typicalModelManager.getFilteredPersonList());
     }
 
     @Test
@@ -99,6 +109,18 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void addPerson_archivedView_switchesToActiveView() {
+        Person archivedAlice = new PersonBuilder(ALICE).withArchiveStatus(true).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(archivedAlice).build();
+        ModelManager typicalModelManager = new ModelManager(addressBook, new UserPrefs());
+        typicalModelManager.updateFilteredPersonList(PREDICATE_SHOW_ARCHIVED_PERSONS);
+
+        Person addedPerson = typicalModelManager.addPerson(BENSON);
+
+        assertEquals(List.of(addedPerson), typicalModelManager.getFilteredPersonList());
+    }
+
+    @Test
     public void findPersonById_personHiddenByFilter_returnsPerson() {
         ModelManager typicalModelManager = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         typicalModelManager.updateFilteredPersonList(person -> person.isSamePerson(ALICE)); // only ALICE shown
@@ -153,6 +175,69 @@ public class ModelManagerTest {
         modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
 
         assertEquals(List.of(CARL, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void undoAddressBook_noEarlierState_throwsIllegalStateException() {
+        assertFalse(modelManager.canUndoAddressBook());
+        assertThrows(IllegalStateException.class, modelManager::undoAddressBook);
+    }
+
+    @Test
+    public void undoAddressBook_afterCommittedChange_restoresAddressBook() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.deletePerson(BENSON);
+        modelManager.commitAddressBook();
+        assertTrue(modelManager.canUndoAddressBook());
+
+        modelManager.undoAddressBook();
+
+        assertEquals(addressBook, modelManager.getAddressBook());
+        assertFalse(modelManager.canUndoAddressBook());
+    }
+
+    @Test
+    public void undoAddressBook_filteredAndSortedList_keepsFilterAndSort() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.updateFilteredPersonList(person -> !person.equals(BENSON));
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+        modelManager.deletePerson(ALICE);
+        modelManager.commitAddressBook();
+        assertEquals(List.of(CARL), modelManager.getFilteredPersonList());
+
+        modelManager.undoAddressBook();
+
+        // ALICE is back, BENSON is still hidden and the reversed name order is kept
+        assertEquals(List.of(CARL, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void redoAddressBook_noUndoneState_throwsIllegalStateException() {
+        assertFalse(modelManager.canRedoAddressBook());
+        assertThrows(IllegalStateException.class, modelManager::redoAddressBook);
+    }
+
+    @Test
+    public void redoAddressBook_filteredAndSortedList_keepsFilterAndSort() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON).withPerson(CARL).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.deletePerson(ALICE);
+        modelManager.commitAddressBook();
+        modelManager.undoAddressBook();
+        modelManager.updateFilteredPersonList(person -> !person.equals(BENSON));
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+        assertEquals(List.of(CARL, ALICE), modelManager.getFilteredPersonList());
+
+        modelManager.redoAddressBook();
+
+        // ALICE is deleted again, BENSON is still hidden and the reversed name order is kept
+        assertEquals(List.of(CARL), modelManager.getFilteredPersonList());
+        assertFalse(modelManager.hasPerson(ALICE));
+        assertTrue(modelManager.canUndoAddressBook());
     }
 
     @Test
