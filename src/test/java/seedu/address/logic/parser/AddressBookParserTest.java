@@ -4,11 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -27,8 +28,9 @@ import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.UntagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.AnyFieldContainsSubstringPredicate;
-import seedu.address.model.person.EachFieldContainsSubstringPredicate;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonId;
 import seedu.address.model.person.SortField;
@@ -82,27 +84,30 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_findWithNamePrefix_returnsFieldFindCommand() throws Exception {
-        String substring = "Alice Pauline";
-        FindCommand command = (FindCommand) parser.parseCommand(
-                FindCommand.COMMAND_WORD + " " + PREFIX_NAME + substring);
-        assertEquals(new FindCommand(new EachFieldContainsSubstringPredicate(Optional.of(substring),
-                Optional.empty(), Optional.empty(), Optional.empty(), List.of())), command);
+        assertFindResults("find n/Alice Pauline", ALICE);
     }
 
     @Test
     public void parseCommand_findWithoutPrefix_returnsAnyFieldFindCommand() throws Exception {
-        String substring = "Main Street";
-        FindCommand command = (FindCommand) parser.parseCommand(FindCommand.COMMAND_WORD + " " + substring);
-        assertEquals(new FindCommand(new AnyFieldContainsSubstringPredicate(substring)), command);
+        assertFindResults("find Clementi", BENSON);
     }
 
     @Test
     public void parseCommand_findWithMultiplePrefixes_returnsFieldFindCommand() throws Exception {
-        FindCommand command = (FindCommand) parser.parseCommand(
-                "find t/fri p/2345 a/Main Street n/Al t/col e/@example");
-        assertEquals(new FindCommand(new EachFieldContainsSubstringPredicate(Optional.of("Al"),
-                Optional.of("2345"), Optional.of("@example"), Optional.of("Main Street"),
-                List.of("fri", "col"))), command);
+        assertFindResults("find t/fri p/987 a/Clementi n/Ben t/Money e/@example", BENSON);
+    }
+
+    @Test
+    public void parseCommand_findWithGeneralAndPrefixes_matchesCombinedConditions() throws Exception {
+        assertFindResults("find example n/Benson t/Money", BENSON);
+        assertFindResults("find n/Benson example");
+    }
+
+    private void assertFindResults(String input, Person... expectedPersons) throws Exception {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        FindCommand command = (FindCommand) parser.parseCommand(input);
+        command.execute(model);
+        assertEquals(List.of(expectedPersons), model.getFilteredPersonList());
     }
 
     @Test
