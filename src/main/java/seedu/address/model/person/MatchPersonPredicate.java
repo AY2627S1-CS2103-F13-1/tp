@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.model.tag.Tag;
@@ -59,7 +58,7 @@ public class MatchPersonPredicate implements Predicate<Person> {
                     || emailTargetLowerCase.contains(preambleKeyLowerCase)
                     || addressTargetLowerCase.contains(preambleKeyLowerCase)
                     || tagListTarget.stream().anyMatch(
-                    tagTarget -> tagTarget.tagName.toLowerCase().contains(preambleKeyLowerCase));
+                        tagTarget -> tagTarget.tagName.toLowerCase().contains(preambleKeyLowerCase));
         }
 
         boolean isName = nameKey.isEmpty();
