@@ -113,8 +113,13 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_list() throws Exception {
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " archived") instanceof ListCommand);
+        assertEquals(new ListCommand(ListCommand.View.ACTIVE), parser.parseCommand(ListCommand.COMMAND_WORD));
+        assertEquals(new ListCommand(ListCommand.View.ALL), parser.parseCommand(ListCommand.COMMAND_WORD + " all"));
+        assertEquals(new ListCommand(ListCommand.View.ARCHIVED),
+                parser.parseCommand(ListCommand.COMMAND_WORD + " archive"));
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, ()
+            -> parser.parseCommand(ListCommand.COMMAND_WORD + " foo"));
     }
 
     @Test
