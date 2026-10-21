@@ -12,7 +12,6 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
-import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.ModifyPersonUtil;
 
