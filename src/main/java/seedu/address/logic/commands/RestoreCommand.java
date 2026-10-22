@@ -7,7 +7,6 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
-import seedu.address.model.util.ModifyPersonUtil;
 
 /**
  * Restores a contact identified by its ID.
@@ -41,7 +40,7 @@ public class RestoreCommand extends Command {
         if (!personToChange.isArchived()) {
             throw new CommandException(MESSAGE_WRONG_STATUS);
         }
-        Person updatedPerson = ModifyPersonUtil.setIsArchived(personToChange, false);
+        Person updatedPerson = personToChange.withIsArchived(false);
         model.setPerson(personToChange, updatedPerson);
         return new CommandResult(String.format(MESSAGE_RESTORE_PERSON_SUCCESS, Messages.format(personToChange)));
     }

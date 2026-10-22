@@ -13,7 +13,6 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.util.ModifyPersonUtil;
 
 /**
  * Adds one or more tags to an existing contact.
@@ -52,7 +51,7 @@ public class TagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.addAll(tagsToAdd);
 
-        Person updated = ModifyPersonUtil.setTags(original, updatedTags);
+        Person updated = original.withTags(updatedTags);
 
         model.setPerson(original, updated);
 

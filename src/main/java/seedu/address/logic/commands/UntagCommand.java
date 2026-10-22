@@ -13,7 +13,6 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.util.ModifyPersonUtil;
 
 /**
  * Removes one or more tags from an existing contact.
@@ -53,7 +52,7 @@ public class UntagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.removeAll(tagsToRemove);
 
-        Person updated = ModifyPersonUtil.setTags(original, updatedTags);
+        Person updated = original.withTags(updatedTags);
 
         model.setPerson(original, updated);
 
