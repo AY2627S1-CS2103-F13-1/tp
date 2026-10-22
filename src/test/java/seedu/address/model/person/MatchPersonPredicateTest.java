@@ -9,10 +9,14 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.util.SampleDataUtil;
 import seedu.address.testutil.PersonBuilder;
 
 public class MatchPersonPredicateTest {
@@ -36,10 +40,42 @@ public class MatchPersonPredicateTest {
     }
 
     @Test
-    public void test_generalPhrase_matchesContiguousSubstring() {
+    public void test_generalPhrase_allowsEditsWithinTolerance() {
         assertTrue(createPredicate("LEX YEO").test(person));
         assertFalse(createPredicate("Yeoh Alex").test(person));
-        assertFalse(createPredicate("Alex  Yeoh").test(person));
+        assertTrue(createPredicate("Alex  Yeoh").test(person));
+        assertTrue(createPredicate("Alex   Yeoh").test(person));
+        assertFalse(createPredicate("Alex" + " ".repeat(9) + "Yeoh").test(person));
+    }
+
+    @Test
+    public void test_generalTypo_matchesWithinTolerance() {
+        assertTrue(createPredicate("Alx").test(person));
+        assertTrue(createPredicate("EXMPLE").test(person));
+        assertTrue(createPredicate("Azzx").test(person));
+        assertFalse(createPredicate("zzzx").test(person));
+    }
+
+    @Test
+    public void test_shortTypo_matchesTwoSamplePersons() {
+        List<String> matchingNames = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(createPredicate("Alx"))
+                .map(samplePerson -> samplePerson.getName().fullName)
+                .toList();
+        assertEquals(List.of("Alex Yeoh", "Roy Balakrishnan"), matchingNames);
+    }
+
+    @Test
+    public void test_fieldTypos_matchesWithinTolerance() {
+        Prefix[] prefixes = {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG};
+        String[] matchingValues = {"Azzx", "2399", "@exzzple", "Mzzn", "Frzznds"};
+        String[] nonMatchingValues = {"zzzx", "9999", "@zzzzple", "zzzn", "zzzznds"};
+        for (int index = 0; index < prefixes.length; index++) {
+            assertTrue(createPredicate("", prefixes[index], matchingValues[index]).test(person),
+                    matchingValues[index]);
+            assertFalse(createPredicate("", prefixes[index], nonMatchingValues[index]).test(person),
+                    nonMatchingValues[index]);
+        }
     }
 
     @Test

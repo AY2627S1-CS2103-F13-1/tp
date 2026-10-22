@@ -13,12 +13,14 @@ import java.util.function.Predicate;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.model.search.Search;
 import seedu.address.model.tag.Tag;
 
 /**
  * Tests that a {@code Person}'s {@code Name} matches any of the keywords given.
  */
 public class MatchPersonPredicate implements Predicate<Person> {
+    private static final double TOLERANCE = 0.3333333; // approximately 1/3
     private final ArgumentMultimap argMultimap;
 
     public MatchPersonPredicate(ArgumentMultimap argMultimap) {
@@ -39,57 +41,47 @@ public class MatchPersonPredicate implements Predicate<Person> {
             return false;
         }
 
-        String nameTargetLowerCase = person.getName().fullName.toLowerCase();
-        String phoneTargetLowerCase = person.getPhone().value.toLowerCase();
-        String emailTargetLowerCase = person.getEmail().value.toLowerCase();
-        String addressTargetLowerCase = person.getAddress().value.toLowerCase();
+        String nameTarget = person.getName().fullName;
+        String phoneTarget = person.getPhone().value;
+        String emailTarget = person.getEmail().value;
+        String addressTarget = person.getAddress().value;
         Set<Tag> tagListTarget = person.getTags();
-
-        assert !nameTargetLowerCase.isBlank();
-        assert !phoneTargetLowerCase.isBlank();
-        assert !emailTargetLowerCase.isBlank();
-        assert !addressTargetLowerCase.isBlank();
 
         boolean isPreamble = preambleKey.isBlank();
         if (!preambleKey.isBlank()) {
-            String preambleKeyLowerCase = preambleKey.toLowerCase();
-            isPreamble = nameTargetLowerCase.contains(preambleKeyLowerCase)
-                    || phoneTargetLowerCase.contains(preambleKeyLowerCase)
-                    || emailTargetLowerCase.contains(preambleKeyLowerCase)
-                    || addressTargetLowerCase.contains(preambleKeyLowerCase)
+            isPreamble = Search.substringThenLevenshtein(nameTarget, preambleKey, TOLERANCE)
+                    || Search.substringThenLevenshtein(phoneTarget, preambleKey, TOLERANCE)
+                    || Search.substringThenLevenshtein(emailTarget, preambleKey, TOLERANCE)
+                    || Search.substringThenLevenshtein(addressTarget, preambleKey, TOLERANCE)
                     || tagListTarget.stream().anyMatch(
-                        tagTarget -> tagTarget.tagName.toLowerCase().contains(preambleKeyLowerCase));
+                            tagTarget -> Search.substringThenLevenshtein(tagTarget.tagName, preambleKey, TOLERANCE));
         }
 
         boolean isName = nameKey.isEmpty();
         if (nameKey.isPresent()) {
-            String nameKeyLowerCase = nameKey.get().toLowerCase();
-            isName = nameTargetLowerCase.contains(nameKeyLowerCase);
+            isName = Search.substringThenLevenshtein(nameTarget, nameKey.get(), TOLERANCE);
         }
 
         boolean isPhone = phoneKey.isEmpty();
         if (phoneKey.isPresent()) {
-            String phoneKeyLowerCase = phoneKey.get().toLowerCase();
-            isPhone = phoneTargetLowerCase.contains(phoneKeyLowerCase);
+            isPhone = Search.substringThenLevenshtein(phoneTarget, phoneKey.get(), TOLERANCE);
         }
 
         boolean isEmail = emailKey.isEmpty();
         if (emailKey.isPresent()) {
-            String emailKeyLowerCase = emailKey.get().toLowerCase();
-            isEmail = emailTargetLowerCase.contains(emailKeyLowerCase);
+            isEmail = Search.substringThenLevenshtein(emailTarget, emailKey.get(), TOLERANCE);
         }
 
         boolean isAddress = addressKey.isEmpty();
         if (addressKey.isPresent()) {
-            String addressKeyLowerCase = addressKey.get().toLowerCase();
-            isAddress = addressTargetLowerCase.contains(addressKeyLowerCase);
+            isAddress = Search.substringThenLevenshtein(addressTarget, addressKey.get(), TOLERANCE);
         }
 
         boolean isTags = tagKeys.isEmpty();
         if (!tagKeys.isEmpty()) {
             isTags = tagKeys.stream().allMatch(
                     tagKey -> tagListTarget.stream().anyMatch(
-                            tag -> tag.tagName.toLowerCase().contains(tagKey.toLowerCase())));
+                            tag -> Search.substringThenLevenshtein(tag.tagName, tagKey, TOLERANCE)));
         }
 
         return isPreamble && isName && isPhone && isEmail && isAddress && isTags;

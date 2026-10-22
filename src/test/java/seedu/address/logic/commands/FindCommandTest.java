@@ -12,6 +12,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
+import static seedu.address.testutil.TypicalPersons.ELLE;
 import static seedu.address.testutil.TypicalPersons.GEORGE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
@@ -57,11 +58,21 @@ public class FindCommandTest {
 
     @Test
     public void execute_generalAndFieldSubstrings_narrowsResults() {
-        assertSearchResults(" n/Mei", BENSON, DANIEL);
+        assertSearchResults(" n/Mei", BENSON, DANIEL, ELLE);
         assertSearchResults(" Clementi n/Mei", BENSON);
         assertSearchResults(" Clementi n/Mei e/johnd t/Money", BENSON);
         assertSearchResults(" missing n/Mei");
         assertSearchResults(" Clementi n/Alice");
+    }
+
+    @Test
+    public void execute_typoInQuery_matchesWithinTolerance() {
+        assertSearchResults("Bensn", BENSON, GEORGE);
+        assertSearchResults(" n/Bensn e/johnd t/Mony", BENSON);
+        assertSearchResults(" n/Bezzon", BENSON);
+        assertSearchResults(" n/Bensn t/Mozzy", BENSON);
+        assertSearchResults(" n/zzzzzz");
+        assertSearchResults(" n/Bensn t/zzzzz");
     }
 
     @Test
@@ -73,7 +84,7 @@ public class FindCommandTest {
     @Test
     public void execute_previousSearch_doesNotRestrictNextSearch() {
         assertSearchResults(" Clementi n/Mei", BENSON);
-        assertSearchResults(" n/Mei", BENSON, DANIEL);
+        assertSearchResults(" n/Mei", BENSON, DANIEL, ELLE);
     }
 
     @Test
