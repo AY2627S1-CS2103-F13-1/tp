@@ -1,5 +1,6 @@
 package seedu.address.model.search;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -7,6 +8,93 @@ import static seedu.address.testutil.Assert.assertThrows;
 import org.junit.jupiter.api.Test;
 
 public class SearchTest {
+
+    @Test
+    public void levenshteinDistance_knownExamples_returnsExpectedDistance() {
+        assertEquals(4, Search.levenshteinDistance("cat", "wildcat", false));
+        assertEquals(4, Search.levenshteinDistance("wildcat", "cat", false));
+        assertEquals(3, Search.levenshteinDistance("kitten", "sitting", false));
+        assertEquals(0, Search.levenshteinDistance("Alex", "Alex", false));
+        assertEquals(1, Search.levenshteinDistance("cat", "cut", false));
+        assertEquals(1, Search.levenshteinDistance("cat", "cart", false));
+        assertEquals(1, Search.levenshteinDistance("cart", "cat", false));
+        assertEquals(2, Search.levenshteinDistance("ab", "ba", false));
+    }
+
+    @Test
+    public void levenshteinDistance_partialMatch_ignoresTextOutsideMatch() {
+        assertEquals(0, Search.levenshteinDistance("wildcat", "cat", true));
+        assertEquals(1, Search.levenshteinDistance("Alex Yeoh", "Alx", true));
+        assertEquals(1, Search.levenshteinDistance("alex@example.com", "exmple", true));
+        assertEquals(3, Search.levenshteinDistance("", "cat", true));
+        assertEquals(0, Search.levenshteinDistance("cat", "", true));
+    }
+
+    @Test
+    public void levenshteinDistance_caseAndSpaces_countsDifferences() {
+        assertEquals(1, Search.levenshteinDistance("Alex", "alex", false));
+        assertEquals(1, Search.levenshteinDistance("Alex Yeoh", "AlexYeoh", false));
+    }
+
+    @Test
+    public void levenshteinDistance_emptyInputs_returnsOtherLength() {
+        assertEquals(0, Search.levenshteinDistance("", "", false));
+        assertEquals(3, Search.levenshteinDistance("", "cat", false));
+        assertEquals(3, Search.levenshteinDistance("cat", "", false));
+    }
+
+    @Test
+    public void levenshteinDistance_nullInput_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> Search.levenshteinDistance(null, "cat", false));
+        assertThrows(NullPointerException.class, () -> Search.levenshteinDistance("cat", null, false));
+    }
+
+    @Test
+    public void substringThenLevenshtein_exactSubstring_matchesWithZeroEdits() {
+        assertTrue(Search.substringThenLevenshtein("wildcat", "CAT", 0));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "LEX YEO", 0));
+        assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Alx", 0));
+    }
+
+    @Test
+    public void substringThenLevenshtein_typoInSubstring_matchesWithinEditLimit() {
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alx", 1));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alez", 1));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Aleex", 1));
+        assertTrue(Search.substringThenLevenshtein("alex@example.com", "EXMPLE", 1));
+        assertTrue(Search.substringThenLevenshtein("Mr Alex Yeoh Jr", "Alx Yeo", 1));
+        assertTrue(Search.substringThenLevenshtein("prefix kitten suffix", "sittin", 2));
+        assertFalse(Search.substringThenLevenshtein("prefix kitten suffix", "sittin", 1));
+        assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Bob", 1));
+    }
+
+    @Test
+    public void substringThenLevenshtein_separatedLetters_requiresEditsForGaps() {
+        assertFalse(Search.substringThenLevenshtein("a123b456c", "abc", 1));
+        assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "AlexYeoh", 0));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "AlexYeoh", 1));
+    }
+
+    @Test
+    public void substringThenLevenshtein_emptyInputs_countsDeletedQueryCharacters() {
+        assertTrue(Search.substringThenLevenshtein("Alex", "", 0));
+        assertTrue(Search.substringThenLevenshtein("", "", 0));
+        assertFalse(Search.substringThenLevenshtein("", "cat", 2));
+        assertTrue(Search.substringThenLevenshtein("", "cat", 3));
+        assertTrue(Search.substringThenLevenshtein("xyz", "cat", 3));
+    }
+
+    @Test
+    public void substringThenLevenshtein_negativeLimit_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Search.substringThenLevenshtein("cat", "cat", -1));
+        assertThrows(IllegalArgumentException.class, () -> Search.substringThenLevenshtein("cat", "dog", -1));
+    }
+
+    @Test
+    public void substringThenLevenshtein_nullInput_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> Search.substringThenLevenshtein(null, "cat", 1));
+        assertThrows(NullPointerException.class, () -> Search.substringThenLevenshtein("cat", null, 1));
+    }
 
     @Test
     public void substring_matchingKey_returnsTrue() {
@@ -69,13 +157,5 @@ public class SearchTest {
     @Test
     public void substring_nullKey_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> Search.substring("Alex Yeoh", null));
-    }
-
-    @Test
-    public void fuzzyLetters() {
-        String textTest = "Many Want to rule the world!!";
-        String keyTest = "rul th word";
-
-        assertTrue(Search.fuzzyLetters(textTest, keyTest));
     }
 }
