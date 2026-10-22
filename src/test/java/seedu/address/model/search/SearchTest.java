@@ -70,4 +70,12 @@ public class SearchTest {
     public void substring_nullKey_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> Search.substring("Alex Yeoh", null));
     }
+
+    @Test
+    public void fuzzyLetters() {
+        String textTest = "Many Want to rule the world!!";
+        String keyTest = "rul th word";
+
+        assertTrue(Search.fuzzyLetters(textTest, keyTest));
+    }
 }
