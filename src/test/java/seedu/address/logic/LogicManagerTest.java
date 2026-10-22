@@ -34,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
@@ -75,6 +76,18 @@ public class LogicManagerTest {
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
         return new LogicManager(model, storage);
+    }
+
+    @Test
+    public void guiSettings_readsAndUpdatesModelPreferences() {
+        GuiSettings original = new GuiSettings(900, 700, 10, 20);
+        model.setGuiSettings(original);
+        assertEquals(original, logic.getGuiSettings());
+
+        GuiSettings updated = new GuiSettings(1100, 800, 30, 40);
+        logic.setGuiSettings(updated);
+        assertEquals(updated, model.getGuiSettings());
+        assertEquals(updated, logic.getGuiSettings());
     }
 
     @Test
