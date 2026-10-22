@@ -119,6 +119,40 @@ public class Person {
     }
 
     /**
+     * Returns a copy of this Person with updated isArchived value.
+     *
+     * @param newIsArchived New value of isArchived.
+     * @return Person.
+     */
+    public Person withIsArchived(boolean newIsArchived) {
+        return new Person(
+                id,
+                name,
+                phone,
+                email,
+                address,
+                tags,
+                newIsArchived);
+    }
+
+    /**
+     * Returns a copy of this Person with updated tags.
+     *
+     * @param newTags New tags.
+     * @return Person.
+     */
+    public Person withTags(Set<Tag> newTags) {
+        return new Person(
+                id,
+                name,
+                phone,
+                email,
+                address,
+                newTags,
+                isArchived);
+    }
+
+    /**
      * Returns true if both persons have the same identity and data fields.
      * This defines a stronger notion of equality between two persons.
      */
