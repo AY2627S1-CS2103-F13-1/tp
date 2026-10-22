@@ -125,14 +125,7 @@ public class Person {
      * @return Person.
      */
     public Person withIsArchived(boolean newIsArchived) {
-        return new Person(
-                id,
-                name,
-                phone,
-                email,
-                address,
-                tags,
-                newIsArchived);
+        return new Person(name, phone, email, address, tags, newIsArchived, id);
     }
 
     /**
@@ -142,14 +135,7 @@ public class Person {
      * @return Person.
      */
     public Person withTags(Set<Tag> newTags) {
-        return new Person(
-                id,
-                name,
-                phone,
-                email,
-                address,
-                newTags,
-                isArchived);
+        return new Person(name, phone, email, address, newTags, isArchived, id);
     }
 
     /**
