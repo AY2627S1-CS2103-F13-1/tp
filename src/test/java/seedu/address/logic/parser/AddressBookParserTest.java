@@ -20,6 +20,7 @@ import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
@@ -33,6 +34,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.HasAllTagsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonId;
 import seedu.address.model.person.SortField;
@@ -110,6 +112,14 @@ public class AddressBookParserTest {
         FindCommand command = (FindCommand) parser.parseCommand(input);
         command.execute(model);
         assertEquals(List.of(expectedPersons), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void parseCommand_filter_returnsExactTagFilterCommand() throws Exception {
+        FilterCommand command = (FilterCommand) parser.parseCommand(
+                FilterCommand.COMMAND_WORD + " t/housing policy t/EXPERT");
+        assertEquals(new FilterCommand(new HasAllTagsPredicate(
+                Set.of(new Tag("housing policy"), new Tag("expert")))), command);
     }
 
     @Test

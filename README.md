@@ -34,6 +34,8 @@ Byline is designed for **journalists who manage numerous professional contacts**
   e.g. `edit 1 t/politics t/source`
 * **Search contacts**: Find contacts by name, phone, email, address or tag. Name, phone, email, address, and tags can match on part of the text. When you give several conditions, only contacts that match all of them are shown.<br>
   e.g. `find n/Tan t/econ` shows person with fields `n/Tan Meng Cheng` and `t/economics`
+* **Filter contacts by exact tags**: Show contacts that have every specified complete tag, ignoring letter case.<br>
+  e.g. `filter t/housing policy t/expert` shows only contacts tagged with both `housing policy` and `expert`
 * **Sort contacts**: Arrange the displayed contacts by a supported field in ascending or descending order.<br>
   e.g. `sort name desc` — see the [User Guide](docs/UserGuide.md#sorting-displayed-contacts-sort) for details.
 
