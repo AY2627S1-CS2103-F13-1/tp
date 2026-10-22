@@ -48,6 +48,10 @@ public class Search {
      * Computes edit distance with two rows, optionally allowing unmatched text before and after the key.
      * Case and spaces are significant. Each insertion, deletion, or substitution costs one.
      *
+     * <p>Generated with Codex AI, referencing the {@code levenshtein_distance_vec} implementation in
+     * <a href="https://github.com/tkarabela/bigpython/blob/master/003--fuzzy-text-search/fuzzy-text-search.ipynb">
+     * tkarabela's fuzzy text search notebook</a>. Adapted to Java with two-row storage and optional substring matching.
+     *
      * @param text The body of text to compare.
      * @param key The complete query to match.
      * @param allowPartialMatch Whether to match any substring of text instead of the whole string.
