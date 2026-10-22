@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.model.search.Search;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -39,57 +40,52 @@ public class MatchPersonPredicate implements Predicate<Person> {
             return false;
         }
 
-        String nameTargetLowerCase = person.getName().fullName.toLowerCase();
-        String phoneTargetLowerCase = person.getPhone().value.toLowerCase();
-        String emailTargetLowerCase = person.getEmail().value.toLowerCase();
-        String addressTargetLowerCase = person.getAddress().value.toLowerCase();
+        String nameTarget = person.getName().fullName;
+        String phoneTarget = person.getPhone().value;
+        String emailTarget = person.getEmail().value;
+        String addressTarget = person.getAddress().value;
         Set<Tag> tagListTarget = person.getTags();
 
-        assert !nameTargetLowerCase.isBlank();
-        assert !phoneTargetLowerCase.isBlank();
-        assert !emailTargetLowerCase.isBlank();
-        assert !addressTargetLowerCase.isBlank();
+        assert !nameTarget.isBlank();
+        assert !phoneTarget.isBlank();
+        assert !emailTarget.isBlank();
+        assert !addressTarget.isBlank();
 
         boolean isPreamble = preambleKey.isBlank();
         if (!preambleKey.isBlank()) {
-            String preambleKeyLowerCase = preambleKey.toLowerCase();
-            isPreamble = nameTargetLowerCase.contains(preambleKeyLowerCase)
-                    || phoneTargetLowerCase.contains(preambleKeyLowerCase)
-                    || emailTargetLowerCase.contains(preambleKeyLowerCase)
-                    || addressTargetLowerCase.contains(preambleKeyLowerCase)
+            isPreamble = Search.substring(nameTarget, preambleKey)
+                    || Search.substring(phoneTarget, preambleKey)
+                    || Search.substring(emailTarget, preambleKey)
+                    || Search.substring(addressTarget, preambleKey)
                     || tagListTarget.stream().anyMatch(
-                        tagTarget -> tagTarget.tagName.toLowerCase().contains(preambleKeyLowerCase));
+                        tagTarget -> Search.substring(tagTarget.tagName, preambleKey));
         }
 
         boolean isName = nameKey.isEmpty();
         if (nameKey.isPresent()) {
-            String nameKeyLowerCase = nameKey.get().toLowerCase();
-            isName = nameTargetLowerCase.contains(nameKeyLowerCase);
+            isName = Search.substring(nameTarget, nameKey.get());
         }
 
         boolean isPhone = phoneKey.isEmpty();
         if (phoneKey.isPresent()) {
-            String phoneKeyLowerCase = phoneKey.get().toLowerCase();
-            isPhone = phoneTargetLowerCase.contains(phoneKeyLowerCase);
+            isPhone = Search.substring(phoneTarget, phoneKey.get());
         }
 
         boolean isEmail = emailKey.isEmpty();
         if (emailKey.isPresent()) {
-            String emailKeyLowerCase = emailKey.get().toLowerCase();
-            isEmail = emailTargetLowerCase.contains(emailKeyLowerCase);
+            isEmail = Search.substring(emailTarget, emailKey.get());
         }
 
         boolean isAddress = addressKey.isEmpty();
         if (addressKey.isPresent()) {
-            String addressKeyLowerCase = addressKey.get().toLowerCase();
-            isAddress = addressTargetLowerCase.contains(addressKeyLowerCase);
+            isAddress = Search.substring(addressTarget, addressKey.get());
         }
 
         boolean isTags = tagKeys.isEmpty();
         if (!tagKeys.isEmpty()) {
             isTags = tagKeys.stream().allMatch(
                     tagKey -> tagListTarget.stream().anyMatch(
-                            tag -> tag.tagName.toLowerCase().contains(tagKey.toLowerCase())));
+                            tag -> Search.substring(tag.tagName, tagKey)));
         }
 
         return isPreamble && isName && isPhone && isEmail && isAddress && isTags;
