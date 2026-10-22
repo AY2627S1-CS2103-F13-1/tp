@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
@@ -160,7 +161,132 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{id=" + ALICE.getId().get()
                 + ", name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
-                + ", archived=false}";
+                + ", isArchived=false}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void withIsArchived_activePerson_returnsArchivedCopy() {
+        Person original = new PersonBuilder(ALICE).withArchiveStatus(false).build();
+        Person snapshot = new PersonBuilder(original).build();
+        Person expected = new PersonBuilder(original).withArchiveStatus(true).build();
+
+        Person updated = original.withIsArchived(true);
+
+        assertEquals(expected, updated);
+        assertNotSame(original, updated);
+        assertEquals(snapshot, original);
+    }
+
+    @Test
+    public void withIsArchived_archivedPerson_returnsActiveCopy() {
+        Person original = new PersonBuilder(ALICE).withArchiveStatus(true).build();
+        Person snapshot = new PersonBuilder(original).build();
+        Person expected = new PersonBuilder(original).withArchiveStatus(false).build();
+
+        Person updated = original.withIsArchived(false);
+
+        assertEquals(expected, updated);
+        assertNotSame(original, updated);
+        assertEquals(snapshot, original);
+    }
+
+    @Test
+    public void withIsArchived_unchangedStatus_returnsEqualCopy() {
+        Person updated = ALICE.withIsArchived(ALICE.isArchived());
+
+        assertEquals(ALICE, updated);
+        assertNotSame(ALICE, updated);
+    }
+
+    @Test
+    public void withIsArchived_personWithoutId_preservesMissingIdAndOtherFields() {
+        Person original = new PersonBuilder().withTags("friend").build();
+        Person snapshot = new PersonBuilder(original).build();
+        Person expected = new PersonBuilder(original).withArchiveStatus(true).build();
+
+        Person updated = original.withIsArchived(true);
+
+        assertEquals(expected, updated);
+        assertTrue(updated.getId().isEmpty());
+        assertNotSame(original, updated);
+        assertEquals(snapshot, original);
+    }
+
+    @Test
+    public void withTags_activePerson_replacesTagsAndPreservesOtherFields() {
+        Person original = new PersonBuilder(ALICE).withArchiveStatus(false).withTags("old").build();
+        Person snapshot = new PersonBuilder(original).build();
+        Person expected = new PersonBuilder(original).withTags("new", "friend").build();
+
+        Person updated = original.withTags(Set.of(new Tag("new"), new Tag("friend")));
+
+        assertEquals(expected, updated);
+        assertNotSame(original, updated);
+        assertEquals(snapshot, original);
+    }
+
+    @Test
+    public void withTags_archivedPerson_preservesArchiveStatusAndOtherFields() {
+        Person original = new PersonBuilder(ALICE).withArchiveStatus(true).withTags("old").build();
+        Person snapshot = new PersonBuilder(original).build();
+        Person expected = new PersonBuilder(original).withTags("new").build();
+
+        Person updated = original.withTags(Set.of(new Tag("new")));
+
+        assertEquals(expected, updated);
+        assertNotSame(original, updated);
+        assertEquals(snapshot, original);
+    }
+
+    @Test
+    public void withTags_emptyTags_removesAllTags() {
+        Person original = new PersonBuilder(ALICE).withTags("old").build();
+        Person snapshot = new PersonBuilder(original).build();
+        Person expected = new PersonBuilder(original).withTags().build();
+
+        Person updated = original.withTags(Set.of());
+
+        assertEquals(expected, updated);
+        assertEquals(snapshot, original);
+    }
+
+    @Test
+    public void withTags_unchangedTags_returnsEqualCopy() {
+        Person updated = ALICE.withTags(ALICE.getTags());
+
+        assertEquals(ALICE, updated);
+        assertNotSame(ALICE, updated);
+    }
+
+    @Test
+    public void withTags_mutableTags_defensivelyCopiesTags() {
+        Set<Tag> tags = new HashSet<>(Set.of(new Tag("new")));
+        Person expected = new PersonBuilder(ALICE).withTags("new").build();
+        Person updated = ALICE.withTags(tags);
+
+        tags.clear();
+        tags.add(new Tag("different"));
+
+        assertEquals(expected, updated);
+    }
+
+    @Test
+    public void withTags_personWithoutId_preservesMissingIdAndOtherFields() {
+        Person original = new PersonBuilder().withArchiveStatus(true).withTags("old").build();
+        Person snapshot = new PersonBuilder(original).build();
+        Person expected = new PersonBuilder(original).withTags("new").build();
+
+        Person updated = original.withTags(Set.of(new Tag("new")));
+
+        assertEquals(expected, updated);
+        assertTrue(updated.getId().isEmpty());
+        assertNotSame(original, updated);
+        assertEquals(snapshot, original);
+    }
+
+    @Test
+    public void withTags_nullTags_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withTags(null));
     }
 }

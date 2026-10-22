@@ -26,7 +26,7 @@ public class Person {
 
     // Data fields
     private final Address address;
-    private final boolean archived;
+    private final boolean isArchived;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
@@ -42,22 +42,23 @@ public class Person {
      * Used when loading records whose IDs have not yet been assigned.
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
-        this(name, phone, email, address, tags, archived, null);
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean isArchived) {
+        this(name, phone, email, address, tags, isArchived, null);
     }
 
     /**
      * Creates a person with the given ID and archive status.
      * Every field must be present and not null.
      */
-    public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived) {
-        this(name, phone, email, address, tags, archived, requireNonNull(id));
+    public Person(PersonId id, Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            boolean isArchived) {
+        this(name, phone, email, address, tags, isArchived, requireNonNull(id));
     }
 
     /**
      * Initialises every field. {@code id} is null for a person who has not been assigned an ID yet.
      */
-    private Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean archived,
+    private Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, boolean isArchived,
             PersonId id) {
         requireAllNonNull(name, phone, email, address, tags);
         this.id = id;
@@ -66,7 +67,7 @@ public class Person {
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
-        this.archived = archived;
+        this.isArchived = isArchived;
     }
 
     /**
@@ -77,7 +78,7 @@ public class Person {
     }
 
     public boolean isArchived() {
-        return archived;
+        return isArchived;
     }
 
     public Name getName() {
@@ -118,6 +119,26 @@ public class Person {
     }
 
     /**
+     * Returns a copy of this Person with updated isArchived value.
+     *
+     * @param newIsArchived New value of isArchived.
+     * @return Person.
+     */
+    public Person withIsArchived(boolean newIsArchived) {
+        return new Person(name, phone, email, address, tags, newIsArchived, id);
+    }
+
+    /**
+     * Returns a copy of this Person with updated tags.
+     *
+     * @param newTags New tags.
+     * @return Person.
+     */
+    public Person withTags(Set<Tag> newTags) {
+        return new Person(name, phone, email, address, newTags, isArchived, id);
+    }
+
+    /**
      * Returns true if both persons have the same identity and data fields.
      * This defines a stronger notion of equality between two persons.
      */
@@ -138,13 +159,13 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags)
-                && archived == otherPerson.archived;
+                && isArchived == otherPerson.isArchived;
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(id, name, phone, email, address, tags, archived);
+        return Objects.hash(id, name, phone, email, address, tags, isArchived);
     }
 
     @Override
@@ -156,7 +177,7 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
-                .add("archived", archived)
+                .add("isArchived", isArchived)
                 .toString();
     }
 

@@ -40,9 +40,7 @@ public class ArchiveCommand extends Command {
         if (personToChange.isArchived()) {
             throw new CommandException(MESSAGE_WRONG_STATUS);
         }
-        Person updatedPerson = new Person(personToChange.getId().orElseThrow(), personToChange.getName(),
-                personToChange.getPhone(), personToChange.getEmail(), personToChange.getAddress(),
-                personToChange.getTags(), true);
+        Person updatedPerson = personToChange.withIsArchived(true);
         model.setPerson(personToChange, updatedPerson);
         return new CommandResult(String.format(MESSAGE_ARCHIVE_PERSON_SUCCESS, Messages.format(personToChange)));
     }

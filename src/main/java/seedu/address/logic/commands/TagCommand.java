@@ -12,7 +12,6 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
-import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -52,16 +51,7 @@ public class TagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.addAll(tagsToAdd);
 
-        PersonId id = original.getId().orElseThrow();
-
-        Person updated = new Person(
-                id,
-                original.getName(),
-                original.getPhone(),
-                original.getEmail(),
-                original.getAddress(),
-                updatedTags,
-                original.isArchived());
+        Person updated = original.withTags(updatedTags);
 
         model.setPerson(original, updated);
 

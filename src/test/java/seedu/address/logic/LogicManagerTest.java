@@ -3,6 +3,7 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.Messages.MESSAGE_PERSON_ID_NOT_FOUND;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -48,6 +49,7 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonId;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -128,6 +130,45 @@ public class LogicManagerTest {
         List<Person> expectedDisplayedOrder = new ArrayList<>(logic.getFilteredPersonList());
 
         assertThrows(ParseException.class, MESSAGE_INVALID_SORT_ORDER, () -> logic.execute("sort name upward"));
+
+        assertEquals(expectedDisplayedOrder, logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_filterAndListCommands_updateDisplayedContactsWithoutChangingStorage() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+
+        CommandResult partialFindResult = logic.execute("find t/fri");
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), partialFindResult.getFeedbackToUser());
+        assertEquals(List.of(ALICE, BENSON, DANIEL), logic.getFilteredPersonList());
+
+        CommandResult exactFilterResult = logic.execute("filter t/fri");
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), exactFilterResult.getFeedbackToUser());
+        assertEquals(List.of(), logic.getFilteredPersonList());
+
+        logic.execute("filter t/friends");
+        assertEquals(List.of(ALICE, BENSON, DANIEL), logic.getFilteredPersonList());
+
+        logic.execute("sort name desc");
+        assertEquals(List.of(DANIEL, BENSON, ALICE), logic.getFilteredPersonList());
+
+        logic.execute("list");
+        assertEquals(getTypicalPersons(), logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_invalidFilterAfterSort_preservesDisplayedOrder() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("filter t/friends");
+        logic.execute("sort name desc");
+        List<Person> expectedDisplayedOrder = new ArrayList<>(logic.getFilteredPersonList());
+
+        String invalidFilter = "filter t/housing-policy";
+        assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(invalidFilter));
 
         assertEquals(expectedDisplayedOrder, logic.getFilteredPersonList());
         assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());

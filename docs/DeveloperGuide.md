@@ -255,13 +255,45 @@ The parser does not reject empty input or duplicate prefixes. With no preamble o
 
 `MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
 
+### Filter feature
+
+The execution flow is `AddressBookParser` → `FilterCommandParser` → `FilterCommand` → `HasAllTagsPredicate` → `ModelManager`.
+
+`AddressBookParser` delegates `filter` arguments to `FilterCommandParser`. The parser tokenizes only `PREFIX_TAG`, rejects a non-empty preamble, requires at least one `t/` occurrence, and retrieves every tag value with `ArgumentMultimap#getAllValues(PREFIX_TAG)`. It passes the complete collection to `ParserUtil#parseTags`, so filter uses the same validation, trimming, lowercase normalisation, and error message as the rest of the application. The returned `Set<Tag>` also collapses repeated case-equivalent tags into one condition.
+
+The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags and tests whether `Person#getTags()` contains all of them. Because `Tag#equals` compares the normalised complete tag name, matching is exact and case-insensitive. A separate predicate is used instead of `EachFieldContainsSubstringPredicate` because `find` deliberately accepts partial tag substrings, whereas `filter` must not match `housing` against `housing policy`.
+
+When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view, while `list` restores all contacts. The predicate does not inspect archive status, so matching archived contacts are included.
+
+Filtering changes only the displayed view. It does not change `Person` or any stored contact data, so no `Person`, `Tag`, `JsonAdaptedPerson`, JSON schema, `PersonCard`, FXML, or main-layout change is required. The existing observable list pipeline updates the GUI automatically.
+
+#### Design considerations
+
+**Aspect: Exact versus partial tag matching**
+
+* **Alternative 1 (current choice): Match complete `Tag` values with a dedicated predicate.**
+  * Pros: `filter` has a clear purpose distinct from `find`, reuses `Tag` equality, and cannot accidentally match a broader tag.
+  * Cons: Users must type the complete tag value.
+* **Alternative 2: Reuse the substring search predicate.**
+  * Pros: Less new code and more forgiving input.
+  * Cons: `filter t/policy` would also match `housing policy` and `policy researcher`, duplicating `find` rather than providing exact grouping.
+
+**Aspect: Combining multiple tags**
+
+* **Alternative 1 (current choice): Require every specified tag (AND matching).**
+  * Pros: Adding a tag condition narrows results predictably and supports finding contacts who meet several reporting needs at once.
+  * Cons: Users may receive no results when no contact has the full combination.
+* **Alternative 2: Match any specified tag (OR matching).**
+  * Pros: Produces a broader pool of contacts.
+  * Cons: Adding tags broadens rather than narrows the result and cannot directly express “has both tags”.
+
 ### Sort feature
 
 `AddressBookParser` delegates the arguments of a `sort` command to `SortCommandParser`. The parser validates the mandatory field and optional order, normalises both case-insensitively, defaults a missing order to ascending, and creates a `SortCommand`.
 
 When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `AddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the persistent `AddressBook` list.
 
-Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
+Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `filter`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
 
 #### Design considerations
 
@@ -793,7 +825,39 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * The contact's other tags and details are unchanged.
 
 **System:** Byline<br>
-**Use case:** UC10 - Undo a change<br>
+**Use case:** UC10 - Filter contacts by exact tags<br>
+**Actor:** Journalist
+
+**MSS**
+
+1. Journalist requests to filter contacts using one or more complete tags.
+2. Byline shows contacts that have every specified tag and reports the number listed.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. No tag is given, unsupported text is present, or an unsupported prefix is used.
+  * 1a1. Byline shows the invalid command format message and leaves the displayed list unchanged.
+
+    Use case resumes at step 1.
+
+* 1b. A tag is blank or contains characters other than letters, numbers and spaces.
+  * 1b1. Byline shows the tag validation message and leaves the displayed list unchanged.
+
+    Use case resumes at step 1.
+
+* 2a. No contact has every specified tag.
+  * 2a1. Byline shows an empty list and reports `0 person(s) listed!`.
+
+    Use case ends.
+
+**Guarantees**
+
+* Filtering does not change contact data or stored contact order.
+
+**System:** Byline<br>
+**Use case:** UC11 - Undo a change<br>
 **Actor:** Journalist
 
 **MSS**
@@ -823,12 +887,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * Only the most recent change is undone.
 
 **System:** Byline<br>
-**Use case:** UC11 - Redo an undone change<br>
+**Use case:** UC12 - Redo an undone change<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist undoes a change (UC10)
+1.  Journalist undoes a change (UC11)
 2.  Journalist requests to redo the change
 3.  Byline makes the change again, keeping the current view
 
@@ -853,11 +917,11 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 These requirements define the quality targets and operating constraints for ByLine.
 
 1. **Keyboard usability:** After launch, journalists should be able to add, list, edit, delete, tag,
-   and search contacts using only the keyboard.
+   search, and filter contacts using only the keyboard.
 2. **Error guidance:** Invalid command syntax or contact details should produce a visible error
    message explaining the accepted command format or the relevant field constraint.
 3. **Capacity and performance:** ByLine should support 1,000 contacts. With that dataset, adding,
-   listing, editing, deleting, tagging, and searching contacts should each display a result within
+   listing, editing, deleting, tagging, searching, and filtering contacts should each display a result within
    one second on a machine with at least a dual-core 2 GHz processor, 8 GB RAM, local SSD storage,
    and Java 25, with no other resource-intensive applications running. This target applies to
    contact records of at most 1 KB each and excludes application startup.
@@ -895,6 +959,7 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
 * **Duplicate contact**: A contact whose name is exactly the same as an existing contact's name, including upper/lower case and spaces. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
+* **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
 * **Filtered contact list**: The internal list of contacts that satisfy the current search criteria. It provides the data shown in the displayed contact list.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
@@ -1003,6 +1068,49 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `find example t/fri n/Alex`<br>
       Expected: Only Alex Yeoh is displayed, as with the first combined search. Prefix order does not affect the result.
+
+### Filtering contacts by exact tags
+
+1. Filtering by one or more complete tags
+
+   1. Prerequisites: Create contacts so that Alex has `housing policy` and `expert`, Beth has `housing policy`, Carlos has `expert` and `economics`, and at least one matching contact is archived.
+
+   1. Test case: `list`, then `filter t/expert`<br>
+      Expected: Every stored contact tagged exactly `expert` is shown, including archived matches. The result reports the number listed.
+
+   1. Test case: `filter t/housing policy t/expert`<br>
+      Expected: Only Alex is shown because every specified tag is required.
+
+   1. Test case: `filter t/housing`<br>
+      Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result is `0 person(s) listed!`.
+
+   1. Test case: `filter t/EXPERT`, then `filter t/expert t/EXPERT`<br>
+      Expected: Both commands show the same contacts because matching ignores case and repeated equivalent tags form one condition.
+
+   1. Test case: `find t/exp`, then `filter t/expert`<br>
+      Expected: `find` uses partial substring matching, while `filter` uses exact tag matching. Each command evaluates all stored contacts rather than the preceding result subset.
+
+   1. Test case: `filter t/expert`, then `sort name desc`<br>
+      Expected: Only exact `expert` matches remain and are displayed by descending name. Stored contact order is unchanged.
+
+   1. Test case: `list`<br>
+      Expected: The complete contact list is restored in stored order.
+
+1. Rejecting invalid filter commands
+
+   1. Prerequisites: Display and sort multiple contacts, then note their order.
+
+   1. Test case: `filter t/`<br>
+      Expected: The displayed list and ordering are unchanged. The result is `Tag names should contain only letters, numbers and spaces`.
+
+   1. Test case: `filter t/housing-policy`<br>
+      Expected: The displayed list and ordering are unchanged. The result is `Tag names should contain only letters, numbers and spaces`.
+
+   1. Test case: `filter`, `filter housing t/expert`, and `filter n/Alex`<br>
+      Expected: The displayed list and ordering are unchanged. The result shows `Invalid command format!` followed by the `filter` usage text.
+
+   1. Test case: `filter t/expert t/housing-policy`<br>
+      Expected: The entire command fails with the tag validation message; the valid `expert` condition is not applied.
 
 ### Sorting displayed contacts
 

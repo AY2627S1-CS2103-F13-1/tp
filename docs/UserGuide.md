@@ -69,7 +69,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 Every contact has an ID, a whole number shown as `ID: 3` on the contact's card. Commands that act on one contact, such as `edit` and `delete`, use this ID to pick the contact.
 
 * A new contact gets the next unused ID. The first contact is `1`, the next is `2`, and so on.
-* A contact keeps its ID for good. The ID does not change when you use `find`, `sort` or `list`, archive the contact, or restart ByLine.
+* A contact keeps its ID for good. The ID does not change when you use `find`, `filter`, `sort` or `list`, archive the contact, or restart ByLine.
 * Commands find the contact by its ID even if it is not in the list currently shown, e.g. after a `find`.
 * IDs are never reused. After you delete a contact or run `clear`, the next new contact still gets a new ID. The one exception is [undoing](#undoing-a-change-undo) an `add`, which frees that contact's ID for the next contact you add.
 * Type the ID as a plain number, e.g. `delete 3`.
@@ -190,6 +190,50 @@ Examples:
 * `find t/fri t/col` finds persons whose tags match **both** substrings, such as someone tagged with both `friends` and `colleagues`. Persons tagged only with `friends` or only with `colleagues` are excluded. Adding field or tag conditions narrows the search instead of broadening it.
   ![Results for 'find t/fri t/col', requiring both tag conditions to match](images/findTagsFriCol.png)
 
+### Filtering contacts by tag: `filter`
+
+Shows contacts that have every specified complete tag. Unlike `find`, which matches partial text, `filter` matches only whole stored tag values.
+
+Format: `filter t/TAG [t/TAG]...`
+
+* At least one `t/TAG` must be given, and `t/` may be repeated in any order.
+* A contact must contain **all** distinct specified tags. Additional tags on the contact do not prevent a match.
+* Matching is case-insensitive. For example, `t/EXPERT` matches the stored tag `expert`.
+* Repeated equivalent tags count as one condition, so `filter t/expert t/EXPERT` behaves like `filter t/expert`.
+* Tags can contain letters, numbers and spaces. Leading and trailing spaces are ignored. Existing internal spaces are preserved, so exact matching also distinguishes different internal spacing. Punctuation and special characters are invalid.
+* Matching uses complete tag values: `filter t/policy` does not match `housing policy` or `policy researcher`. Use `find t/policy` when partial tag matching is wanted.
+* Each new `filter` examines all stored contacts and replaces any earlier `find` or `filter`; it does not narrow only the currently displayed list.
+* Archived contacts are included when their tags match.
+* `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort, and `list` restores the complete contact list.
+* Filtering is display-only: it does not add, edit, archive, restore, delete, or reorder stored contacts.
+
+Valid examples:
+
+* `filter t/housing` matches only the complete tag `housing`.
+* `filter t/housing policy` matches contacts tagged `housing policy`.
+* `filter t/housing policy t/expert` matches only contacts that have both tags.
+* `filter t/interviewee t/singapore t/economics` requires all three tags.
+* `filter t/Housing Policy t/EXPERT` demonstrates case-insensitive matching.
+
+Invalid examples:
+
+* `filter` and `filter t/` do not provide a valid tag.
+* `filter housing t/expert` contains unsupported text before the first tag prefix.
+* `filter n/Alex` uses an unsupported prefix.
+* `filter t/housing-policy`, `filter t/housing_policy`, `filter t/@expert`, and `filter t/policy/research` contain invalid tag characters.
+* `filter t/expert t/housing-policy` fails completely; ByLine does not filter using only the valid tag.
+
+On success, including when no contacts match, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!` or `0 person(s) listed!`.
+
+For a command-structure error, ByLine shows:
+
+`Invalid command format!`<br>
+`filter: Filters contacts that have every specified tag.`<br>
+`Parameters: t/TAG [t/TAG]...`<br>
+`Example: filter t/housing policy t/expert`
+
+For an invalid tag, ByLine shows `Tag names should contain only letters, numbers and spaces`. Invalid commands leave the displayed contacts and their ordering unchanged.
+
 ### Sorting displayed contacts: `sort`
 
 Arranges the currently displayed contacts by a selected contact field. Sorting changes only the displayed order; it does not change contact details or the order stored in the address book.
@@ -203,8 +247,8 @@ Format: `sort FIELD [ORDER]`
 * Phone numbers are compared numerically. Leading zeroes do not affect their numeric value, so `000123` and `123` tie on phone number.
 * For tag sorting, a contact's primary tag is the alphabetically first tag, ignoring letter case. Only that tag is used. Contacts without tags remain after tagged contacts in both ascending and descending order.
 * Contacts that tie on the selected field are ordered by name in ascending order, regardless of the selected `ORDER`. If both the selected value and name tie, their existing relative order is preserved.
-* Only the contacts currently displayed are sorted. A search result remains the same subset, and the stored contact order remains unchanged.
-* Running `list`, a new search, `add` or `edit` replaces the sorted display. Run `sort` again to sort the new displayed list.
+* Only the contacts currently displayed are sorted. A search or filter result remains the same subset, and the stored contact order remains unchanged.
+* Running `list`, a new `find` or `filter`, `add` or `edit` replaces the sorted display. Run `sort` again to sort the new displayed list.
 * Sorting an empty list or a list containing one contact succeeds even though its visible order does not change.
 
 On success, ByLine shows the following message, substituting the selected field and the full order name:
@@ -412,6 +456,7 @@ Action | Format, Examples
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
+**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/housing policy t/expert`
 **List** | `list`, `list all` or `list archive`
 **Help** | `help`
 **Redo** | `redo`
