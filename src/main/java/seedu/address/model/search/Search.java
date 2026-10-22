@@ -9,6 +9,9 @@ import java.util.Locale;
  */
 public class Search {
 
+    private Search() {
+    }
+
     /**
      * Returns whether the entire key matches any contiguous substring of text within the edit limit.
      * Case is ignored, but spaces count as characters. Text outside the match costs no edits.
