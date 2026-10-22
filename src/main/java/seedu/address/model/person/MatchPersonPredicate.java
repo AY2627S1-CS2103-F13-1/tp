@@ -20,6 +20,7 @@ import seedu.address.model.tag.Tag;
  * Tests that a {@code Person}'s {@code Name} matches any of the keywords given.
  */
 public class MatchPersonPredicate implements Predicate<Person> {
+    private static final int MAX_DISTANCE = 10;
     private final ArgumentMultimap argMultimap;
 
     public MatchPersonPredicate(ArgumentMultimap argMultimap) {
@@ -53,39 +54,39 @@ public class MatchPersonPredicate implements Predicate<Person> {
 
         boolean isPreamble = preambleKey.isBlank();
         if (!preambleKey.isBlank()) {
-            isPreamble = Search.substring(nameTarget, preambleKey)
-                    || Search.substring(phoneTarget, preambleKey)
-                    || Search.substring(emailTarget, preambleKey)
-                    || Search.substring(addressTarget, preambleKey)
+            isPreamble = Search.substringThenLevenshtein(nameTarget, preambleKey, MAX_DISTANCE)
+                    || Search.substringThenLevenshtein(phoneTarget, preambleKey, MAX_DISTANCE)
+                    || Search.substringThenLevenshtein(emailTarget, preambleKey, MAX_DISTANCE)
+                    || Search.substringThenLevenshtein(addressTarget, preambleKey, MAX_DISTANCE)
                     || tagListTarget.stream().anyMatch(
-                        tagTarget -> Search.substring(tagTarget.tagName, preambleKey));
+                        tagTarget -> Search.substringThenLevenshtein(tagTarget.tagName, preambleKey, MAX_DISTANCE));
         }
 
         boolean isName = nameKey.isEmpty();
         if (nameKey.isPresent()) {
-            isName = Search.substring(nameTarget, nameKey.get());
+            isName = Search.substringThenLevenshtein(nameTarget, nameKey.get(), MAX_DISTANCE);
         }
 
         boolean isPhone = phoneKey.isEmpty();
         if (phoneKey.isPresent()) {
-            isPhone = Search.substring(phoneTarget, phoneKey.get());
+            isPhone = Search.substringThenLevenshtein(phoneTarget, phoneKey.get(), MAX_DISTANCE);
         }
 
         boolean isEmail = emailKey.isEmpty();
         if (emailKey.isPresent()) {
-            isEmail = Search.substring(emailTarget, emailKey.get());
+            isEmail = Search.substringThenLevenshtein(emailTarget, emailKey.get(), MAX_DISTANCE);
         }
 
         boolean isAddress = addressKey.isEmpty();
         if (addressKey.isPresent()) {
-            isAddress = Search.substring(addressTarget, addressKey.get());
+            isAddress = Search.substringThenLevenshtein(addressTarget, addressKey.get(), MAX_DISTANCE);
         }
 
         boolean isTags = tagKeys.isEmpty();
         if (!tagKeys.isEmpty()) {
             isTags = tagKeys.stream().allMatch(
                     tagKey -> tagListTarget.stream().anyMatch(
-                            tag -> Search.substring(tag.tagName, tagKey)));
+                            tag -> Search.substringThenLevenshtein(tag.tagName, tagKey, MAX_DISTANCE)));
         }
 
         return isPreamble && isName && isPhone && isEmail && isAddress && isTags;
