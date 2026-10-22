@@ -47,11 +47,6 @@ public class MatchPersonPredicate implements Predicate<Person> {
         String addressTarget = person.getAddress().value;
         Set<Tag> tagListTarget = person.getTags();
 
-        assert !nameTarget.isBlank();
-        assert !phoneTarget.isBlank();
-        assert !emailTarget.isBlank();
-        assert !addressTarget.isBlank();
-
         boolean isPreamble = preambleKey.isBlank();
         if (!preambleKey.isBlank()) {
             isPreamble = Search.substringThenLevenshtein(nameTarget, preambleKey, TOLERANCE)
