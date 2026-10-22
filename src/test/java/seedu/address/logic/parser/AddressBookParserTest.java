@@ -102,7 +102,8 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_findWithGeneralAndPrefixes_matchesCombinedConditions() throws Exception {
         assertFindResults("find example n/Benson t/Money", BENSON);
-        assertFindResults("find n/Benson example");
+        assertFindResults("find n/Benson example", BENSON);
+        assertFindResults("find n/Benson zzzzzzzzzzzz");
     }
 
     private void assertFindResults(String input, Person... expectedPersons) throws Exception {

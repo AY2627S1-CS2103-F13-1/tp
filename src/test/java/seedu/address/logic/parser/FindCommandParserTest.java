@@ -7,6 +7,8 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
 import static seedu.address.testutil.TypicalPersons.ELLE;
+import static seedu.address.testutil.TypicalPersons.FIONA;
+import static seedu.address.testutil.TypicalPersons.GEORGE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
@@ -36,13 +38,13 @@ public class FindCommandParserTest {
         assertMatches(" \n \t Alice Pauline \t \n ", ALICE);
         assertMatches(" Pauline Alice ");
         assertMatches(" Alice  Pauline ", ALICE);
-        assertMatches(" Alice   Pauline ");
+        assertMatches(" Alice   Pauline ", ALICE);
     }
 
     @Test
     public void parse_eachPrefix_matchesItsField() throws Exception {
         assertMatches(" n/Mei", BENSON, DANIEL, ELLE);
-        assertMatches(" p/9435", ALICE, CARL);
+        assertMatches(" p/9435", ALICE, BENSON, CARL, ELLE, FIONA, GEORGE);
         assertMatches(" e/johnd", BENSON);
         assertMatches(" a/Clementi", BENSON);
         assertMatches(" t/Money", BENSON);
@@ -66,8 +68,10 @@ public class FindCommandParserTest {
                     arguments.append(" ").append(fields[index]);
                 }
             }
-            assertMatches(arguments.toString(), BENSON);
-            assertMatches("example" + arguments, BENSON);
+            // The phone-only query also matches Daniel within the percentage tolerance.
+            Person[] expectedPersons = mask == 2 ? new Person[] {BENSON, DANIEL} : new Person[] {BENSON};
+            assertMatches(arguments.toString(), expectedPersons);
+            assertMatches("example" + arguments, expectedPersons);
         }
     }
 
@@ -84,7 +88,7 @@ public class FindCommandParserTest {
         assertMatches(" n/Alice Pauline example e/example");
         assertMatches(" n/ Alice Pauline \t", ALICE);
         assertMatches(" n/Alice  Pauline", ALICE);
-        assertMatches(" n/Alice   Pauline");
+        assertMatches(" n/Alice   Pauline", ALICE);
     }
 
     @Test
