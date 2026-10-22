@@ -29,7 +29,7 @@ public class Search {
         if (Search.substring(text, key)) {
             return true;
         }
-        int maxDistance = (int) Math.floor(tolerance * key.length());
+        int maxDistance = (int) Math.ceil(tolerance * key.length());
         return levenshteinDistance(text.toLowerCase(Locale.ROOT), key.toLowerCase(Locale.ROOT), true) <= maxDistance;
     }
 
