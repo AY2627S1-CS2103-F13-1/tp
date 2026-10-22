@@ -12,7 +12,7 @@ public class Search {
      * @param key The substring to find from the body of text, if it exists. May contain spaces.
      * @return boolean
      */
-    public static boolean caseInsensitiveSubstring(String text, String key) {
+    public static boolean substring(String text, String key) {
         return text.toLowerCase().contains(key.toLowerCase());
     }
 }
