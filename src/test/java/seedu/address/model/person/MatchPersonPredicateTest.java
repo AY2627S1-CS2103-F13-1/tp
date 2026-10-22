@@ -36,10 +36,31 @@ public class MatchPersonPredicateTest {
     }
 
     @Test
-    public void test_generalPhrase_matchesContiguousSubstring() {
+    public void test_generalPhrase_allowsOneEditInContiguousSubstring() {
         assertTrue(createPredicate("LEX YEO").test(person));
         assertFalse(createPredicate("Yeoh Alex").test(person));
-        assertFalse(createPredicate("Alex  Yeoh").test(person));
+        assertTrue(createPredicate("Alex  Yeoh").test(person));
+        assertFalse(createPredicate("Alex   Yeoh").test(person));
+    }
+
+    @Test
+    public void test_generalTypo_matchesWithinOneEdit() {
+        assertTrue(createPredicate("Alx").test(person));
+        assertTrue(createPredicate("EXMPLE").test(person));
+        assertFalse(createPredicate("Azzx").test(person));
+    }
+
+    @Test
+    public void test_fieldTypos_matchesWithinOneEdit() {
+        Prefix[] prefixes = {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG};
+        String[] oneEditValues = {"Alx", "2349", "@exmple", "Mzin", "Frends"};
+        String[] twoEditValues = {"Azzx", "2399", "@exzzple", "Mzzn", "Frzznds"};
+        for (int index = 0; index < prefixes.length; index++) {
+            assertTrue(createPredicate("", prefixes[index], oneEditValues[index]).test(person),
+                    oneEditValues[index]);
+            assertFalse(createPredicate("", prefixes[index], twoEditValues[index]).test(person),
+                    twoEditValues[index]);
+        }
     }
 
     @Test
