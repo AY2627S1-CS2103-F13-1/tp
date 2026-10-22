@@ -20,7 +20,7 @@ import seedu.address.model.tag.Tag;
  * Tests that a {@code Person}'s {@code Name} matches any of the keywords given.
  */
 public class MatchPersonPredicate implements Predicate<Person> {
-    private static final int MAX_DISTANCE = 10;
+    private static final int MAX_DISTANCE = 1;
     private final ArgumentMultimap argMultimap;
 
     public MatchPersonPredicate(ArgumentMultimap argMultimap) {
