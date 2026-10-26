@@ -261,7 +261,7 @@ The execution flow is `AddressBookParser` → `FilterCommandParser` → `FilterC
 
 `AddressBookParser` delegates `filter` arguments to `FilterCommandParser`. The parser tokenizes only `PREFIX_TAG`, rejects a non-empty preamble, requires at least one `t/` occurrence, and retrieves every tag value with `ArgumentMultimap#getAllValues(PREFIX_TAG)`. It passes the complete collection to `ParserUtil#parseTags`, so filter uses the same validation, trimming, lowercase normalisation, and error message as the rest of the application. The returned `Set<Tag>` also collapses repeated case-equivalent tags into one condition.
 
-The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags and tests whether `Person#getTags()` contains all of them. Because `Tag#equals` compares the normalised complete tag name, matching is exact and case-insensitive. A separate predicate is used instead of `EachFieldContainsSubstringPredicate` because `find` deliberately accepts partial tag substrings, whereas `filter` must not match `housing` against `housing policy`.
+The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags. For every requested tag, it uses `Search#fuzzyEquals` to find a matching complete tag on the person. `fuzzyEquals` compares the two complete strings case-insensitively using Levenshtein distance and the same approximate one-third tolerance used by `find`. Queries shorter than three characters require exact case-insensitive equality to avoid overly broad results. A separate predicate is used instead of `EachFieldContainsSubstringPredicate` because `find` deliberately accepts partial tag substrings, whereas `filter` must not match `policy` against `housing policy`.
 
 When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view, while `list` restores all contacts. The predicate does not inspect archive status, so matching archived contacts are included.
 
@@ -269,14 +269,17 @@ Filtering changes only the displayed view. It does not change `Person` or any st
 
 #### Design considerations
 
-**Aspect: Exact versus partial tag matching**
+**Aspect: Fuzzy whole-tag versus partial tag matching**
 
-* **Alternative 1 (current choice): Match complete `Tag` values with a dedicated predicate.**
-  * Pros: `filter` has a clear purpose distinct from `find`, reuses `Tag` equality, and cannot accidentally match a broader tag.
-  * Cons: Users must type the complete tag value.
+* **Alternative 1 (current choice): Fuzzily match complete `Tag` values with a dedicated predicate.**
+  * Pros: `filter` tolerates small typing mistakes while remaining distinct from `find` and avoiding accidental partial-tag matches.
+  * Cons: Similar complete tag values may both match a sufficiently long query.
 * **Alternative 2: Reuse the substring search predicate.**
   * Pros: Less new code and more forgiving input.
-  * Cons: `filter t/policy` would also match `housing policy` and `policy researcher`, duplicating `find` rather than providing exact grouping.
+  * Cons: `filter t/policy` would also match `housing policy` and `policy researcher`, duplicating `find` rather than filtering by a complete tag.
+* **Alternative 3: Keep exact complete-tag matching.**
+  * Pros: Results are unambiguous and reuse `Tag` equality directly.
+  * Cons: A small typing mistake produces no results even when the intended tag is clear.
 
 **Aspect: Combining multiple tags**
 
@@ -825,13 +828,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * The contact's other tags and details are unchanged.
 
 **System:** Byline<br>
-**Use case:** UC10 - Filter contacts by exact tags<br>
+**Use case:** UC10 - Filter contacts by fuzzy complete tags<br>
 **Actor:** Journalist
 
 **MSS**
 
 1. Journalist requests to filter contacts using one or more complete tags.
-2. Byline shows contacts that have every specified tag and reports the number listed.
+2. Byline shows contacts with a fuzzy whole-tag match for every specified tag and reports the number listed.
 
    Use case ends.
 
@@ -959,7 +962,7 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
 * **Duplicate contact**: A contact whose name is exactly the same as an existing contact's name, including upper/lower case and spaces. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
-* **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
+* **Fuzzy whole-tag match**: A comparison between a complete requested tag and a complete stored tag that permits a bounded number of inserted, deleted or substituted characters. It does not search for the request inside a longer tag.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
 * **Filtered contact list**: The internal list of contacts that satisfy the current search criteria. It provides the data shown in the displayed contact list.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
@@ -1069,14 +1072,20 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `find example t/fri n/Alex`<br>
       Expected: Only Alex Yeoh is displayed, as with the first combined search. Prefix order does not affect the result.
 
-### Filtering contacts by exact tags
+### Filtering contacts by fuzzy complete tags
 
 1. Filtering by one or more complete tags
 
    1. Prerequisites: Create contacts so that Alex has `housing policy` and `expert`, Beth has `housing policy`, Carlos has `expert` and `economics`, and at least one matching contact is archived.
 
    1. Test case: `list`, then `filter t/expert`<br>
-      Expected: Every stored contact tagged exactly `expert` is shown, including archived matches. The result reports the number listed.
+      Expected: Every stored contact with a whole-tag match for `expert` is shown, including archived matches. The result reports the number listed.
+
+   1. Test case: `filter t/expet`<br>
+      Expected: Contacts tagged `expert` are shown because the missing `r` is within the fuzzy-match tolerance.
+
+   1. Test case: `filter t/housng policy`<br>
+      Expected: Alex and Beth are shown because `housng policy` is within one edit of the complete tag `housing policy`.
 
    1. Test case: `filter t/housing policy t/expert`<br>
       Expected: Only Alex is shown because every specified tag is required.
@@ -1084,14 +1093,17 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `filter t/housing`<br>
       Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result is `0 person(s) listed!`.
 
+   1. Test case: Add a contact tagged `HR`, then run `filter t/PR`.<br>
+      Expected: The contact is not shown because one- and two-character queries require exact case-insensitive matching.
+
    1. Test case: `filter t/EXPERT`, then `filter t/expert t/EXPERT`<br>
       Expected: Both commands show the same contacts because matching ignores case and repeated equivalent tags form one condition.
 
    1. Test case: `find t/exp`, then `filter t/expert`<br>
-      Expected: `find` uses partial substring matching, while `filter` uses exact tag matching. Each command evaluates all stored contacts rather than the preceding result subset.
+      Expected: `find` uses fuzzy partial matching, while `filter` uses fuzzy whole-tag matching. Each command evaluates all stored contacts rather than the preceding result subset.
 
    1. Test case: `filter t/expert`, then `sort name desc`<br>
-      Expected: Only exact `expert` matches remain and are displayed by descending name. Stored contact order is unchanged.
+      Expected: Only fuzzy whole-tag matches for `expert` remain and are displayed by descending name. Stored contact order is unchanged.
 
    1. Test case: `list`<br>
       Expected: The complete contact list is restored in stored order.

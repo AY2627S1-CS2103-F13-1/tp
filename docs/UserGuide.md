@@ -192,16 +192,18 @@ Examples:
 
 ### Filtering contacts by tag: `filter`
 
-Shows contacts that have every specified complete tag. Unlike `find`, which matches partial text, `filter` matches only whole stored tag values.
+Shows contacts that fuzzily match every specified complete tag. Unlike `find`, which matches partial text, `filter` compares each query against a whole stored tag while allowing small typing mistakes.
 
 Format: `filter t/TAG [t/TAG]...`
 
 * At least one `t/TAG` must be given, and `t/` may be repeated in any order.
 * A contact must contain **all** distinct specified tags. Additional tags on the contact do not prevent a match.
 * Matching is case-insensitive. For example, `t/EXPERT` matches the stored tag `expert`.
+* For queries containing at least three characters, approximately one insertion, deletion or substitution is allowed per three query characters, rounded up. For example, `t/expet` matches `expert` and `t/housng policy` matches `housing policy`.
+* One- and two-character queries require an exact case-insensitive match, so `t/HR` does not match `PR`.
 * Repeated equivalent tags count as one condition, so `filter t/expert t/EXPERT` behaves like `filter t/expert`.
-* Tags can contain letters, numbers and spaces. Leading and trailing spaces are ignored. Existing internal spaces are preserved, so exact matching also distinguishes different internal spacing. Punctuation and special characters are invalid.
-* Matching uses complete tag values: `filter t/policy` does not match `housing policy` or `policy researcher`. Use `find t/policy` when partial tag matching is wanted.
+* Tags can contain letters, numbers and spaces. Leading and trailing spaces are ignored. Existing internal spaces are preserved and count as characters during fuzzy matching. Punctuation and special characters are invalid.
+* Matching uses complete tag values: `filter t/policy` does not match `housing policy` or `policy researcher`, because their complete values differ by more than the allowed edit distance. Use `find t/policy` when partial tag matching is wanted.
 * Each new `filter` examines all stored contacts and replaces any earlier `find` or `filter`; it does not narrow only the currently displayed list.
 * Archived contacts are included when their tags match.
 * `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort, and `list` restores the complete contact list.
@@ -211,6 +213,8 @@ Valid examples:
 
 * `filter t/housing` matches only the complete tag `housing`.
 * `filter t/housing policy` matches contacts tagged `housing policy`.
+* `filter t/housng policy` also matches contacts tagged `housing policy` despite the missing `i`.
+* `filter t/expet` matches contacts tagged `expert` despite the missing `r`.
 * `filter t/housing policy t/expert` matches only contacts that have both tags.
 * `filter t/interviewee t/singapore t/economics` requires all three tags.
 * `filter t/Housing Policy t/EXPERT` demonstrates case-insensitive matching.
@@ -228,7 +232,7 @@ On success, including when no contacts match, ByLine shows `N person(s) listed!`
 For a command-structure error, ByLine shows:
 
 `Invalid command format!`<br>
-`filter: Filters contacts that have every specified tag.`<br>
+`filter: Filters contacts that fuzzily match every specified complete tag.`<br>
 `Parameters: t/TAG [t/TAG]...`<br>
 `Example: filter t/housing policy t/expert`
 
