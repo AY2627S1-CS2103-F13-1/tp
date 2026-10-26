@@ -112,7 +112,8 @@ public class SearchTest {
 
     @Test
     public void substringThenLevenshtein_outOfRangeTolerance_throwsIllegalArgumentException() {
-        for (double tolerance : new double[] {-0.01, 1.01, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
+        for (double tolerance : new double[] {
+                -0.01, 1.01, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
             assertThrows(IllegalArgumentException.class, () ->
                     Search.substringThenLevenshtein("cat", "cat", tolerance));
             assertThrows(IllegalArgumentException.class, () ->
@@ -124,6 +125,59 @@ public class SearchTest {
     public void substringThenLevenshtein_nullInput_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> Search.substringThenLevenshtein(null, "cat", 1));
         assertThrows(NullPointerException.class, () -> Search.substringThenLevenshtein("cat", null, 1));
+    }
+
+    @Test
+    public void fuzzyEquals_exactText_returnsTrue() {
+        assertTrue(Search.fuzzyEquals("policy", "policy", 0));
+        assertTrue(Search.fuzzyEquals("Policy", "pOLICY", 0));
+    }
+
+    @Test
+    public void fuzzyEquals_oneEditWithinTolerance_returnsTrue() {
+        assertTrue(Search.fuzzyEquals("policy", "polcy", 0.3333333));
+        assertTrue(Search.fuzzyEquals("expert", "expet", 0.3333333));
+        assertTrue(Search.fuzzyEquals("expert", "expertt", 0.3333333));
+    }
+
+    @Test
+    public void fuzzyEquals_editDistanceBeyondTolerance_returnsFalse() {
+        assertFalse(Search.fuzzyEquals("expert", "economics", 0.3333333));
+        assertFalse(Search.fuzzyEquals("policy", "pozzyy", 0.3333333));
+    }
+
+    @Test
+    public void fuzzyEquals_partialText_returnsFalse() {
+        assertFalse(Search.fuzzyEquals("housing policy", "policy", 0.3333333));
+        assertFalse(Search.fuzzyEquals("policy researcher", "policy", 0.3333333));
+    }
+
+    @Test
+    public void fuzzyEquals_shortKey_requiresExactMatch() {
+        assertTrue(Search.fuzzyEquals("HR", "hr", 0.3333333));
+        assertFalse(Search.fuzzyEquals("PR", "HR", 0.3333333));
+        assertFalse(Search.fuzzyEquals("A", "B", 1));
+    }
+
+    @Test
+    public void fuzzyEquals_emptyInputs_onlyBothEmptyMatch() {
+        assertTrue(Search.fuzzyEquals("", "", 0.3333333));
+        assertFalse(Search.fuzzyEquals("expert", "", 1));
+        assertFalse(Search.fuzzyEquals("", "expert", 0.3333333));
+    }
+
+    @Test
+    public void fuzzyEquals_outOfRangeTolerance_throwsIllegalArgumentException() {
+        for (double tolerance : new double[] {
+                -0.01, 1.01, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
+            assertThrows(IllegalArgumentException.class, () -> Search.fuzzyEquals("policy", "polcy", tolerance));
+        }
+    }
+
+    @Test
+    public void fuzzyEquals_nullInput_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> Search.fuzzyEquals(null, "policy", 0.3333333));
+        assertThrows(NullPointerException.class, () -> Search.fuzzyEquals("policy", null, 0.3333333));
     }
 
     @Test

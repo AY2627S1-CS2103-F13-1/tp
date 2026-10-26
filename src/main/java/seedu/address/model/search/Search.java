@@ -8,6 +8,7 @@ import java.util.Locale;
  * Contains methods for matching keywords in text
  */
 public class Search {
+    private static final int MIN_FUZZY_KEY_LENGTH = 3;
 
     private Search() {
     }
@@ -26,14 +27,39 @@ public class Search {
     public static boolean substringThenLevenshtein(String text, String key, double tolerance) {
         requireNonNull(text);
         requireNonNull(key);
-        if (tolerance < 0 || tolerance > 1) {
-            throw new IllegalArgumentException("tolerance must be a non negative decimal from 0.0 to 1.0");
-        }
+        validateTolerance(tolerance);
         if (Search.substring(text, key)) {
             return true;
         }
         int maxDistance = (int) Math.ceil(tolerance * key.length());
         return levenshteinDistance(text.toLowerCase(Locale.ROOT), key.toLowerCase(Locale.ROOT), true) <= maxDistance;
+    }
+
+    /**
+     * Returns whether the complete key fuzzily matches the complete text, ignoring case.
+     * Keys shorter than three characters must match exactly to avoid overly broad results.
+     *
+     * @param text The complete text to compare.
+     * @param key The complete query to match.
+     * @param tolerance The proportion of the key that may differ.
+     * @return Whether the complete strings match within the edit limit.
+     * @throws IllegalArgumentException If tolerance is not between 0 and 1 inclusive.
+     * @throws NullPointerException If either string is null.
+     */
+    public static boolean fuzzyEquals(String text, String key, double tolerance) {
+        requireNonNull(text);
+        requireNonNull(key);
+        validateTolerance(tolerance);
+
+        if (text.equalsIgnoreCase(key)) {
+            return true;
+        }
+        if (key.length() < MIN_FUZZY_KEY_LENGTH) {
+            return false;
+        }
+
+        int maxDistance = (int) Math.ceil(tolerance * key.length());
+        return levenshteinDistance(text.toLowerCase(Locale.ROOT), key.toLowerCase(Locale.ROOT), false) <= maxDistance;
     }
 
     /**
@@ -96,5 +122,11 @@ public class Search {
             }
         }
         return distance;
+    }
+
+    private static void validateTolerance(double tolerance) {
+        if (Double.isNaN(tolerance) || tolerance < 0 || tolerance > 1) {
+            throw new IllegalArgumentException("tolerance must be a decimal from 0.0 to 1.0");
+        }
     }
 }
