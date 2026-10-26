@@ -113,7 +113,7 @@ public class SearchTest {
     @Test
     public void substringThenLevenshtein_outOfRangeTolerance_throwsIllegalArgumentException() {
         for (double tolerance : new double[] {
-                -0.01, 1.01, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
+            -0.01, 1.01, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
             assertThrows(IllegalArgumentException.class, () ->
                     Search.substringThenLevenshtein("cat", "cat", tolerance));
             assertThrows(IllegalArgumentException.class, () ->
@@ -169,7 +169,7 @@ public class SearchTest {
     @Test
     public void fuzzyEquals_outOfRangeTolerance_throwsIllegalArgumentException() {
         for (double tolerance : new double[] {
-                -0.01, 1.01, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
+            -0.01, 1.01, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
             assertThrows(IllegalArgumentException.class, () -> Search.fuzzyEquals("policy", "polcy", tolerance));
         }
     }
