@@ -11,14 +11,14 @@ import seedu.address.model.Model;
 import seedu.address.model.person.HasAllTagsPredicate;
 
 /**
- * Filters and lists contacts that have every specified tag.
+ * Filters and lists contacts that fuzzily match every specified complete tag.
  */
 public class FilterCommand extends Command {
 
     public static final String COMMAND_WORD = "filter";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Filters contacts that have every specified tag.\n"
+            + ": Filters contacts that fuzzily match every specified complete tag.\n"
             + "Parameters: t/TAG [t/TAG]...\n"
             + "Example: " + COMMAND_WORD + " t/housing policy t/expert";
 

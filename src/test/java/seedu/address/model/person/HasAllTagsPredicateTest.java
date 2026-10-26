@@ -25,8 +25,21 @@ public class HasAllTagsPredicateTest {
     }
 
     @Test
-    public void test_oneExactMatchingTag_returnsTrue() {
+    public void test_oneMatchingTag_returnsTrue() {
         assertTrue(createPredicate("expert").test(person));
+    }
+
+    @Test
+    public void test_oneTagWithinTolerance_returnsTrue() {
+        assertTrue(createPredicate("expet").test(person));
+        assertTrue(createPredicate("housng policy").test(person));
+        assertTrue(createPredicate("singapor").test(person));
+    }
+
+    @Test
+    public void test_oneTagBeyondTolerance_returnsFalse() {
+        assertFalse(createPredicate("economics").test(person));
+        assertFalse(createPredicate("pozzyy").test(person));
     }
 
     @Test
@@ -37,6 +50,11 @@ public class HasAllTagsPredicateTest {
     @Test
     public void test_multipleMatchingTags_returnsTrue() {
         assertTrue(createPredicate("housing policy", "expert").test(person));
+    }
+
+    @Test
+    public void test_multipleFuzzyMatchingTags_returnsTrue() {
+        assertTrue(createPredicate("housng policy", "expet").test(person));
     }
 
     @Test
@@ -64,6 +82,14 @@ public class HasAllTagsPredicateTest {
     public void test_partialTagText_returnsFalse() {
         assertFalse(createPredicate("housing").test(person));
         assertFalse(createPredicate("policy").test(person));
+    }
+
+    @Test
+    public void test_shortTagTypo_returnsFalse() {
+        Person personWithShortTag = new PersonBuilder(person).withTags("HR").build();
+
+        assertTrue(createPredicate("hr").test(personWithShortTag));
+        assertFalse(createPredicate("PR").test(personWithShortTag));
     }
 
     @Test

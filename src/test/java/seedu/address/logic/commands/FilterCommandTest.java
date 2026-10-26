@@ -81,12 +81,35 @@ public class FilterCommandTest {
     }
 
     @Test
+    public void execute_typoWithinTolerance_returnsWholeTagMatches() {
+        CommandResult result = createFilterCommand("housng policy").execute(model);
+
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), result.getFeedbackToUser());
+        assertEquals(List.of(ALEX, BETH), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_partialTag_returnsNoMatches() {
+        CommandResult result = createFilterCommand("policy").execute(model);
+
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), result.getFeedbackToUser());
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_multipleRequiredTags_returnsOnlyContactsWithEveryTag() {
         createFilterCommand("housing policy", "expert").execute(model);
 
         assertEquals(List.of(ALEX), model.getFilteredPersonList());
         assertFalse(model.getFilteredPersonList().contains(BETH));
         assertFalse(model.getFilteredPersonList().contains(CARLOS));
+    }
+
+    @Test
+    public void execute_multipleFuzzyRequiredTags_returnsOnlyContactsMatchingEveryTag() {
+        createFilterCommand("housng policy", "expet").execute(model);
+
+        assertEquals(List.of(ALEX), model.getFilteredPersonList());
     }
 
     @Test
