@@ -124,7 +124,7 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * gives every `Person` a `PersonId` when it is added, using a counter of the next ID to give out (see [Contact ID feature](#contact-id-feature)).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* keeps the displayed contacts in a `FilteredList` wrapped by a `SortedList`. See [Displayed-list layers](#displayed-list-layers) for how these lists form the view exposed to the UI.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -251,7 +251,7 @@ The tokenizer trims surrounding whitespace from each value but preserves interna
 
 The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
 
-`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results.
+`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results. The predicate is applied through the [displayed-list layers](#displayed-list-layers).
 
 `MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
 
@@ -261,7 +261,7 @@ The parser does not reject empty input or duplicate prefixes. With no preamble o
 
 The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags and tests whether `Person#getTags()` contains all of them. Because `Tag#equals` compares the normalised complete tag name, matching is exact and case-insensitive. A separate predicate is used instead of `find`'s `MatchPersonPredicate` because find deliberately accepts partial tag substrings, whereas `filter` must not match `housing` against `housing policy`.
 
-When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view. `list`, `list all`, and `list archive` replace it with the active, complete, or archived view respectively. The predicate does not inspect archive status, so matching archived contacts are included.
+When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. Each filter evaluates the full stored address book instead of the currently displayed subset. The predicate does not inspect archive status, so matching archived contacts are included. See [Displayed-list layers](#displayed-list-layers) for how a new predicate replaces the displayed view and clears its previous sort.
 
 Filtering changes only the displayed list; stored contact data never changes.
 
@@ -291,6 +291,14 @@ Filtering changes only the displayed list; stored contact data never changes.
 
 When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `VersionedAddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the stored address-book data.
 
+<a id="displayed-list-layers"></a>
+
+The displayed-list layers are shown below.
+
+<img src="images/DisplayedListClassDiagram.png" width="650" />
+
+`ModelManager#getFilteredPersonList()` returns the `SortedList`, so the UI always shows the filtered contacts in the current sort order.
+
 Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. For tag sorting, contacts without tags remain after tagged contacts in both ascending and descending order. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `filter`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
 
 #### Design considerations
@@ -302,7 +310,7 @@ Text fields are compared case-insensitively, phone numbers numerically, and tags
   * Cons: The model must maintain both `FilteredList` and `SortedList` view layers and explicitly clear the comparator when the display is replaced.
 * **Alternative 2: Sort the stored contact list directly.**
   * Pros: The UI could display the reordered storage list without another view layer.
-  * Cons: A display-only command would mutate persistent ordering, filtering would be harder to isolate, and the changed order could be saved unintentionally. This alternative was rejected because sorting is specified as a temporary presentation operation.
+  * Cons: A display-only command would mutate persistent ordering, filtering would be harder to isolate, and the changed order could be saved unintentionally. This alternative was rejected because sorting is specified as a temporary presentation operation. 
 
 ### Archive feature
 
@@ -310,7 +318,7 @@ Each `Person` has an `archived` flag, which is `false` for new contacts. `Archiv
 
 `JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
 
-`ListCommandParser` turns `list`, `list all` and `list archive` into a `ListCommand` with the view `ACTIVE`, `ALL` or `ARCHIVED`. The keyword is trimmed and compared case-insensitively, and any other input throws a `ParseException` with `ListCommand.MESSAGE_USAGE`. Each view calls `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS`, `PREDICATE_SHOW_ALL_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`.
+`ListCommandParser` turns `list`, `list all` and `list archive` into a `ListCommand` with the view `ACTIVE`, `ALL` or `ARCHIVED`. The keyword is trimmed and compared case-insensitively, and any other input throws a `ParseException` with `ListCommand.MESSAGE_USAGE`. Each view calls `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS`, `PREDICATE_SHOW_ALL_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`. These predicates are applied through the [displayed-list layers](#displayed-list-layers).
 
 `ModelManager` starts with `PREDICATE_SHOW_ACTIVE_PERSONS`, so archived contacts are hidden when ByLine starts. `Model#addPerson` switches back to this predicate, since a new contact is never archived. `EditCommand` switches to `PREDICATE_SHOW_ARCHIVED_PERSONS` if the edited contact is archived and to `PREDICATE_SHOW_ACTIVE_PERSONS` otherwise, so the edited contact stays displayed.
 
