@@ -289,9 +289,9 @@ Filtering changes only the displayed list; stored contact data never changes.
 
 `AddressBookParser` delegates the arguments of a `sort` command to `SortCommandParser`. The parser validates the mandatory field and optional order, normalises both case-insensitively, defaults a missing order to ascending, and creates a `SortCommand`.
 
-When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `AddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the persistent `AddressBook` list.
+When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `VersionedAddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the stored address-book data.
 
-Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `filter`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
+Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. For tag sorting, contacts without tags remain after tagged contacts in both ascending and descending order. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `filter`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
 
 #### Design considerations
 
