@@ -9,10 +9,10 @@ import java.util.Locale;
  */
 public class Search {
 
+    private static final double TOLERANCE = 1.0 / 3.0;
+
     private Search() {
     }
-
-    private static final double TOLERANCE = 1.0 / 3.0;
 
     /**
      * Returns whether the entire key matches any contiguous substring of text within the edit limit.
