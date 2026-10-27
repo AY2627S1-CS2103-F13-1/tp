@@ -677,7 +677,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC06 - Sort displayed contacts<br>
 **Actor:** Journalist
 
@@ -685,35 +685,35 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1. Journalist views a list of contacts.
 2. Journalist requests to sort the displayed contacts, specifying a supported field and optionally an order.
-3. Byline reorders the displayed contacts and shows the successful sort message.
+3. ByLine reorders the displayed contacts and shows the successful sort message.
 
    Use case ends.
 
 **Extensions**
 
 * 2a. The field is invalid.
-  * 2a1. Byline shows `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
-  * 2a2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2a1. ByLine shows an error message listing the valid fields. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2b. The order is invalid.
-  * 2b1. Byline shows `Invalid sort order. ORDER must be asc or desc.`
-  * 2b2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2b1. ByLine shows an error message listing the valid orders. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2c. The field is missing.
-  * 2c1. Byline shows the invalid command format message and `Usage: sort FIELD [ORDER]`.
-  * 2c2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2c1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2d. Extra arguments are supplied.
-  * 2d1. Byline shows the invalid command format message and `Usage: sort FIELD [ORDER]`.
-  * 2d2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2d1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 **System:** Byline<br>
 **Use case:** UC07 - Archive a contact<br>
@@ -822,33 +822,36 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * The contact's other tags and details are unchanged.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC10 - Filter contacts by exact tags<br>
 **Actor:** Journalist
 
 **MSS**
 
 1. Journalist requests to filter contacts using one or more complete tags.
-2. Byline shows contacts that have every specified tag and reports the number listed.
+2. ByLine shows contacts that have every specified tag and reports the number listed.
 
    Use case ends.
 
 **Extensions**
 
 * 1a. No tag is given, unsupported text is present, or an unsupported prefix is used.
-  * 1a1. Byline shows the invalid command format message and leaves the displayed list unchanged.
 
-    Use case resumes at step 1.
+    * 1a1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 1b. A tag is blank or contains characters other than letters, numbers and spaces.
-  * 1b1. Byline shows the tag validation message and leaves the displayed list unchanged.
 
-    Use case resumes at step 1.
+    * 1b1. ByLine shows an error message describing the valid tag format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2a. No contact has every specified tag.
-  * 2a1. Byline shows an empty list and reports `0 person(s) listed!`.
 
-    Use case ends.
+    * 2a1. ByLine shows an empty list.
+
+      Use case ends.
 
 **Guarantees**
 
