@@ -20,7 +20,7 @@ import seedu.address.model.tag.Tag;
  * Tests that a {@code Person}'s {@code Name} matches any of the keywords given.
  */
 public class MatchPersonPredicate implements Predicate<Person> {
-    private static final double TOLERANCE = 0.3333333; // approximately 1/3
+    private static final double TOLERANCE = 1.0/3.0;
     private final ArgumentMultimap argMultimap;
 
     public MatchPersonPredicate(ArgumentMultimap argMultimap) {
