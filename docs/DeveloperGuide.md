@@ -263,7 +263,7 @@ The execution flow is `AddressBookParser` → `FilterCommandParser` → `FilterC
 
 The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags and tests whether `Person#getTags()` contains all of them. Because `Tag#equals` compares the normalised complete tag name, matching is exact and case-insensitive. A separate predicate is used instead of `EachFieldContainsSubstringPredicate` because `find` deliberately accepts partial tag substrings, whereas `filter` must not match `housing` against `housing policy`.
 
-When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view, while `list` restores all contacts. The predicate does not inspect archive status, so matching archived contacts are included.
+When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_CONTACTS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view, while `list` restores all contacts. The predicate does not inspect archive status, so matching archived contacts are included.
 
 Filtering changes only the displayed view. It does not change `Person` or any stored contact data, so no `Person`, `Tag`, `JsonAdaptedPerson`, JSON schema, `PersonCard`, FXML, or main-layout change is required. The existing observable list pipeline updates the GUI automatically.
 
@@ -848,7 +848,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
     Use case resumes at step 1.
 
 * 2a. No contact has every specified tag.
-  * 2a1. Byline shows an empty list and reports `0 person(s) listed!`.
+  * 2a1. ByLine shows an empty list.
 
     Use case ends.
 
@@ -1082,7 +1082,7 @@ testers are expected to do more *exploratory* testing.
       Expected: Only Alex is shown because every specified tag is required.
 
    1. Test case: `filter t/housing`<br>
-      Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result is `0 person(s) listed!`.
+      Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result is `0 contact(s) listed!`.
 
    1. Test case: `filter t/EXPERT`, then `filter t/expert t/EXPERT`<br>
       Expected: Both commands show the same contacts because matching ignores case and repeated equivalent tags form one condition.

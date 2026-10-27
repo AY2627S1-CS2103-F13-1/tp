@@ -223,7 +223,7 @@ Invalid examples:
 * `filter t/housing-policy`, `filter t/housing_policy`, `filter t/@expert`, and `filter t/policy/research` contain invalid tag characters.
 * `filter t/expert t/housing-policy` fails completely; ByLine does not filter using only the valid tag.
 
-On success, including when no contacts match, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!` or `0 person(s) listed!`.
+On success, including when no contacts match, ByLine shows `N contact(s) listed!`, such as `2 contact(s) listed!` or `0 contact(s) listed!`.
 
 For a command-structure error, ByLine shows:
 
