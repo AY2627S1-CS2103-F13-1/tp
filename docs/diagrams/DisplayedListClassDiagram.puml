@@ -47,4 +47,5 @@ SortedList -left-> "1" FilteredList : wraps and reorders >
 FilteredList ..|> ObservableList
 SortedList ..|> ObservableList
 PersonListPanel ..> ObservableList : displays >
+
 @enduml

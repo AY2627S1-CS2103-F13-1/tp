@@ -310,7 +310,7 @@ Text fields are compared case-insensitively, phone numbers numerically, and tags
   * Cons: The model must maintain both `FilteredList` and `SortedList` view layers and explicitly clear the comparator when the display is replaced.
 * **Alternative 2: Sort the stored contact list directly.**
   * Pros: The UI could display the reordered storage list without another view layer.
-  * Cons: A display-only command would mutate persistent ordering, filtering would be harder to isolate, and the changed order could be saved unintentionally. This alternative was rejected because sorting is specified as a temporary presentation operation. 
+  * Cons: A display-only command would mutate persistent ordering, filtering would be harder to isolate, and the changed order could be saved unintentionally. This alternative was rejected because sorting is specified as a temporary presentation operation.
 
 ### Archive feature
 
