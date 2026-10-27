@@ -1117,7 +1117,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Sorting valid displayed lists
 
-   1. Prerequisites: Start Byline with multiple contacts displayed, including contacts whose names differ in case, phone numbers with leading zeroes, contacts with multiple tags, and contacts without tags. Note the displayed and stored order.
+   1. Prerequisites: Start ByLine with multiple contacts displayed, including contacts whose names differ in case, phone numbers with leading zeroes, contacts with multiple tags, and contacts without tags. Note the displayed and stored order.
 
    1. Test case: `sort name desc`<br>
       Expected: Contacts are displayed by name in descending, case-insensitive order. The result is `Sorted contacts by name in descending order.` The stored order is unchanged.
