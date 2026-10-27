@@ -21,7 +21,6 @@ public class Search {
      *
      * @param text The body of text to search.
      * @param key The query, which may span multiple words.
-     * @param tolerance The percentage of the length of the key that may have the wrong characters
      * @throws NullPointerException If either string is null.
      */
     public static boolean substringThenLevenshtein(String text, String key) {
