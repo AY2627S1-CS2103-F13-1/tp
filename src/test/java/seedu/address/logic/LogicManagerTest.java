@@ -3,7 +3,7 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+import static seedu.address.logic.Messages.MESSAGE_CONTACTS_LISTED_OVERVIEW;
 import static seedu.address.logic.Messages.MESSAGE_PERSON_ID_NOT_FOUND;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -141,11 +141,11 @@ public class LogicManagerTest {
         logic = createLogic(model);
 
         CommandResult partialFindResult = logic.execute("find t/fri");
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), partialFindResult.getFeedbackToUser());
+        assertEquals(String.format(MESSAGE_CONTACTS_LISTED_OVERVIEW, 3), partialFindResult.getFeedbackToUser());
         assertEquals(List.of(ALICE, BENSON, DANIEL), logic.getFilteredPersonList());
 
         CommandResult exactFilterResult = logic.execute("filter t/fri");
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), exactFilterResult.getFeedbackToUser());
+        assertEquals(String.format(MESSAGE_CONTACTS_LISTED_OVERVIEW, 0), exactFilterResult.getFeedbackToUser());
         assertEquals(List.of(), logic.getFilteredPersonList());
 
         logic.execute("filter t/friends");

@@ -11,7 +11,7 @@ import seedu.address.model.person.SortField;
 import seedu.address.model.person.SortOrder;
 
 /**
- * Sorts the currently displayed persons by a selected contact field and direction.
+ * Sorts the currently displayed contacts by a selected contact field and direction.
  */
 public class SortCommand extends Command {
 

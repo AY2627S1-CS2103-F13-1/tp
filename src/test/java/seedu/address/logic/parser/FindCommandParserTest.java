@@ -1,7 +1,7 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+import static seedu.address.logic.Messages.MESSAGE_CONTACTS_LISTED_OVERVIEW;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.CARL;
@@ -114,7 +114,7 @@ public class FindCommandParserTest {
     private void assertMatches(String arguments, Person... expectedPersons) throws Exception {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         FindCommand command = parser.parse(arguments);
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, expectedPersons.length),
+        assertEquals(String.format(MESSAGE_CONTACTS_LISTED_OVERVIEW, expectedPersons.length),
                 command.execute(model).getFeedbackToUser(), arguments);
         assertEquals(List.of(expectedPersons), model.getFilteredPersonList(), arguments);
     }

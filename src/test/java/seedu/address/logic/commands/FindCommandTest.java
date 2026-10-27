@@ -3,7 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+import static seedu.address.logic.Messages.MESSAGE_CONTACTS_LISTED_OVERVIEW;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -97,7 +97,7 @@ public class FindCommandTest {
     private void assertSearchResults(String arguments, Person... expectedPersons) {
         AddressBook originalAddressBook = new AddressBook(model.getAddressBook());
         FindCommand command = new FindCommand(createPredicate(arguments));
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, expectedPersons.length),
+        assertEquals(String.format(MESSAGE_CONTACTS_LISTED_OVERVIEW, expectedPersons.length),
                 command.execute(model).getFeedbackToUser());
         assertEquals(List.of(expectedPersons), model.getFilteredPersonList());
         assertEquals(originalAddressBook, model.getAddressBook());

@@ -3,7 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+import static seedu.address.logic.Messages.MESSAGE_CONTACTS_LISTED_OVERVIEW;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.Arrays;
@@ -60,7 +60,7 @@ public class FilterCommandTest {
     public void execute_noMatchingContacts_returnsZeroResult() {
         CommandResult result = createFilterCommand("marine biology").execute(model);
 
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), result.getFeedbackToUser());
+        assertEquals(String.format(MESSAGE_CONTACTS_LISTED_OVERVIEW, 0), result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPersonList());
     }
 
@@ -68,7 +68,7 @@ public class FilterCommandTest {
     public void execute_oneMatchingContact_returnsOneResult() {
         CommandResult result = createFilterCommand("economics").execute(model);
 
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(String.format(MESSAGE_CONTACTS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
         assertEquals(List.of(CARLOS), model.getFilteredPersonList());
     }
 
@@ -76,7 +76,7 @@ public class FilterCommandTest {
     public void execute_multipleMatchingContacts_returnsEveryMatch() {
         CommandResult result = createFilterCommand("housing policy").execute(model);
 
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), result.getFeedbackToUser());
+        assertEquals(String.format(MESSAGE_CONTACTS_LISTED_OVERVIEW, 2), result.getFeedbackToUser());
         assertEquals(List.of(ALEX, BETH), model.getFilteredPersonList());
     }
 
