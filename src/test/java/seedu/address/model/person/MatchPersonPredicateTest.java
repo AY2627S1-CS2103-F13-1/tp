@@ -57,6 +57,17 @@ public class MatchPersonPredicateTest {
     }
 
     @Test
+    public void test_alexQuery_matchesOnlyAlexInSampleData() {
+        List<String> matchingNames = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(createPredicate("Alex"))
+                .map(samplePerson -> samplePerson.getName().fullName)
+                .toList();
+
+        // The shared example.com domain must not make unrelated contacts match Alex.
+        assertEquals(List.of("Alex Yeoh"), matchingNames);
+    }
+
+    @Test
     public void test_shortTypo_matchesTwoSamplePersons() {
         List<String> matchingNames = Arrays.stream(SampleDataUtil.getSamplePersons())
                 .filter(createPredicate("Alx"))
