@@ -58,54 +58,65 @@ public class SearchTest {
 
     @Test
     public void substringThenLevenshtein_typoInSubstring_matchesWithinTolerance() {
-        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alx", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alez", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Aleex", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("alex@example.com", "EXMPLE", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("Mr Alex Yeoh Jr", "Alx Yeo", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("prefix kitten suffix", "sittin", 0.3333333));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alx", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alez", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Aleex", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("alex@example.com", "EXMPLE", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("Mr Alex Yeoh Jr", "Alx Yeo", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("prefix kitten suffix", "sittin", 1.0 / 3.0));
         assertFalse(Search.substringThenLevenshtein("prefix kitten suffix", "sittin", 0.16));
-        assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Bob", 0.3333333));
+        assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Bob", 1.0 / 3.0));
     }
 
     @Test
     public void substringThenLevenshtein_emailWithTypos_matchesWithinTolerance() {
-        assertTrue(Search.substringThenLevenshtein("alex@example.com", "ALZZ@EXZMPLE.COM", 0.3333333));
-        assertFalse(Search.substringThenLevenshtein("alex@example.com", "zzzz@zzzzzzz.zzz", 0.3333333));
+        assertTrue(Search.substringThenLevenshtein("alex@example.com", "ALZZ@EXZMPLE.COM", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("alex@example.com", "zzzz@zzzzzzz.zzz", 1.0 / 3.0));
     }
 
     @Test
-    public void substringThenLevenshtein_fractionalEditLimit_roundsUp() {
-        assertTrue(Search.substringThenLevenshtein("abc", "abz", 0.3333333));
-        assertFalse(Search.substringThenLevenshtein("abc", "azz", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("abcd", "abzz", 0.3333333));
-        assertFalse(Search.substringThenLevenshtein("abcd", "azzz", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("abcdef", "abcdzz", 0.3333333));
-        assertFalse(Search.substringThenLevenshtein("abcdef", "abczzz", 0.3333333));
-        assertTrue(Search.substringThenLevenshtein("abcdefg", "abcdzzz", 0.3333333));
-        assertFalse(Search.substringThenLevenshtein("abcdefg", "abczzzz", 0.3333333));
+    public void substringThenLevenshtein_fractionalEditLimit_roundsDown() {
+        assertTrue(Search.substringThenLevenshtein("abc", "abz", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("abc", "azz", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("abcd", "abcz", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("abcd", "abzz", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("abcd", "azzz", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("abcdef", "abcdzz", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("abcdef", "abczzz", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("abcdefg", "abcdezz", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("abcdefg", "abcdzzz", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("abcdefg", "abczzzz", 1.0 / 3.0));
     }
 
     @Test
     public void substringThenLevenshtein_toleranceBoundary_changesAllowedEdits() {
         assertFalse(Search.substringThenLevenshtein("abcd", "abzz", 0.25));
-        assertTrue(Search.substringThenLevenshtein("abcd", "abzz", 0.250001));
+        assertFalse(Search.substringThenLevenshtein("abcd", "abzz", 0.499999));
+        assertTrue(Search.substringThenLevenshtein("abcd", "abzz", 0.5));
         assertFalse(Search.substringThenLevenshtein("a", "z", 0.0));
-        assertTrue(Search.substringThenLevenshtein("a", "z", 0.01));
+        assertFalse(Search.substringThenLevenshtein("a", "z", 0.01));
+        assertFalse(Search.substringThenLevenshtein("ab", "az", 1.0 / 3.0));
+        assertTrue(Search.substringThenLevenshtein("a", "z", 1.0));
+    }
+
+    @Test
+    public void substringThenLevenshtein_alexQuery_rejectsSharedEmailDomain() {
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alex", 1.0 / 3.0));
+        assertFalse(Search.substringThenLevenshtein("berniceyu@example.com", "Alex", 1.0 / 3.0));
     }
 
     @Test
     public void substringThenLevenshtein_separatedLetters_requiresEditsForGaps() {
-        assertFalse(Search.substringThenLevenshtein("a123b456c", "abc", 0.3333333));
+        assertFalse(Search.substringThenLevenshtein("a123b456c", "abc", 1.0 / 3.0));
         assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "AlexYeoh", 0));
-        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "AlexYeoh", 0.3333333));
+        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "AlexYeoh", 1.0 / 3.0));
     }
 
     @Test
     public void substringThenLevenshtein_emptyInputs_countsDeletedQueryCharacters() {
         assertTrue(Search.substringThenLevenshtein("Alex", "", 0));
         assertTrue(Search.substringThenLevenshtein("", "", 0));
-        assertFalse(Search.substringThenLevenshtein("", "cat", 0.3333333));
+        assertFalse(Search.substringThenLevenshtein("", "cat", 1.0 / 3.0));
         assertTrue(Search.substringThenLevenshtein("", "cat", 1.0));
         assertTrue(Search.substringThenLevenshtein("xyz", "cat", 1.0));
     }

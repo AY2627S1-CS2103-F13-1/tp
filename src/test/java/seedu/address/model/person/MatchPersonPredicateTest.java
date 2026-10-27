@@ -52,7 +52,7 @@ public class MatchPersonPredicateTest {
     public void test_generalTypo_matchesWithinTolerance() {
         assertTrue(createPredicate("Alx").test(person));
         assertTrue(createPredicate("EXMPLE").test(person));
-        assertTrue(createPredicate("Azzx").test(person));
+        assertFalse(createPredicate("Azzx").test(person));
         assertFalse(createPredicate("zzzx").test(person));
     }
 
@@ -79,8 +79,8 @@ public class MatchPersonPredicateTest {
     @Test
     public void test_fieldTypos_matchesWithinTolerance() {
         Prefix[] prefixes = {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG};
-        String[] matchingValues = {"Azzx", "2399", "@exzzple", "Mzzn", "Frzznds"};
-        String[] nonMatchingValues = {"zzzx", "9999", "@zzzzple", "zzzn", "zzzznds"};
+        String[] matchingValues = {"Alx", "2349", "@exzzple", "Mzin", "Frzznds"};
+        String[] nonMatchingValues = {"Azzx", "2399", "@zzzzple", "Mzzn", "zzzznds"};
         for (int index = 0; index < prefixes.length; index++) {
             assertTrue(createPredicate("", prefixes[index], matchingValues[index]).test(person),
                     matchingValues[index]);
