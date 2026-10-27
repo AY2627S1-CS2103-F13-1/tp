@@ -204,7 +204,7 @@ Format: `filter t/TAG [t/TAG]…​`
 * Matching uses complete tag values: `filter t/policy` does not match `housing policy` or `policy researcher`. Use `find t/policy` when partial tag matching is wanted.
 * Each new `filter` examines all stored contacts and replaces any earlier `find` or `filter`; it does not narrow only the currently displayed list.
 * Archived contacts are included when their tags match.
-* `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort, and `list` restores the complete contact list.
+* `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort. `list` restores the active-contact view; `list all` restores the complete contact list.
 * Filtering is display-only: it does not add, edit, archive, restore, delete, or reorder stored contacts.
 
 Valid examples:
