@@ -194,7 +194,7 @@ Examples:
 
 Shows contacts that have every specified complete tag. Unlike `find`, which matches partial text, `filter` matches only whole stored tag values.
 
-Format: `filter t/TAG [t/TAG]...`
+Format: `filter t/TAG [t/TAG]…​`
 
 * At least one `t/TAG` must be given, and `t/` may be repeated in any order.
 * A contact must contain **all** distinct specified tags. Additional tags on the contact do not prevent a match.
@@ -456,7 +456,7 @@ Action | Format, Examples
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
-**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/housing policy t/expert`
+**Filter** | `filter t/TAG [t/TAG]…​`<br> e.g., `filter t/housing policy t/expert`
 **List** | `list`, `list all` or `list archive`
 **Help** | `help`
 **Redo** | `redo`
