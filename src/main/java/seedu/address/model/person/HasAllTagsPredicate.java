@@ -16,7 +16,7 @@ public class HasAllTagsPredicate implements Predicate<Person> {
     private final Set<Tag> requiredTags;
 
     /**
-     * Creates a predicate that matches persons containing every tag in {@code requiredTags}.
+     * Creates a predicate that matches contacts containing every tag in {@code requiredTags}.
      */
     public HasAllTagsPredicate(Set<Tag> requiredTags) {
         requireNonNull(requiredTags);
