@@ -12,6 +12,8 @@ public class Search {
     private Search() {
     }
 
+    private static final double TOLERANCE = 1.0 / 3.0;
+
     /**
      * Returns whether the entire key matches any contiguous substring of text within the edit limit.
      * Case is ignored, but spaces count as characters. Text outside the match costs no edits.
@@ -20,19 +22,15 @@ public class Search {
      * @param text The body of text to search.
      * @param key The query, which may span multiple words.
      * @param tolerance The percentage of the length of the key that may have the wrong characters
-     * @throws IllegalArgumentException If maxDistance is negative.
      * @throws NullPointerException If either string is null.
      */
-    public static boolean substringThenLevenshtein(String text, String key, double tolerance) {
+    public static boolean substringThenLevenshtein(String text, String key) {
         requireNonNull(text);
         requireNonNull(key);
-        if (tolerance < 0 || tolerance > 1) {
-            throw new IllegalArgumentException("tolerance must be a non negative decimal from 0.0 to 1.0");
-        }
         if (Search.substring(text, key)) {
             return true;
         }
-        int maxDistance = (int) Math.floor(tolerance * key.length());
+        int maxDistance = (int) Math.floor(TOLERANCE * key.length());
         return levenshteinDistance(text.toLowerCase(Locale.ROOT), key.toLowerCase(Locale.ROOT), true) <= maxDistance;
     }
 
