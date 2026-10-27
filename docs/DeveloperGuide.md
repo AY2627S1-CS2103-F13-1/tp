@@ -261,7 +261,7 @@ The parser does not reject empty input or duplicate prefixes. With no preamble o
 
 The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags and tests whether `Person#getTags()` contains all of them. Because `Tag#equals` compares the normalised complete tag name, matching is exact and case-insensitive. A separate predicate is used instead of `find`'s `MatchPersonPredicate` because find deliberately accepts partial tag substrings, whereas `filter` must not match `housing` against `housing policy`.
 
-When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view, while `list` restores all contacts. The predicate does not inspect archive status, so matching archived contacts are included.
+When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view. `list`, `list all`, and `list archive` replace it with the active, complete, or archived view respectively. The predicate does not inspect archive status, so matching archived contacts are included.
 
 Filtering changes only the displayed list; stored contact data never changes.
 
@@ -1094,7 +1094,7 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `filter t/expert`, then `sort name desc`<br>
       Expected: Only exact `expert` matches remain and are displayed by descending name. Stored contact order is unchanged.
 
-   1. Test case: `list`<br>
+   1. Test case: `list all`<br>
       Expected: The complete contact list is restored in stored order.
 
 1. Rejecting invalid filter commands
