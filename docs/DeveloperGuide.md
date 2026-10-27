@@ -251,7 +251,7 @@ The tokenizer trims surrounding whitespace from each value but preserves interna
 
 The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
 
-`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results.
+`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching contacts. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results.
 
 `MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
 
@@ -675,7 +675,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. No contacts match all the given criteria.
 
-    * 2a1. Byline shows an empty list and a message that 0 persons are listed.
+    * 2a1. ByLine shows an empty list.
 
       Use case ends.
 
@@ -1043,7 +1043,7 @@ testers are expected to do more *exploratory* testing.
       Expected: Only contacts with `yu` somewhere in their details, in any upper/lower case, are shown. The status message shows how many contacts are listed.
 
    1. Test case: `find`<br>
-      Expected: No contacts are displayed. The status message is `0 person(s) listed!`.
+      Expected: No contacts are displayed. The status message is `0 contact(s) listed!`.
 
 1. Searching specific fields
 
