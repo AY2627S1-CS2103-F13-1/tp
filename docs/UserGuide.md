@@ -130,7 +130,7 @@ Formats:
 
 Edits an existing contact in ByLine.
 
-Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
+Format: `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
 * Edits the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
 * If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is changed.
