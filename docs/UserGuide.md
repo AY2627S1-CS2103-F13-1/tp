@@ -342,7 +342,9 @@ Clears all entries from the address book.
 
 Format: `clear`
 
-IDs are not reset: the next contact you add still gets a new ID.
+* Archived contacts are deleted too.
+* You can reverse `clear` with `undo`.
+* IDs are not reset: the next contact you add still gets a new ID.
 
 ### Undoing a change: `undo`
 
