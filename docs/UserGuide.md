@@ -473,10 +473,13 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
+**Exit** | `exit`
+**Export** | `export PATH`<br> e.g., `export C:/My Contacts/October backup`
 **Filter** | `filter t/TAG [t/TAG]…​`<br> e.g., `filter t/housing policy t/expert`
-**List** | `list`, `list all` or `list archive`
+**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
 **Help** | `help`
+**List** | `list`, `list all` or `list archive`
+**Load** | `load PATH`<br> e.g., `load C:/My Contacts/October backup`
 **Redo** | `redo`
 **Restore** | `restore ID`<br> e.g., `restore 4`
 **Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
