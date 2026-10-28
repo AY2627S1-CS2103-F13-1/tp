@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-ByLine is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, ByLine can help you manage contacts faster than traditional GUI applications.
+ByLine is a **desktop contact manager for journalists**. It helps you keep track of sources, experts and interviewees, tag them by topic, and find the right person quickly when a story breaks. You use ByLine by typing commands (a Command Line Interface, or CLI), and the window shows your contacts and the results. If you type quickly, this is faster than clicking through menus.
 
 * Table of Contents
 {:toc}
@@ -28,7 +28,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 
    * `list` : Lists all active (not archived) contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to ByLine.
 
    * `delete 3` : Deletes the contact with ID 3. Each contact's ID is shown as `ID: 3` on its card.
 
