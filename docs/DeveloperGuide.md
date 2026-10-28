@@ -1046,7 +1046,78 @@ testers are expected to do more *exploratory* testing.
    2. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
-3. _{ more test cases …​ }_
+### Viewing help
+
+1. Opening the Command Guide
+
+   1. Test case: `help`<br>
+      Expected: The right-hand panel shows the Command Guide.
+
+   2. Test case: Click any contact, then press `F1`.<br>
+      Expected: Same as previous.
+
+   3. Test case: With the guide shown, click any contact.<br>
+      Expected: The right-hand panel shows that contact's details instead of the guide.
+
+### Adding a contact
+
+1. Adding a contact
+
+   1. Prerequisites: Start with the sample data (6 contacts, IDs 1 to 6).
+
+   2. Test case: `add n/Jane Tan p/91234567 e/jane@example.com a/12 Kent Ridge Road t/economist`<br>
+      Expected: Jane Tan is added with ID 7 and shown in the list of active contacts. The status message shows her details.
+
+   3. Test case: `add n/Jane Tan p/98765432 e/jt@example.com a/Clementi` (after the previous test case)<br>
+      Expected: No contact is added. An error says the contact already exists.
+
+   4. Test case: `add n/Kim Lee p/12ab e/kim@example.com a/Clementi`<br>
+      Expected: No contact is added. The error describes the valid phone number format.
+
+   5. Other incorrect add commands to try: `add`, `add n/Kim Lee p/91234567`, `add n/Kim Lee p/91234567 e/kim a/Clementi`<br>
+      Expected: No contact is added. An error message is shown.
+
+### Listing contacts
+
+1. Switching between list views
+
+   1. Prerequisites: Start with the sample data, then run `archive 1`.
+
+   2. Test case: `list`<br>
+      Expected: Every contact except Alex Yeoh is shown.
+
+   3. Test case: `list archive`<br>
+      Expected: Only Alex Yeoh is shown, with `[Archived]` after the name.
+
+   4. Test case: `list all`<br>
+      Expected: All 6 contacts are shown, including Alex Yeoh.
+
+   5. Test case: `list archived`<br>
+      Expected: The displayed list does not change. An error lists the accepted formats.
+
+### Editing a contact
+
+1. Editing a contact by ID
+
+   1. Prerequisites: Start with the sample data.
+
+   2. Test case: `edit 1 p/91234567 e/alex@example.com`<br>
+      Expected: Alex Yeoh's phone number and email are updated. The status message shows the edited details.
+
+   3. Test case: `edit 2 t/`<br>
+      Expected: All of Bernice Yu's tags are removed.
+
+   4. Test case: `edit 1 n/Bernice Yu`<br>
+      Expected: Nothing is changed. An error says the contact already exists.
+
+   5. Test case: `edit 1`<br>
+      Expected: Nothing is changed. An error says at least one field must be given.
+
+   6. Test case: `edit 99 p/91234567`<br>
+      Expected: Nothing is changed. An error says no contact has the ID 99.
+
+   7. Other incorrect edit commands to try: `edit 0 p/91234567`, `edit 1 p/12ab`<br>
+      Expected: Nothing is changed. An error message is shown.
 
 ### Deleting a person
 
@@ -1074,7 +1145,20 @@ testers are expected to do more *exploratory* testing.
    1. Test case: Delete the contact with the highest ID, then add a new contact.<br>
       Expected: The new contact gets the next ID after the deleted one, not the deleted ID.
 
-3. _{ more test cases …​ }_
+### Clearing all contacts
+
+1. Clearing and undoing
+
+   1. Prerequisites: Start with the sample data, then run `archive 1`.
+
+   2. Test case: `clear`, then `list all`<br>
+      Expected: No contacts are shown. The archived contact was removed too.
+
+   3. Test case: `undo` (straight after the previous test case), then `list all`<br>
+      Expected: All 6 contacts are back with their original IDs, and Alex Yeoh is still archived.
+
+   4. Test case: `clear`, then `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi`<br>
+      Expected: Jane Tan gets ID 7, not ID 1, because IDs are never reused.
 
 ### Finding contacts
 
@@ -1300,8 +1384,14 @@ testers are expected to do more *exploratory* testing.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Dealing with a missing data file
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Run a command that changes contacts, e.g. `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi`, so that `data/addressbook.json` exists.
 
-2. _{ more test cases …​ }_
+   2. Test case: Close ByLine, delete `data/addressbook.json`, then relaunch ByLine.<br>
+      Expected: ByLine starts with the sample contacts.
+
+2. Dealing with a corrupted data file
+
+   1. Test case: Close ByLine. In `data/addressbook.json`, change one contact's `id` value to `abc`, e.g. `"id" : "abc"`. Relaunch ByLine.<br>
+      Expected: ByLine starts with an empty contact list.
