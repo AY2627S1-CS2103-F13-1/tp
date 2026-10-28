@@ -30,8 +30,8 @@ ByLine is designed for **journalists who manage numerous professional contacts**
   e.g. `list`
 * **Delete a contact**: Remove a contact using the ID shown on its card.<br>
   e.g. `delete 2`
-* **Tag contacts**: Categorise contacts with tags such as their area of expertise, so related contacts are easy to group.<br>
-  e.g. `edit 1 t/politics t/source`
+* **Tag contacts**: Add or remove tags without retyping the others (`tag`, `untag`).<br>
+  e.g. `tag 1 t/politics t/source`
 * **Search contacts**: Find contacts by name, phone, email, address or tag. Name, phone, email, address, and tags can match on part of the text. When you give several conditions, only contacts that match all of them are shown.<br>
   e.g. `find n/Tan t/econ` shows person with fields `n/Tan Meng Cheng` and `t/economics`
 * **Filter contacts by exact tags**: Show contacts that have every specified complete tag, ignoring letter case.<br>
