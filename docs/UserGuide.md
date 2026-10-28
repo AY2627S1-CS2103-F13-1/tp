@@ -126,6 +126,11 @@ Formats:
 * `all` and `archive` can be typed in upper or lower case, e.g. `list ARCHIVE`.
 * Any other input, such as `list archived`, shows an error listing the accepted formats, and the displayed list stays the same.
 
+Examples:
+* `list` shows your active contacts.
+* `list archive` shows only archived contacts.
+* `list all` shows every contact.
+
 ### Editing a contact: `edit`
 
 Edits an existing contact in ByLine.
