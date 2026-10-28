@@ -1,0 +1,50 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+
+package Model as ModelPackage <<Rectangle>> {
+Class ModelManager
+Class VersionedAddressBook
+
+note top of ModelManager
+  getFilteredPersonList()
+  returns the SortedList
+end note
+}
+
+package "JavaFX collections" as JavaFxCollections <<Rectangle>> {
+Interface ObservableList
+Class FilteredList
+Class SortedList
+
+note bottom of FilteredList
+  source created from
+  VersionedAddressBook#getPersonList()
+
+  predicate set by list, find,
+  filter, add, and edit
+end note
+
+note left of SortedList
+  comparator set by sort;
+  cleared whenever the
+  predicate is replaced
+end note
+}
+
+package UI as UiPackage <<Rectangle>> {
+Class PersonListPanel UI_COLOR
+}
+
+ModelManager -right-> "1" VersionedAddressBook
+ModelManager -down-> "1" FilteredList
+ModelManager -down-> "1" SortedList
+
+SortedList -left-> "1" FilteredList : wraps and reorders >
+
+FilteredList ..|> ObservableList
+SortedList ..|> ObservableList
+PersonListPanel ..> ObservableList : displays >
+@enduml
