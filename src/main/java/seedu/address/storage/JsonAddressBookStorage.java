@@ -12,6 +12,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.FileUtil;
 import seedu.address.commons.util.JsonUtil;
+import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 
 /**
@@ -56,11 +57,31 @@ public class JsonAddressBookStorage {
             return Optional.empty();
         }
 
+        AddressBook addressBook;
         try {
-            return Optional.of(jsonAddressBook.get().toModelType());
+            addressBook = jsonAddressBook.get().toModelType();
         } catch (IllegalValueException ive) {
             logger.info("Illegal values found in " + filePath + ": " + ive.getMessage());
             throw new DataLoadingException(ive);
+        }
+
+        if (jsonAddressBook.get().needsUpgrade()) {
+            saveUpgradedAddressBook(addressBook, filePath);
+        }
+        return Optional.of(addressBook);
+    }
+
+    /**
+     * Saves {@code addressBook}, which was loaded from data saved before IDs were introduced, back to
+     * {@code filePath} so that the IDs assigned while loading are kept for later loads.
+     * A failure is logged rather than thrown, so that the loaded data can still be used.
+     */
+    private void saveUpgradedAddressBook(ReadOnlyAddressBook addressBook, Path filePath) {
+        logger.info("Saving IDs assigned to persons in " + filePath);
+        try {
+            saveAddressBook(addressBook, filePath);
+        } catch (IOException ioe) {
+            logger.warning("Could not save IDs assigned to persons in " + filePath + ": " + ioe.getMessage());
         }
     }
 

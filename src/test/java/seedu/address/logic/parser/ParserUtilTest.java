@@ -2,19 +2,20 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -34,24 +35,55 @@ public class ParserUtilTest {
 
     private static final String WHITESPACE = " \t\r\n";
 
+    private static final String MESSAGE_USAGE = "command: usage";
+
     @Test
-    public void parseIndex_invalidInput_throwsParseException() {
-        assertThrows(ParseException.class, () -> ParserUtil.parseIndex("10 a"));
+    public void parsePersonId_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parsePersonId(null));
     }
 
     @Test
-    public void parseIndex_outOfRangeInput_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
-            -> ParserUtil.parseIndex(Long.toString(Integer.MAX_VALUE + 1)));
+    public void parsePersonId_invalidValue_throwsParseException() {
+        for (String invalid : new String[] {"", "hello", "0", "-1", "+1", "C42", "c42", "1 2", "1000000",
+            "2147483648"}) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_PERSON_ID, () ->
+                    ParserUtil.parsePersonId(invalid));
+        }
     }
 
     @Test
-    public void parseIndex_validInput_success() throws Exception {
-        // No whitespaces
-        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("1"));
+    public void parsePersonId_validValueWithoutWhitespace_returnsPersonId() throws Exception {
+        assertEquals(new PersonId(42), ParserUtil.parsePersonId("42"));
+    }
 
-        // Leading and trailing whitespaces
-        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    @Test
+    public void parsePersonId_maxValue_returnsPersonId() throws Exception {
+        assertEquals(new PersonId(PersonId.MAX_VALUE), ParserUtil.parsePersonId("999999"));
+    }
+
+    @Test
+    public void parsePersonId_validValueWithWhitespace_returnsTrimmedPersonId() throws Exception {
+        assertEquals(new PersonId(42), ParserUtil.parsePersonId(WHITESPACE + "42" + WHITESPACE));
+    }
+
+    @Test
+    public void parsePersonTarget_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parsePersonTarget(null, MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parsePersonTarget_validId_returnsTarget() throws Exception {
+        assertEquals(PersonTarget.ofId(new PersonId(42)),
+                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("  42  "), MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parsePersonTarget_invalidOrMissingId_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE);
+        for (String invalid : new String[] {"", "a", "0", "C42", "id/42"}) {
+            assertThrows(ParseException.class, expectedMessage, () ->
+                    ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize(invalid), MESSAGE_USAGE));
+        }
     }
 
     @Test

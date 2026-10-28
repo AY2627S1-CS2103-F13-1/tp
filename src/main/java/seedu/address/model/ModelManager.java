@@ -3,14 +3,22 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -18,9 +26,10 @@ import seedu.address.model.person.Person;
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final AddressBook addressBook;
+    private final VersionedAddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final SortedList<Person> sortedPersons;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -30,9 +39,10 @@ public class ModelManager implements Model {
 
         logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
 
-        this.addressBook = new AddressBook(addressBook);
+        this.addressBook = new VersionedAddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        filteredPersons = new FilteredList<>(this.addressBook.getPersonList(), PREDICATE_SHOW_ACTIVE_PERSONS);
+        sortedPersons = new SortedList<>(filteredPersons);
     }
 
     public ModelManager() {
@@ -76,14 +86,26 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public boolean hasAvailablePersonId() {
+        return addressBook.hasAvailablePersonId();
+    }
+
+    @Override
+    public Optional<Person> findPersonById(PersonId id) {
+        requireNonNull(id);
+        return addressBook.findPersonById(id);
+    }
+
+    @Override
     public void deletePerson(Person target) {
         addressBook.removePerson(target);
     }
 
     @Override
-    public void addPerson(Person person) {
-        addressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+    public Person addPerson(Person person) {
+        Person addedPerson = addressBook.addPerson(person);
+        updateFilteredPersonList(PREDICATE_SHOW_ACTIVE_PERSONS);
+        return addedPerson;
     }
 
     @Override
@@ -91,6 +113,31 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+    }
+
+    @Override
+    public void commitAddressBook() {
+        addressBook.commit();
+    }
+
+    @Override
+    public boolean canUndoAddressBook() {
+        return addressBook.canUndo();
+    }
+
+    @Override
+    public void undoAddressBook() {
+        addressBook.undo();
+    }
+
+    @Override
+    public boolean canRedoAddressBook() {
+        return addressBook.canRedo();
+    }
+
+    @Override
+    public void redoAddressBook() {
+        addressBook.redo();
     }
 
     //=========== Filtered Person List Accessors =============================================================
@@ -101,12 +148,32 @@ public class ModelManager implements Model {
      */
     @Override
     public ObservableList<Person> getFilteredPersonList() {
-        return filteredPersons;
+        return sortedPersons;
+    }
+
+    @Override
+    public void sortFilteredPersonList(Comparator<Person> comparator) {
+        requireNonNull(comparator);
+        List<Person> displayedPersons = new ArrayList<>(sortedPersons);
+        Map<Person, Integer> displayedPositions = new HashMap<>();
+        for (int i = 0; i < displayedPersons.size(); i++) {
+            displayedPositions.put(displayedPersons.get(i), i);
+        }
+
+        Comparator<Person> stableComparator = comparator.thenComparingInt(
+                person -> displayedPositions.getOrDefault(person, Integer.MAX_VALUE));
+        sortedPersons.setComparator(stableComparator);
+    }
+
+    @Override
+    public void clearFilteredPersonListSort() {
+        sortedPersons.setComparator(null);
     }
 
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
+        clearFilteredPersonListSort();
         filteredPersons.setPredicate(predicate);
     }
 
@@ -123,7 +190,7 @@ public class ModelManager implements Model {
 
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && sortedPersons.equals(otherModelManager.sortedPersons);
     }
 
 }

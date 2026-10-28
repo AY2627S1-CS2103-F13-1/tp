@@ -1,33 +1,55 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+import static seedu.address.logic.Messages.MESSAGE_PERSON_ID_NOT_FOUND;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.logic.parser.SortCommandParser.MESSAGE_INVALID_SORT_ORDER;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
+import static seedu.address.testutil.TypicalPersons.ELLE;
+import static seedu.address.testutil.TypicalPersons.FIONA;
+import static seedu.address.testutil.TypicalPersons.GEORGE;
+import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalPersons.getTypicalPersons;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -45,11 +67,27 @@ public class LogicManagerTest {
 
     @BeforeEach
     public void setUp() {
+        logic = createLogic(model);
+    }
+
+    private Logic createLogic(Model model) {
         JsonAddressBookStorage addressBookStorage =
                 new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-        logic = new LogicManager(model, storage);
+        return new LogicManager(model, storage);
+    }
+
+    @Test
+    public void guiSettings_readsAndUpdatesModelPreferences() {
+        GuiSettings original = new GuiSettings(900, 700, 10, 20);
+        model.setGuiSettings(original);
+        assertEquals(original, logic.getGuiSettings());
+
+        GuiSettings updated = new GuiSettings(1100, 800, 30, 40);
+        logic.setGuiSettings(updated);
+        assertEquals(updated, model.getGuiSettings());
+        assertEquals(updated, logic.getGuiSettings());
     }
 
     @Test
@@ -61,13 +99,174 @@ public class LogicManagerTest {
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
-        assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandException(deleteCommand, String.format(MESSAGE_PERSON_ID_NOT_FOUND, 9));
     }
 
     @Test
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
-        assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+        assertCommandSuccess(listCommand, ListCommand.MESSAGE_ACTIVE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_sortCommand_success() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+
+        CommandResult result = logic.execute("sort name desc");
+
+        assertEquals("Sorted contacts by name in descending order.", result.getFeedbackToUser());
+        assertEquals(List.of(GEORGE, FIONA, ELLE, DANIEL, CARL, BENSON, ALICE),
+                logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_invalidSortCommandAfterSort_throwsParseExceptionAndPreservesDisplayedOrder()
+            throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("sort name desc");
+        List<Person> expectedDisplayedOrder = new ArrayList<>(logic.getFilteredPersonList());
+
+        assertThrows(ParseException.class, MESSAGE_INVALID_SORT_ORDER, () -> logic.execute("sort name upward"));
+
+        assertEquals(expectedDisplayedOrder, logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_filterAndListCommands_updateDisplayedContactsWithoutChangingStorage() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+
+        CommandResult partialFindResult = logic.execute("find t/fri");
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), partialFindResult.getFeedbackToUser());
+        assertEquals(List.of(ALICE, BENSON, DANIEL), logic.getFilteredPersonList());
+
+        CommandResult exactFilterResult = logic.execute("filter t/fri");
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), exactFilterResult.getFeedbackToUser());
+        assertEquals(List.of(), logic.getFilteredPersonList());
+
+        logic.execute("filter t/friends");
+        assertEquals(List.of(ALICE, BENSON, DANIEL), logic.getFilteredPersonList());
+
+        logic.execute("sort name desc");
+        assertEquals(List.of(DANIEL, BENSON, ALICE), logic.getFilteredPersonList());
+
+        logic.execute("list");
+        assertEquals(getTypicalPersons(), logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_invalidFilterAfterSort_preservesDisplayedOrder() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("filter t/friends");
+        logic.execute("sort name desc");
+        List<Person> expectedDisplayedOrder = new ArrayList<>(logic.getFilteredPersonList());
+
+        String invalidFilter = "filter t/housing-policy";
+        assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(invalidFilter));
+
+        assertEquals(expectedDisplayedOrder, logic.getFilteredPersonList());
+        assertEquals(getTypicalPersons(), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_undoAfterAdd_removesPersonAndRestoresIdCounter() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        logic.execute(addCommand);
+        assertEquals(2, model.getAddressBook().getNextPersonId());
+
+        CommandResult result = logic.execute(UndoCommand.COMMAND_WORD);
+
+        assertEquals(UndoCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(new AddressBook(), model.getAddressBook());
+        JsonAddressBookStorage savedFile = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(new AddressBook(), savedFile.readAddressBook().orElseThrow());
+
+        // the ID of the undone contact is given to the next contact added
+        logic.execute(addCommand);
+        assertEquals(Optional.of(new PersonId(1)), model.getAddressBook().getPersonList().get(0).getId());
+    }
+
+    @Test
+    public void execute_undoAfterViewCommands_nothingToUndo() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("list");
+        logic.execute("find Alice");
+        logic.execute("sort name desc");
+
+        assertThrows(CommandException.class, UndoCommand.MESSAGE_NOTHING_TO_UNDO, ()
+            -> logic.execute(UndoCommand.COMMAND_WORD));
+    }
+
+    @Test
+    public void execute_undoAfterFailedCommand_nothingToUndo() {
+        assertCommandException("delete 9", String.format(MESSAGE_PERSON_ID_NOT_FOUND, 9));
+
+        assertCommandException(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_NOTHING_TO_UNDO);
+    }
+
+    @Test
+    public void execute_undoAfterFind_keepsSearchResults() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("delete 2");
+        logic.execute("find Alice");
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
+
+        logic.execute(UndoCommand.COMMAND_WORD);
+
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
+        assertTrue(model.hasPerson(BENSON));
+    }
+
+    @Test
+    public void execute_redoAfterUndoneAdd_restoresPersonWithSameId() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        logic.execute(addCommand);
+        Person addedPerson = model.getAddressBook().getPersonList().get(0);
+        logic.execute(UndoCommand.COMMAND_WORD);
+
+        CommandResult result = logic.execute(RedoCommand.COMMAND_WORD);
+
+        assertEquals(RedoCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(List.of(addedPerson), model.getAddressBook().getPersonList());
+        assertEquals(2, model.getAddressBook().getNextPersonId());
+        JsonAddressBookStorage savedFile = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), savedFile.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_redoAfterViewCommand_stillRedoes() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("delete 2");
+        logic.execute(UndoCommand.COMMAND_WORD);
+        logic.execute("list");
+
+        logic.execute(RedoCommand.COMMAND_WORD);
+
+        assertFalse(model.hasPerson(BENSON));
+    }
+
+    @Test
+    public void execute_redoAfterNewChange_nothingToRedo() throws Exception {
+        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        logic = createLogic(model);
+        logic.execute("delete 2");
+        logic.execute(UndoCommand.COMMAND_WORD);
+        logic.execute("delete 3");
+
+        assertThrows(CommandException.class, RedoCommand.MESSAGE_NOTHING_TO_REDO, ()
+            -> logic.execute(RedoCommand.COMMAND_WORD));
+        assertTrue(model.hasPerson(BENSON));
     }
 
     @Test

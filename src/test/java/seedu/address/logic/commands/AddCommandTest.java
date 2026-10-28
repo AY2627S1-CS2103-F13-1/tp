@@ -8,7 +8,9 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -38,7 +41,9 @@ public class AddCommandTest {
 
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+        // the message shows the person with the ID assigned by the model
+        Person addedPerson = new PersonBuilder(validPerson).withId("1").build();
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(addedPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
     }
@@ -50,6 +55,14 @@ public class AddCommandTest {
         ModelStub modelStub = new ModelStubWithPerson(validPerson);
 
         assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+    }
+
+    @Test
+    public void execute_noIdsLeft_throwsCommandException() {
+        AddCommand addCommand = new AddCommand(new PersonBuilder().build());
+        ModelStubWithNoIdsLeft modelStub = new ModelStubWithNoIdsLeft();
+
+        assertThrows(CommandException.class, AddCommand.MESSAGE_NO_AVAILABLE_ID, () -> addCommand.execute(modelStub));
     }
 
     @Test
@@ -103,7 +116,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public void addPerson(Person person) {
+        public Person addPerson(Person person) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -123,6 +136,16 @@ public class AddCommandTest {
         }
 
         @Override
+        public boolean hasAvailablePersonId() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Person> findPersonById(PersonId id) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void deletePerson(Person target) {
             throw new AssertionError("This method should not be called.");
         }
@@ -133,7 +156,42 @@ public class AddCommandTest {
         }
 
         @Override
+        public void commitAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean canUndoAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void undoAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean canRedoAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void redoAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ObservableList<Person> getFilteredPersonList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void sortFilteredPersonList(Comparator<Person> comparator) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void clearFilteredPersonListSort() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -174,14 +232,37 @@ public class AddCommandTest {
         }
 
         @Override
-        public void addPerson(Person person) {
+        public boolean hasAvailablePersonId() {
+            return true;
+        }
+
+        @Override
+        public Person addPerson(Person person) {
             requireNonNull(person);
             personsAdded.add(person);
+            // like the real model, return the stored person with an assigned ID
+            return new PersonBuilder(person).withId(String.valueOf(personsAdded.size())).build();
         }
 
         @Override
         public ReadOnlyAddressBook getAddressBook() {
             return new AddressBook();
+        }
+    }
+
+    /**
+     * A Model stub with no persons, where every ID has already been used.
+     */
+    private class ModelStubWithNoIdsLeft extends ModelStub {
+        @Override
+        public boolean hasPerson(Person person) {
+            requireNonNull(person);
+            return false;
+        }
+
+        @Override
+        public boolean hasAvailablePersonId() {
+            return false;
         }
     }
 

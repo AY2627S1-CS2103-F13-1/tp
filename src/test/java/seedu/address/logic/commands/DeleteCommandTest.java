@@ -5,19 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
-import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.logic.commands.CommandTestUtil.showOnlyPerson;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+
+import java.util.Comparator;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for
@@ -28,67 +30,31 @@ public class DeleteCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
-    public void execute_validIndexUnfilteredList_success() {
-        Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        DeleteCommand deleteCommand = new DeleteCommand(INDEX_FIRST_PERSON);
+    public void execute_validIdOfDisplayedPersonInFilteredList_success() {
+        // only ALICE is displayed, and she is deleted by her ID
+        showOnlyPerson(model, ALICE);
+        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(ALICE.getId().orElseThrow()));
 
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
-                Messages.format(personToDelete));
-
-        ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedModel.deletePerson(personToDelete);
-
-        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
-    }
-
-    @Test
-    public void execute_invalidIndexUnfilteredList_throwsCommandException() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
-        DeleteCommand deleteCommand = new DeleteCommand(outOfBoundIndex);
-
-        assertCommandFailure(deleteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-    }
-
-    @Test
-    public void execute_validIndexFilteredList_success() {
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
-
-        Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        DeleteCommand deleteCommand = new DeleteCommand(INDEX_FIRST_PERSON);
-
-        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
-                Messages.format(personToDelete));
+                Messages.format(ALICE));
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedModel.deletePerson(personToDelete);
+        expectedModel.deletePerson(ALICE);
         showNoPerson(expectedModel);
 
         assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
-    public void execute_invalidIndexFilteredList_throwsCommandException() {
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
-
-        Index outOfBoundIndex = INDEX_SECOND_PERSON;
-        // ensures that outOfBoundIndex is still in bounds of address book list
-        assertTrue(outOfBoundIndex.getZeroBased() < model.getAddressBook().getPersonList().size());
-
-        DeleteCommand deleteCommand = new DeleteCommand(outOfBoundIndex);
-
-        assertCommandFailure(deleteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-    }
-
-    @Test
     public void equals() {
-        DeleteCommand deleteFirstCommand = new DeleteCommand(INDEX_FIRST_PERSON);
-        DeleteCommand deleteSecondCommand = new DeleteCommand(INDEX_SECOND_PERSON);
+        DeleteCommand deleteFirstCommand = new DeleteCommand(PersonTarget.ofId(new PersonId(1)));
+        DeleteCommand deleteSecondCommand = new DeleteCommand(PersonTarget.ofId(new PersonId(2)));
 
         // same object -> returns true
         assertTrue(deleteFirstCommand.equals(deleteFirstCommand));
 
         // same values -> returns true
-        DeleteCommand deleteFirstCommandCopy = new DeleteCommand(INDEX_FIRST_PERSON);
+        DeleteCommand deleteFirstCommandCopy = new DeleteCommand(PersonTarget.ofId(new PersonId(1)));
         assertTrue(deleteFirstCommand.equals(deleteFirstCommandCopy));
 
         // different types -> returns false
@@ -102,10 +68,74 @@ public class DeleteCommandTest {
     }
 
     @Test
+    public void execute_validIdUnfilteredList_success() {
+        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()));
+
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
+                Messages.format(BENSON));
+
+        ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(BENSON);
+
+        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_validIdOfPersonHiddenByFilter_success() {
+        // only ALICE is displayed, but BENSON can still be deleted by his ID
+        showOnlyPerson(model, ALICE);
+        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()));
+
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
+                Messages.format(BENSON));
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(BENSON);
+        showOnlyPerson(expectedModel, ALICE);
+
+        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_validIdAfterListReordered_deletesSamePerson() {
+        // reversing the list moves BENSON away from the second position, but his ID still selects him
+        Comparator<Person> reverseByName = Comparator.comparing((Person person) -> person.getName().fullName)
+                .reversed();
+        model.sortFilteredPersonList(reverseByName);
+        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()));
+
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
+                Messages.format(BENSON));
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.sortFilteredPersonList(reverseByName);
+        expectedModel.deletePerson(BENSON);
+
+        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_unknownId_throwsCommandException() {
+        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(new PersonId(99)));
+
+        assertCommandFailure(deleteCommand, model, String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, 99));
+    }
+
+    @Test
+    public void execute_idOfDeletedPerson_throwsCommandException() {
+        PersonId aliceId = ALICE.getId().orElseThrow();
+        model.deletePerson(ALICE);
+        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(aliceId));
+
+        assertCommandFailure(deleteCommand, model,
+                String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, aliceId.getValue()));
+    }
+
+    @Test
     public void toStringMethod() {
-        Index targetIndex = Index.fromOneBased(1);
-        DeleteCommand deleteCommand = new DeleteCommand(targetIndex);
-        String expected = DeleteCommand.class.getCanonicalName() + "{targetIndex=" + targetIndex + "}";
+        PersonTarget target = PersonTarget.ofId(new PersonId(1));
+        DeleteCommand deleteCommand = new DeleteCommand(target);
+        String expected = DeleteCommand.class.getCanonicalName() + "{target=" + target + "}";
         assertEquals(expected, deleteCommand.toString());
     }
 
