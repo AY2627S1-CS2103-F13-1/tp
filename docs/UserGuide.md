@@ -194,7 +194,7 @@ Examples:
 
 Shows contacts that have every specified complete tag. Unlike `find`, which matches partial text, `filter` matches only whole stored tag values.
 
-Format: `filter t/TAG [t/TAG]...`
+Format: `filter t/TAG [t/TAG]…​`
 
 * At least one `t/TAG` must be given, and `t/` may be repeated in any order.
 * A contact must contain **all** distinct specified tags. Additional tags on the contact do not prevent a match.
@@ -204,10 +204,12 @@ Format: `filter t/TAG [t/TAG]...`
 * Matching uses complete tag values: `filter t/policy` does not match `housing policy` or `policy researcher`. Use `find t/policy` when partial tag matching is wanted.
 * Each new `filter` examines all stored contacts and replaces any earlier `find` or `filter`; it does not narrow only the currently displayed list.
 * Archived contacts are included when their tags match.
-* `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort, and `list` restores the complete contact list.
+* `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort. `list` restores the active-contact view; `list all` restores the complete contact list.
 * Filtering is display-only: it does not add, edit, archive, restore, delete, or reorder stored contacts.
 
-Valid examples:
+Examples:
+
+**Valid:**
 
 * `filter t/housing` matches only the complete tag `housing`.
 * `filter t/housing policy` matches contacts tagged `housing policy`.
@@ -215,7 +217,7 @@ Valid examples:
 * `filter t/interviewee t/singapore t/economics` requires all three tags.
 * `filter t/Housing Policy t/EXPERT` demonstrates case-insensitive matching.
 
-Invalid examples:
+**Invalid:**
 
 * `filter` and `filter t/` do not provide a valid tag.
 * `filter housing t/expert` contains unsupported text before the first tag prefix.
@@ -273,7 +275,9 @@ For example, an unsupported order leaves the displayed contact list unchanged:
 
 ![Result of entering an invalid sort order](images/sortInvalidOrderResult.png)
 
-Valid examples:
+Examples:
+
+**Valid:**
 
 * `sort name` sorts names in ascending order.
 * `sort phone asc` sorts phone numbers numerically in ascending order.
@@ -281,7 +285,7 @@ Valid examples:
 * `sort tag` sorts by primary tag in ascending order and keeps untagged contacts last.
 * `sort NAME DESC` sorts names in descending order because both parameters are case-insensitive.
 
-Invalid examples:
+**Invalid:**
 
 * `sort` is missing the mandatory field.
 * `sort date` uses an unsupported field.
@@ -456,7 +460,7 @@ Action | Format, Examples
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
-**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/housing policy t/expert`
+**Filter** | `filter t/TAG [t/TAG]…​`<br> e.g., `filter t/housing policy t/expert`
 **List** | `list`, `list all` or `list archive`
 **Help** | `help`
 **Redo** | `redo`
