@@ -75,6 +75,18 @@ Every contact has an ID, a whole number shown as `ID: 3` on the contact's card. 
 * Type the ID as a plain number, e.g. `delete 3`.
 * IDs go up to 999999. Because IDs are never reused, no more contacts can be added once ID 999999 has been given out.
 
+### Contact details
+
+Field | Rules
+------|------
+Name `n/` | Letters, numbers and spaces. Must not start with a space.
+Phone `p/` | Digits only, at least 3 digits.
+Email `e/` | In the form `local-part@domain`, e.g. `jane@example.com`.
+Address `a/` | Any text, but not blank.
+Tag `t/` | Letters, numbers and spaces. Saved in lowercase.
+
+Two contacts can't have exactly the same name. Names are case-sensitive, so `John Doe` and `john doe` count as different contacts.
+
 ### Viewing help: `help`
 
 Shows a message explaining how to access the help page.
