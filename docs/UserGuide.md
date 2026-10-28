@@ -96,9 +96,9 @@ Shows a message explaining how to access the help page.
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a contact: `add`
 
-Adds a person to the address book.
+Adds a contact to ByLine.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
@@ -107,7 +107,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 * After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero. Tags can contain letters, numbers and spaces, and are saved in lowercase.
+A contact can have any number of tags, including zero. Tags can contain letters, numbers and spaces, and are saved in lowercase.
 </div>
 
 Examples:
@@ -116,7 +116,7 @@ Examples:
 
 ### Listing contacts: `list`
 
-Shows contacts in the address book.
+Shows contacts in ByLine.
 
 Formats:
 
@@ -126,9 +126,9 @@ Formats:
 * `all` and `archive` can be typed in upper or lower case, e.g. `list ARCHIVE`.
 * Any other input, such as `list archived`, shows an error listing the accepted formats, and the displayed list stays the same.
 
-### Editing a person: `edit`
+### Editing a contact: `edit`
 
-Edits an existing person in the address book.
+Edits an existing contact in ByLine.
 
 Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
@@ -136,8 +136,8 @@ Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is changed.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the contact's existing tags are removed; adding tags is not cumulative.
+* To remove all of a contact's tags, enter `t/` without a tag after it.
 * To add or remove only some tags, use [`tag`](#adding-tags-to-a-contact-tag) or [`untag`](#removing-tags-from-a-contact-untag) instead.
 * After the edit, ByLine shows the group the contact is in: your active contacts, or your archived contacts if the edited contact is archived. The edited contact stays in view.
 
@@ -305,9 +305,9 @@ Examples:
 * `sort name email` treats `email` as an invalid order.
 * `sort name asc extra` contains an extra argument.
 
-### Deleting a person: `delete`
+### Deleting a contact: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified contact from ByLine.
 
 Format: `delete ID`
 
@@ -348,9 +348,9 @@ Format: `restore ID`
 Examples:
 * `list archive` shows the archived contacts. If one of them shows `ID: 4`, `restore 4` restores it and it disappears from the archived list. Run `list` to see it among your active contacts.
 
-### Clearing all entries: `clear`
+### Clearing all contacts: `clear`
 
-Clears all entries from the address book.
+Clears all contacts from ByLine.
 
 Format: `clear`
 
