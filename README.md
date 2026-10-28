@@ -37,7 +37,19 @@ ByLine is designed for **journalists who manage numerous professional contacts**
 * **Filter contacts by exact tags**: Show contacts that have every specified complete tag, ignoring letter case.<br>
   e.g. `filter t/housing policy t/expert` shows only contacts tagged with both `housing policy` and `expert`
 * **Sort contacts**: Arrange the displayed contacts by a supported field in ascending or descending order.<br>
-  e.g. `sort name desc` — see the [User Guide](docs/UserGuide.md#sorting-displayed-contacts-sort) for details.
+  e.g. `sort name desc`
+* **Remove tags**: Remove only the tags you name and keep the rest.<br>
+  e.g. `untag 1 t/source`
+* **Archive and restore contacts**: Hide contacts you are no longer working with, without deleting them, and bring them back later.<br>
+  e.g. `archive 4`, then `restore 4`
+* **Switch list views**: Show your active contacts, only archived contacts, or every contact.<br>
+  e.g. `list archive`
+* **Undo and redo**: Reverse your last change, or redo a change you undid.<br>
+  e.g. `undo`, `redo`
+* **Back up and load contacts**: Save all your contacts to a file and load them back later.<br>
+  e.g. `export C:/backups/october`, then `load C:/backups/october`
+
+See the [User Guide](https://ay2627s1-cs2103-f13-1.github.io/tp/UserGuide.html) for every command, and the [Developer Guide](https://ay2627s1-cs2103-f13-1.github.io/tp/DeveloperGuide.html) for how ByLine is built.
 
 ## Acknowledgement of AB3
 
