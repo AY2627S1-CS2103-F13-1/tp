@@ -218,11 +218,11 @@ public class LogicManagerTest {
         logic = createLogic(model);
         logic.execute("delete 2");
         logic.execute("find Alice");
-        assertEquals(List.of(ALICE, DANIEL), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
 
         logic.execute(UndoCommand.COMMAND_WORD);
 
-        assertEquals(List.of(ALICE, DANIEL), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
         assertTrue(model.hasPerson(BENSON));
     }
 

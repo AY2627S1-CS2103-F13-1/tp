@@ -124,7 +124,7 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * gives every `Person` a `PersonId` when it is added, using a counter of the next ID to give out (see [Contact ID feature](#contact-id-feature)).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* keeps the displayed contacts in a `FilteredList` wrapped by a `SortedList`. See [Displayed-list layers](#displayed-list-layers) for how these lists form the view exposed to the UI.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -251,21 +251,19 @@ The tokenizer trims surrounding whitespace from each value but preserves interna
 
 The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
 
-`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results.
+`MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results. The predicate is applied through the [displayed-list layers](#displayed-list-layers).
 
 `MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
 
 ### Filter feature
 
-The execution flow is `AddressBookParser` → `FilterCommandParser` → `FilterCommand` → `HasAllTagsPredicate` → `ModelManager`.
-
 `AddressBookParser` delegates `filter` arguments to `FilterCommandParser`. The parser tokenizes only `PREFIX_TAG`, rejects a non-empty preamble, requires at least one `t/` occurrence, and retrieves every tag value with `ArgumentMultimap#getAllValues(PREFIX_TAG)`. It passes the complete collection to `ParserUtil#parseTags`, so filter uses the same validation, trimming, lowercase normalisation, and error message as the rest of the application. The returned `Set<Tag>` also collapses repeated case-equivalent tags into one condition.
 
-The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags. For every requested tag, it uses `Search#fuzzyEquals` to find a matching complete tag on the person. `fuzzyEquals` compares the two complete strings case-insensitively using Levenshtein distance and the same approximate one-third tolerance used by `find`. Queries shorter than three characters require exact case-insensitive equality to avoid overly broad results. A separate predicate is used instead of `EachFieldContainsSubstringPredicate` because `find` deliberately accepts partial tag substrings, whereas `filter` must not match `policy` against `housing policy`.
+The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`. The predicate defensively copies the required tags. For every requested tag, it uses `Search#fuzzyEquals` to find a matching complete tag on the person. `fuzzyEquals` compares the two complete strings case-insensitively using Levenshtein distance. Both `find` and `filter` use the shared tolerance `1.0 / 3.0` and allow `floor(query length / 3)` edits. Queries shorter than three characters therefore require exact case-insensitive equality. A separate predicate is used instead of `find`'s `MatchPersonPredicate` because `find` deliberately accepts partial tag substrings, whereas `filter` must not match `policy` against `housing policy`.
 
-When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. `ModelManager` applies the new predicate to the `FilteredList` backed by the full stored address book, rather than to the currently displayed subset. The same method clears the `SortedList` comparator, so a new filter replaces an earlier search or filter and resets a display-only sort. A later `sort` operates on the filtered view, while `list` restores all contacts. The predicate does not inspect archive status, so matching archived contacts are included.
+When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. Each filter evaluates the full stored address book instead of the currently displayed subset. The predicate does not inspect archive status, so matching archived contacts are included. See [Displayed-list layers](#displayed-list-layers) for how a new predicate replaces the displayed view and clears its previous sort.
 
-Filtering changes only the displayed view. It does not change `Person` or any stored contact data, so no `Person`, `Tag`, `JsonAdaptedPerson`, JSON schema, `PersonCard`, FXML, or main-layout change is required. The existing observable list pipeline updates the GUI automatically.
+Filtering changes only the displayed list; stored contact data never changes.
 
 #### Design considerations
 
@@ -294,9 +292,17 @@ Filtering changes only the displayed view. It does not change `Person` or any st
 
 `AddressBookParser` delegates the arguments of a `sort` command to `SortCommandParser`. The parser validates the mandatory field and optional order, normalises both case-insensitively, defaults a missing order to ascending, and creates a `SortCommand`.
 
-When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `AddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the persistent `AddressBook` list.
+When executed, `SortCommand` selects a comparator through `PersonComparator` and asks the model to sort the displayed contacts. The model retains the stored contacts in `VersionedAddressBook`, exposes the selected subset through a `FilteredList`, and applies the comparator to a `SortedList` layered over that filtered view. This changes the order observed by the UI without reordering the stored address-book data.
 
-Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `filter`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
+<a id="displayed-list-layers"></a>
+
+The displayed-list layers are shown below.
+
+<img src="images/DisplayedListClassDiagram.png" width="650" />
+
+`ModelManager#getFilteredPersonList()` returns the `SortedList`, so the UI always shows the filtered contacts in the current sort order.
+
+Text fields are compared case-insensitively, phone numbers numerically, and tags by their alphabetically first tag. For tag sorting, contacts without tags remain after tagged contacts in both ascending and descending order. The comparator applies name-ascending tie-breaking. `ModelManager` then preserves the prior displayed order for contacts that remain completely tied. `list`, `find`, `filter`, `add` and `edit` call `updateFilteredPersonList`, which clears the `SortedList` comparator before replacing the predicate.
 
 #### Design considerations
 
@@ -315,7 +321,7 @@ Each `Person` has an `archived` flag, which is `false` for new contacts. `Archiv
 
 `JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
 
-`ListCommandParser` turns `list`, `list all` and `list archive` into a `ListCommand` with the view `ACTIVE`, `ALL` or `ARCHIVED`. The keyword is trimmed and compared case-insensitively, and any other input throws a `ParseException` with `ListCommand.MESSAGE_USAGE`. Each view calls `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS`, `PREDICATE_SHOW_ALL_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`.
+`ListCommandParser` turns `list`, `list all` and `list archive` into a `ListCommand` with the view `ACTIVE`, `ALL` or `ARCHIVED`. The keyword is trimmed and compared case-insensitively, and any other input throws a `ParseException` with `ListCommand.MESSAGE_USAGE`. Each view calls `Model#updateFilteredPersonList` with `PREDICATE_SHOW_ACTIVE_PERSONS`, `PREDICATE_SHOW_ALL_PERSONS` or `PREDICATE_SHOW_ARCHIVED_PERSONS`. These predicates are applied through the [displayed-list layers](#displayed-list-layers).
 
 `ModelManager` starts with `PREDICATE_SHOW_ACTIVE_PERSONS`, so archived contacts are hidden when ByLine starts. `Model#addPerson` switches back to this predicate, since a new contact is never archived. `EditCommand` switches to `PREDICATE_SHOW_ARCHIVED_PERSONS` if the edited contact is archived and to `PREDICATE_SHOW_ACTIVE_PERSONS` otherwise, so the edited contact stays displayed.
 
@@ -682,7 +688,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC06 - Sort displayed contacts<br>
 **Actor:** Journalist
 
@@ -690,35 +696,35 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1. Journalist views a list of contacts.
 2. Journalist requests to sort the displayed contacts, specifying a supported field and optionally an order.
-3. Byline reorders the displayed contacts and shows the successful sort message.
+3. ByLine reorders the displayed contacts and shows the successful sort message.
 
    Use case ends.
 
 **Extensions**
 
 * 2a. The field is invalid.
-  * 2a1. Byline shows `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
-  * 2a2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2a1. ByLine shows an error message listing the valid fields. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2b. The order is invalid.
-  * 2b1. Byline shows `Invalid sort order. ORDER must be asc or desc.`
-  * 2b2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2b1. ByLine shows an error message listing the valid orders. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2c. The field is missing.
-  * 2c1. Byline shows the invalid command format message and `Usage: sort FIELD [ORDER]`.
-  * 2c2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2c1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2d. Extra arguments are supplied.
-  * 2d1. Byline shows the invalid command format message and `Usage: sort FIELD [ORDER]`.
-  * 2d2. The displayed list remains unchanged.
 
-    Use case resumes at step 1.
+    * 2d1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 **System:** Byline<br>
 **Use case:** UC07 - Archive a contact<br>
@@ -827,33 +833,36 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * The contact's other tags and details are unchanged.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC10 - Filter contacts by fuzzy complete tags<br>
 **Actor:** Journalist
 
 **MSS**
 
 1. Journalist requests to filter contacts using one or more complete tags.
-2. Byline shows contacts with a fuzzy whole-tag match for every specified tag and reports the number listed.
+2. ByLine shows contacts with a fuzzy whole-tag match for every specified tag and reports the number listed.
 
    Use case ends.
 
 **Extensions**
 
 * 1a. No tag is given, unsupported text is present, or an unsupported prefix is used.
-  * 1a1. Byline shows the invalid command format message and leaves the displayed list unchanged.
 
-    Use case resumes at step 1.
+    * 1a1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 1b. A tag is blank or contains characters other than letters, numbers and spaces.
-  * 1b1. Byline shows the tag validation message and leaves the displayed list unchanged.
 
-    Use case resumes at step 1.
+    * 1b1. ByLine shows an error message describing the valid tag format. The displayed list is unchanged.
+
+      Use case resumes at step 1.
 
 * 2a. No contact has every specified tag.
-  * 2a1. Byline shows an empty list and reports `0 person(s) listed!`.
 
-    Use case ends.
+    * 2a1. ByLine shows an empty list.
+
+      Use case ends.
 
 **Guarantees**
 
@@ -1105,7 +1114,7 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `filter t/expert`, then `sort name desc`<br>
       Expected: Only fuzzy whole-tag matches for `expert` remain and are displayed by descending name. Stored contact order is unchanged.
 
-   1. Test case: `list`<br>
+   1. Test case: `list all`<br>
       Expected: The complete contact list is restored in stored order.
 
 1. Rejecting invalid filter commands
@@ -1128,7 +1137,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Sorting valid displayed lists
 
-   1. Prerequisites: Start Byline with multiple contacts displayed, including contacts whose names differ in case, phone numbers with leading zeroes, contacts with multiple tags, and contacts without tags. Note the displayed and stored order.
+   1. Prerequisites: Start ByLine with multiple contacts displayed, including contacts whose names differ in case, phone numbers with leading zeroes, contacts with multiple tags, and contacts without tags. Note the displayed and stored order.
 
    1. Test case: `sort name desc`<br>
       Expected: Contacts are displayed by name in descending, case-insensitive order. The result is `Sorted contacts by name in descending order.` The stored order is unchanged.

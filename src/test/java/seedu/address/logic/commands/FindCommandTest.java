@@ -67,10 +67,10 @@ public class FindCommandTest {
 
     @Test
     public void execute_typoInQuery_matchesWithinTolerance() {
-        assertSearchResults("Bensn", BENSON, GEORGE);
+        assertSearchResults("Bensn", BENSON);
         assertSearchResults(" n/Bensn e/johnd t/Mony", BENSON);
         assertSearchResults(" n/Bezzon", BENSON);
-        assertSearchResults(" n/Bensn t/Mozzy", BENSON);
+        assertSearchResults(" n/Bensn t/Mozzy");
         assertSearchResults(" n/zzzzzz");
         assertSearchResults(" n/Bensn t/zzzzz");
     }

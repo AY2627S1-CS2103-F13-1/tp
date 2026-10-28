@@ -14,8 +14,6 @@ import seedu.address.model.tag.Tag;
  * Tests that a {@code Person} has a fuzzy whole-tag match for every required tag.
  */
 public class HasAllTagsPredicate implements Predicate<Person> {
-    private static final double TAG_MATCH_TOLERANCE = 0.3333333; // approximately 1/3
-
     private final Set<Tag> requiredTags;
 
     /**
@@ -30,7 +28,7 @@ public class HasAllTagsPredicate implements Predicate<Person> {
     public boolean test(Person person) {
         return requiredTags.stream().allMatch(requiredTag ->
                 person.getTags().stream().anyMatch(personTag ->
-                        Search.fuzzyEquals(personTag.tagName, requiredTag.tagName, TAG_MATCH_TOLERANCE)));
+                        Search.fuzzyEquals(personTag.tagName, requiredTag.tagName)));
     }
 
     @Override
