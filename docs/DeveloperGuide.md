@@ -960,6 +960,54 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
+**System:** ByLine<br>
+**Use case:** UC13 - Edit a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to edit a contact, giving its ID and new values for one or more of its details
+2.  ByLine updates the contact, replacing its tags if new tags are given, and shows the details of the edited contact
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The ID is not a valid contact ID (e.g. `0` or `abc`).
+
+    * 1a1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. No contact has the given ID.
+
+    * 1b1. ByLine shows an error message stating that no contact has that ID.
+
+      Use case resumes at step 1.
+
+* 1c. No details to change are given.
+
+    * 1c1. ByLine shows an error message stating that at least one detail must be given.
+
+      Use case resumes at step 1.
+
+* 1d. One or more of the new values is invalid (e.g. the phone number contains non-digit characters).
+
+    * 1d1. ByLine shows an error message describing the valid format of that detail.
+
+      Use case resumes at step 1.
+
+* 1e. The new name is the same as another contact's name.
+
+    * 1e1. ByLine shows an error message stating that the contact already exists.
+
+      Use case resumes at step 1.
+
+**Guarantees**
+
+* The contact is changed only if all given values are valid.
+* The contact keeps its ID.
+
 ### Non-Functional Requirements
 
 These requirements define the quality targets and operating constraints for ByLine.
