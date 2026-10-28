@@ -989,12 +989,9 @@ These requirements define the quality targets and operating constraints for ByLi
 
 ### Glossary
 
-The terms below are used consistently throughout the requirements, design, implementation, and testing sections of this guide.
-
 * **AB3**: AddressBook Level 3, the application on which ByLine is based. Some inherited class names and implementation details continue to use AB3 terminology.
 * **Address**: The free-text field used to record a contact's address or general location.
 * **Address book**: The internal collection that stores all contact records. This name is inherited from AB3 and is represented by the `AddressBook` class in the codebase.
-* **AND search**: A search involving multiple criteria in which a contact must satisfy every specified criterion to be included in the results.
 * **ByLine**: A desktop, CLI-based contact-management application that helps journalists organise and retrieve professional contacts relevant to their reporting. Users interact with ByLine primarily by typing commands, while a GUI displays their contacts and command results.
 * **Case-insensitive matching**: Comparing text without treating uppercase and lowercase letters as different. For example, `Housing` and `housing` are considered equivalent.
 * **CLI (Command Line Interface)**: A text-based interface through which users operate ByLine by typing commands.
@@ -1004,21 +1001,18 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Contact**: A person whose details a journalist stores in ByLine because the person may be relevant to current or future reporting.
 * **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
-* **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
+* **Displayed contact list**: The contacts currently shown. `list`, `find` and `filter` choose which contacts are shown, and `sort` sets their order.
 * **Duplicate contact**: A contact whose name matches an existing contact's name after letter case is ignored and each
   run of spaces is treated as one space. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
 * **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
-* **Filtered contact list**: The internal list of contacts that satisfy the current search criteria. It provides the data shown in the displayed contact list.
+* **Filtered contact list**: The internal list behind the displayed contact list. It holds the contacts chosen to be shown, before `sort` orders them.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
 * **Interviewee**: A contact whom a journalist has interviewed or intends to interview.
 * **Journalist**: The target user of ByLine, who manages professional contacts for reporting purposes and prefers a command-driven desktop application.
-* **Mainstream OS**: Windows, Linux, Unix, or macOS.
-* **MVP (Minimum Viable Product)**: The smallest set of features required for ByLine to provide its intended core value to journalists.
 * **Partial match**: A match that occurs when a search value appears within a stored field without being equal to the complete field value.
 * **Person**: The internal model entity used to represent a contact. This term is inherited from AB3 and appears in class names such as `Person` and `UniquePersonList`; user-facing documentation should use **contact** instead.
-* **Potential source**: A contact who may be able to provide information for a story but has not necessarily been approached or interviewed.
 * **Search criterion**: A field and value used to restrict search results, such as a name, phone number, email address, address, or tag.
 * **Source**: A contact who provides, or may provide, information, evidence, background, or commentary for a journalist's reporting.
 * **Story**: A news article, investigation, or other reporting assignment on which a journalist is working.
