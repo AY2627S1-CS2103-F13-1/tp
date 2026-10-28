@@ -1014,8 +1014,7 @@ These requirements define the quality targets and operating constraints for ByLi
 
 1. **Keyboard usability:** After launch, journalists should be able to add, list, edit, delete, tag,
    search, and filter contacts using only the keyboard.
-2. **Error guidance:** Invalid command syntax or contact details should produce a visible error
-   message explaining the accepted command format or the relevant field constraint.
+2. **Typing speed:** A journalist who types quickly should be able to complete most tasks faster with commands than with the mouse.
 3. **Capacity and performance:** ByLine should support 1,000 contacts. With that dataset, adding,
    listing, editing, deleting, tagging, searching, and filtering contacts should each display a result within
    one second on a machine with at least a dual-core 2 GHz processor, 8 GB RAM, local SSD storage,
@@ -1029,11 +1028,6 @@ These requirements define the quality targets and operating constraints for ByLi
    configured data location is writable, each successfully completed command that changes contacts
    should save the updated data without a separate save action. Restarting ByLine should restore
    the saved contact details and tags.
-7. **Input reliability:** A command rejected because of invalid syntax, invalid field values, or
-   an invalid or unknown contact ID should leave existing contact records unchanged and allow the user
-   to enter another command without restarting ByLine.
-8. **Storage failure reporting:** If saving contact data fails, ByLine should show a visible error
-   indicating that the save failed, rather than reporting the command as successfully completed.
 
 ### Glossary
 
