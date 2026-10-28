@@ -82,6 +82,7 @@ The `UI` component,
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
+* displays each contact's ID, tags, and archived status through `PersonCard`. The ID (e.g., `ID: 3`) identifies the contact for ID-based commands, while archived contacts show `[Archived]` beside their names.
 
 ### Logic component
 
