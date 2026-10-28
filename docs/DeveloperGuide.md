@@ -378,8 +378,6 @@ Other commands, such as `find`, `tag` and `delete`, treat archived contacts like
 
 ### Undo/redo feature
 
-#### Implementation
-
 The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as `states`, a list of `AddressBook` copies, and `currentStateIndex`. It implements the following operations:
 
 * `VersionedAddressBook#commit()` — Saves the current address book state in its history, unless it is the same as the current saved state.
@@ -452,9 +450,9 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 <img src="images/CommitActivityDiagram.png" width="250" />
 
-#### Design considerations:
+#### Design considerations
 
-**Aspect: How undo & redo execute:**
+**Aspect: How undo and redo execute**
 
 * **Alternative 1 (current choice):** Saves the entire address book.
   * Pros: Easy to implement. Saved states share the same immutable `Person` objects, so each state costs only a list of references.
@@ -465,7 +463,7 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-**Aspect: Where states are saved:**
+**Aspect: Where states are saved**
 
 * **Alternative 1 (current choice):** `LogicManager` calls `Model#commitAddressBook()` after every successful command, and `VersionedAddressBook#commit()` skips states that equal the current one.
   * Pros: Commands need no undo-related code, and new commands that change data are undoable automatically.
@@ -475,7 +473,7 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Commands that do not change data cost nothing extra.
   * Cons: Every new command that changes data must remember the call, or it silently cannot be undone.
 
-**Aspect: What happens to the ID counter on undo:**
+**Aspect: What happens to the ID counter on undo**
 
 * **Alternative 1 (current choice):** The counter is part of each saved state, so undo rolls it back.
   * Pros: Undo restores the address book exactly as it was, and an undone `add` leaves no gap in the IDs.
