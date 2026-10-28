@@ -19,7 +19,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 
 3. Copy the file to the folder you want to use as the _home folder_ for your ByLine.
 
-4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar ByLine.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
