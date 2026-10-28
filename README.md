@@ -28,7 +28,7 @@ ByLine is designed for **journalists who manage numerous professional contacts**
   e.g. `add n/Jane Tan p/91234567 e/jane@example.com a/12 Kent Ridge Road t/economist`
 * **List contacts**: View all the contacts stored in ByLine.<br>
   e.g. `list`
-* **Delete a contact**: Remove a contact using its index in the displayed list.<br>
+* **Delete a contact**: Remove a contact using the ID shown on its card.<br>
   e.g. `delete 2`
 * **Tag contacts**: Categorise contacts with tags such as their area of expertise, so related contacts are easy to group.<br>
   e.g. `edit 1 t/politics t/source`
