@@ -247,7 +247,24 @@ The predicate combines the following conditions with AND. Matching is case-insen
 * **Field substrings:** `getValue(...)` returns an `Optional<String>` for each of the name, phone, email and address prefixes. An absent prefix imposes no restriction. A present substring must occur within its corresponding field. If a prefix is repeated, `getValue(...)` returns its last value.
 * **Tag substrings:** `getAllValues(PREFIX_TAG)` returns every supplied tag substring. Each must match at least one tag, but multiple substrings may match the same tag. An empty list imposes no tag restriction.
 
-The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix. For example, `find example n/Alex` requires `example` in any searchable field and `Alex` in the name, whereas `find n/Alex example` requires the name to contain `Alex example`.
+The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix.
+
+Example: `find example n/Alex t/fri`
+
+Part of the command | Read as | A contact matches if
+--------------------|---------|---------------------
+`example` (before the first prefix) | general substring (preamble) | its name, phone, email, address or one of its tags contains `example`
+`n/Alex` | name substring | its name contains `Alex`
+`t/fri` | tag substring | at least one of its tags contains `fri`
+
+If a general substring is used, it must be placed before any prefixed substrings. In `find n/Alex example` there is no preamble, so search returns contacts whose names contain `Alex example`, if any.
+
+Other allowed combinations of the find command include:
+* `find example`: returns contacts that contain "example" in any field.
+* `find n/Alex`: returns contacts that contain "Alex" in their name.
+* `find t/fri`: returns contacts that contain "fri" in their tags.
+* `find n/Alex t/Fri` or `find t/fri n/Alex`: returns contacts that contain "Alex" in their name and "fri" in their tags.
+* `find`: returns an empty list.
 
 The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
 
