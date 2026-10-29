@@ -101,10 +101,10 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+2. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
+3. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+4. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -174,8 +174,8 @@ Once ID 999999 has been given out, the counter is 1000000 and `AddressBook#hasAv
 #### Selecting a contact by ID
 
 1. The command's parser calls `ParserUtil#parsePersonTarget`, which reads the number before the first prefix, e.g. the `3` in `edit 3 p/91234567`. Anything that is not a whole number from 1 to 999999 gives the invalid command format message.
-1. The parser creates the command with a `PersonTarget` for that ID.
-1. When the command runs, `PersonTarget#resolve(Model)` calls `Model#findPersonById`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. If no contact has the ID, `resolve` throws a `CommandException` with `No contact has the ID 3.`
+2. The parser creates the command with a `PersonTarget` for that ID.
+3. When the command runs, `PersonTarget#resolve(Model)` calls `Model#findPersonById`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. If no contact has the ID, `resolve` throws a `CommandException` with `No contact has the ID 3.`
 
 New commands that act on one contact should use `parsePersonTarget` and `PersonTarget`, so that every command reads IDs the same way.
 
@@ -1002,17 +1002,17 @@ testers are expected to do more *exploratory* testing.
 
    1. Download the JAR file and copy it into an empty folder.
 
-   1. Double-click the JAR file.<br>
+   2. Double-click the JAR file.<br>
       Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
 
-1. Saving window preferences
+2. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   2. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases …​ }_
+3. _{ more test cases …​ }_
 
 ### Deleting a person
 
@@ -1020,27 +1020,27 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Multiple contacts exist. Note the ID shown on one contact's card, e.g. `ID: 2`.
 
-   1. Test case: `delete 2`<br>
+   2. Test case: `delete 2`<br>
       Expected: The contact with ID 2 is deleted, wherever it appears in the list. The status message shows the deleted contact's details.
 
-   1. Test case: Run `find` so that the contact with ID 3 is not shown, then enter `delete 3`.<br>
+   3. Test case: Run `find` so that the contact with ID 3 is not shown, then enter `delete 3`.<br>
       Expected: The contact with ID 3 is deleted even though it was not shown.
 
-   1. Test case: `delete 2` again<br>
+   4. Test case: `delete 2` again<br>
       Expected: Nothing is deleted. The status message is `No contact has the ID 2.`
 
-   1. Test case: `delete 0`<br>
+   5. Test case: `delete 0`<br>
       Expected: Nothing is deleted. The status message shows the invalid command format message.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `delete C3`, `delete 1000000`<br>
+   6. Other incorrect delete commands to try: `delete`, `delete x`, `delete C3`, `delete 1000000`<br>
       Expected: Similar to previous.
 
-1. IDs are not reused
+2. IDs are not reused
 
    1. Test case: Delete the contact with the highest ID, then add a new contact.<br>
       Expected: The new contact gets the next ID after the deleted one, not the deleted ID.
 
-1. _{ more test cases …​ }_
+3. _{ more test cases …​ }_
 
 ### Finding contacts
 
@@ -1048,34 +1048,34 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Start with the sample data.
 
-   1. Test case: `find yu`<br>
+   2. Test case: `find yu`<br>
       Expected: Only contacts with `yu` somewhere in their details, in any upper/lower case, are shown. The status message shows how many contacts are listed.
 
-   1. Test case: `find`<br>
+   3. Test case: `find`<br>
       Expected: No contacts are displayed. The status message is `0 person(s) listed!`.
 
-1. Searching specific fields
+2. Searching specific fields
 
    1. Test case: `find n/al t/fri`<br>
       Expected: Only contacts whose name contains `al` and that have a tag containing `fri` are shown.
 
-   1. Test case: `find hello n/Alex`<br>
+   2. Test case: `find hello n/Alex`<br>
       Expected: No contacts are displayed with the sample data, because Alex's details do not contain `hello`.
 
-   1. Test case: `find n/Al n/Be`<br>
+   3. Test case: `find n/Al n/Be`<br>
       Expected: Only Bernice Yu is displayed with the sample data. The last name substring, `Be`, is used.
 
-1. Combining general and field searches
+3. Combining general and field searches
 
    1. Prerequisites: Start with the sample data.
 
-   1. Test case: `find example n/Alex t/fri`<br>
+   2. Test case: `find example n/Alex t/fri`<br>
       Expected: Only Alex Yeoh is displayed. His email contains `example`, his name contains `Alex`, and his `friends` tag contains `fri`.
 
-   1. Test case: `find n/Alex example`<br>
+   3. Test case: `find n/Alex example`<br>
       Expected: No contacts are displayed. The whole text `Alex example` is searched within the name.
 
-   1. Test case: `find example t/fri n/Alex`<br>
+   4. Test case: `find example t/fri n/Alex`<br>
       Expected: Only Alex Yeoh is displayed, as with the first combined search. Prefix order does not affect the result.
 
 ### Filtering contacts by exact tags
@@ -1084,41 +1084,41 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Create contacts so that Alex has `housing policy` and `expert`, Beth has `housing policy`, Carlos has `expert` and `economics`, and at least one matching contact is archived.
 
-   1. Test case: `list`, then `filter t/expert`<br>
+   2. Test case: `list`, then `filter t/expert`<br>
       Expected: Every stored contact tagged exactly `expert` is shown, including archived matches. The result reports the number listed.
 
-   1. Test case: `filter t/housing policy t/expert`<br>
+   3. Test case: `filter t/housing policy t/expert`<br>
       Expected: Only Alex is shown because every specified tag is required.
 
-   1. Test case: `filter t/housing`<br>
+   4. Test case: `filter t/housing`<br>
       Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result is `0 person(s) listed!`.
 
-   1. Test case: `filter t/EXPERT`, then `filter t/expert t/EXPERT`<br>
+   5. Test case: `filter t/EXPERT`, then `filter t/expert t/EXPERT`<br>
       Expected: Both commands show the same contacts because matching ignores case and repeated equivalent tags form one condition.
 
-   1. Test case: `find t/exp`, then `filter t/expert`<br>
+   6. Test case: `find t/exp`, then `filter t/expert`<br>
       Expected: `find` uses partial substring matching, while `filter` uses exact tag matching. Each command evaluates all stored contacts rather than the preceding result subset.
 
-   1. Test case: `filter t/expert`, then `sort name desc`<br>
+   7. Test case: `filter t/expert`, then `sort name desc`<br>
       Expected: Only exact `expert` matches remain and are displayed by descending name. Stored contact order is unchanged.
 
-   1. Test case: `list all`<br>
+   8. Test case: `list all`<br>
       Expected: The complete contact list is restored in stored order.
 
-1. Rejecting invalid filter commands
+2. Rejecting invalid filter commands
 
    1. Prerequisites: Display and sort multiple contacts, then note their order.
 
-   1. Test case: `filter t/`<br>
+   2. Test case: `filter t/`<br>
       Expected: The displayed list and ordering are unchanged. The result is `Tag names should contain only letters, numbers and spaces`.
 
-   1. Test case: `filter t/housing-policy`<br>
+   3. Test case: `filter t/housing-policy`<br>
       Expected: The displayed list and ordering are unchanged. The result is `Tag names should contain only letters, numbers and spaces`.
 
-   1. Test case: `filter`, `filter housing t/expert`, and `filter n/Alex`<br>
+   4. Test case: `filter`, `filter housing t/expert`, and `filter n/Alex`<br>
       Expected: The displayed list and ordering are unchanged. The result shows `Invalid command format!` followed by the `filter` usage text.
 
-   1. Test case: `filter t/expert t/housing-policy`<br>
+   5. Test case: `filter t/expert t/housing-policy`<br>
       Expected: The entire command fails with the tag validation message; the valid `expert` condition is not applied.
 
 ### Sorting displayed contacts
@@ -1127,38 +1127,38 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Start ByLine with multiple contacts displayed, including contacts whose names differ in case, phone numbers with leading zeroes, contacts with multiple tags, and contacts without tags. Note the displayed and stored order.
 
-   1. Test case: `sort name desc`<br>
+   2. Test case: `sort name desc`<br>
       Expected: Contacts are displayed by name in descending, case-insensitive order. The result is `Sorted contacts by name in descending order.` The stored order is unchanged.
 
-   1. Test case: `sort phone`<br>
+   3. Test case: `sort phone`<br>
       Expected: Contacts are displayed by numeric phone value in ascending order. Leading zeroes do not affect numeric order, phone ties use name-ascending order, and the result is `Sorted contacts by phone in ascending order.`
 
-   1. Test case: `sort tag desc`<br>
+   4. Test case: `sort tag desc`<br>
       Expected: Each contact's alphabetically first tag is used, tagged contacts are displayed in descending primary-tag order, untagged contacts remain last, and ties use name-ascending order.
 
-   1. Test case: Run a search, then enter `sort email asc`.<br>
+   5. Test case: Run a search, then enter `sort email asc`.<br>
       Expected: Only the search results are reordered by complete email address. No contact is added, removed, or edited.
 
-   1. Test case: After a sort, run `list`, then run a new search.<br>
+   6. Test case: After a sort, run `list`, then run a new search.<br>
       Expected: Each command replaces the sorted display with its normal unsorted result. The stored order remains unchanged.
 
-   1. Test case: `sort address asc` when zero or one contact is displayed.<br>
+   7. Test case: `sort address asc` when zero or one contact is displayed.<br>
       Expected: The command succeeds and shows `Sorted contacts by address in ascending order.`
 
-1. Rejecting invalid sort commands
+2. Rejecting invalid sort commands
 
    1. Prerequisites: Display multiple contacts and note their order.
 
-   1. Test case: `sort`<br>
+   2. Test case: `sort`<br>
       Expected: The displayed order is unchanged. The result shows `Invalid command format!` followed by `Usage: sort FIELD [ORDER]`.
 
-   1. Test case: `sort date`<br>
+   3. Test case: `sort date`<br>
       Expected: The displayed order is unchanged. The result is `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
 
-   1. Test case: `sort name upward`<br>
+   4. Test case: `sort name upward`<br>
       Expected: The displayed order is unchanged. The result is `Invalid sort order. ORDER must be asc or desc.`
 
-   1. Test case: `sort name asc extra`<br>
+   5. Test case: `sort name asc extra`<br>
       Expected: The displayed order is unchanged. The result shows `Invalid command format!` followed by `Usage: sort FIELD [ORDER]`.
 
 ### Archiving and restoring contacts
@@ -1167,36 +1167,36 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Run `list`. A contact with ID 2 exists and is not archived.
 
-   1. Test case: `archive 2`<br>
+   2. Test case: `archive 2`<br>
       Expected: The contact with ID 2 disappears from the displayed list. The status message shows the archived contact.
 
-   1. Test case: `archive 2` again<br>
+   3. Test case: `archive 2` again<br>
       Expected: Nothing changes. The status message is `This person is already archived.`
 
-   1. Test case: `list`, then `list archive`, then `list all`<br>
+   4. Test case: `list`, then `list archive`, then `list all`<br>
       Expected: `list` hides the contact with ID 2. `list archive` shows only archived contacts, including ID 2, whose card shows `[Archived]` after the name. `list all` shows all contacts, including ID 2.
 
-   1. Test case: `list archived`, then `list ALL`<br>
+   5. Test case: `list archived`, then `list ALL`<br>
       Expected: For `list archived`, the displayed list is unchanged and the status message shows `Invalid command format!` followed by the accepted `list` formats. `list ALL` shows all contacts.
 
-   1. Test case: Close and reopen ByLine.<br>
+   6. Test case: Close and reopen ByLine.<br>
       Expected: The contact with ID 2 is not shown at startup. `list archive` shows it, still archived.
 
-1. Editing an archived contact
+2. Editing an archived contact
 
    1. Prerequisites: The contact with ID 2 is archived. Run `list`.
 
-   1. Test case: `edit 2 p/91234567`<br>
+   2. Test case: `edit 2 p/91234567`<br>
       Expected: Byline switches to the archived contacts. The contact with ID 2 is shown with the new phone number and is still archived.
 
-1. Restoring a contact
+3. Restoring a contact
 
    1. Prerequisites: The contact with ID 2 is archived. Run `list archive`.
 
-   1. Test case: `restore 2`<br>
+   2. Test case: `restore 2`<br>
       Expected: The contact with ID 2 disappears from the archived list. The status message shows the restored contact. `list` shows it without `[Archived]`.
 
-   1. Test case: `restore 2` again<br>
+   3. Test case: `restore 2` again<br>
       Expected: Nothing changes. The status message is `This person is not archived.`
 
 ### Tagging and untagging contacts
@@ -1205,26 +1205,26 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Start with the sample data, in which the contact with ID 2 has the tags `colleagues` and `friends`.
 
-   1. Test case: `tag 2 t/Expert t/housing policy`<br>
+   2. Test case: `tag 2 t/Expert t/housing policy`<br>
       Expected: The card for ID 2 shows `colleagues`, `expert`, `friends` and `housing policy`. The status message shows the updated contact.
 
-   1. Test case: `tag 2`<br>
+   3. Test case: `tag 2`<br>
       Expected: No tags are changed. The status message shows the invalid command format message.
 
-   1. Test case: `tag 2 t/#expert`<br>
+   4. Test case: `tag 2 t/#expert`<br>
       Expected: No tags are changed. The status message is `Tag names should contain only letters, numbers and spaces`.
 
-   1. Test case: `tag 99 t/expert`, when no contact has ID 99<br>
+   5. Test case: `tag 99 t/expert`, when no contact has ID 99<br>
       Expected: No tags are changed. The status message is `No contact has the ID 99.`
 
-1. Removing tags
+2. Removing tags
 
    1. Prerequisites: The contact with ID 2 has the tags `colleagues`, `expert`, `friends` and `housing policy`.
 
-   1. Test case: `untag 2 t/EXPERT t/housing policy`<br>
+   2. Test case: `untag 2 t/EXPERT t/housing policy`<br>
       Expected: The card for ID 2 shows only `colleagues` and `friends`.
 
-   1. Test case: `untag 2`<br>
+   3. Test case: `untag 2`<br>
       Expected: No tags are changed. The status message shows the invalid command format message.
 
 ### Undoing and redoing changes
@@ -1233,35 +1233,35 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Start ByLine with the sample data and run `list`.
 
-   1. Test case: `undo`<br>
+   2. Test case: `undo`<br>
       Expected: Nothing changes. The status message is `There is nothing to undo.`
 
-   1. Test case: `delete 2`, then `undo`<br>
+   3. Test case: `delete 2`, then `undo`<br>
       Expected: The contact with ID 2 is back. The status message is `Undid the last change.`
 
-   1. Test case: `delete 2`, then `find Alex`, then `undo`<br>
+   4. Test case: `delete 2`, then `find Alex`, then `undo`<br>
       Expected: Only the contacts matching `Alex` are still shown. `list` shows the contact with ID 2 again.
 
-   1. Test case: `add n/Test p/123 e/t@example.com a/Street`, note the new contact's ID, then `undo`, then the same `add` again<br>
+   5. Test case: `add n/Test p/123 e/t@example.com a/Street`, note the new contact's ID, then `undo`, then the same `add` again<br>
       Expected: `undo` removes the contact, and the second `add` gives the new contact the same ID.
 
-   1. Test case: `undo 3`<br>
+   6. Test case: `undo 3`<br>
       Expected: Nothing changes. The status message shows `Invalid command format!` followed by the `undo` usage.
 
-   1. Test case: Make a change, close and reopen ByLine, then `undo`<br>
+   7. Test case: Make a change, close and reopen ByLine, then `undo`<br>
       Expected: The status message is `There is nothing to undo.`
 
-1. Redoing changes
+2. Redoing changes
 
    1. Prerequisites: Run `delete 2`, then `undo`.
 
-   1. Test case: `list`, then `redo`<br>
+   2. Test case: `list`, then `redo`<br>
       Expected: The contact with ID 2 is deleted again. The status message is `Redid the last undone change.`
 
-   1. Test case: `redo` again<br>
+   3. Test case: `redo` again<br>
       Expected: Nothing changes. The status message is `There is nothing to redo.`
 
-   1. Test case: `undo`, then `add n/Test p/123 e/t@example.com a/Street`, then `redo`<br>
+   4. Test case: `undo`, then `add n/Test p/123 e/t@example.com a/Street`, then `redo`<br>
       Expected: The status message is `There is nothing to redo.` The contact with ID 2 is still there.
 
 ### Saving data
@@ -1270,4 +1270,4 @@ testers are expected to do more *exploratory* testing.
 
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
-1. _{ more test cases …​ }_
+2. _{ more test cases …​ }_
