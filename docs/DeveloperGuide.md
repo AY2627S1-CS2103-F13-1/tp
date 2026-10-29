@@ -124,6 +124,8 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* considers two `Person` objects duplicates when their names match after letter case is ignored and each run of spaces
+  is treated as one space. The name is otherwise stored exactly as entered.
 * gives every `Person` a `PersonId` when it is added, using a counter of the next ID to give out (see [Contact ID feature](#contact-id-feature)).
 * keeps the displayed contacts in a `FilteredList` wrapped by a `SortedList`. See [Displayed-list layers](#displayed-list-layers) for how these lists form the view exposed to the UI.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
@@ -598,7 +600,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1c. A contact with the same name already exists.
+* 1c. A contact with the same name already exists, ignoring letter case and repeated spaces.
 
     * 1c1. Byline shows an error message stating that the person already exists.
 
@@ -1010,7 +1012,8 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
 * **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
-* **Duplicate contact**: A contact whose name is exactly the same as an existing contact's name, including upper/lower case and spaces. ByLine does not allow duplicate contacts.
+* **Duplicate contact**: A contact whose name matches an existing contact's name after letter case is ignored and each
+  run of spaces is treated as one space. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
 * **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.

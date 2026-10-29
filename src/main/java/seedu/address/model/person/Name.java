@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+
 /**
  * Represents a Person's name in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}
@@ -38,6 +40,26 @@ public class Name {
         return test.matches(VALIDATION_REGEX);
     }
 
+    /**
+     * Returns true if both names are equivalent for duplicate detection.
+     * Letter case and repeated or surrounding spaces are ignored.
+     */
+    public boolean isSameName(Name otherName) {
+        if (otherName == this) {
+            return true;
+        }
+
+        return otherName != null
+                && normalizeForComparison(fullName).equals(normalizeForComparison(otherName.fullName));
+    }
+
+    /**
+     * Returns a canonical form of {@code name} for duplicate detection.
+     */
+    private static String normalizeForComparison(String name) {
+        String nameWithoutRepeatedSpaces = name.strip().replaceAll(" +", " ");
+        return nameWithoutRepeatedSpaces.toLowerCase(Locale.ROOT);
+    }
 
     @Override
     public String toString() {

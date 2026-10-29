@@ -7,9 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.model.Model.PREDICATE_SHOW_ARCHIVED_PERSONS;
 import static seedu.address.model.person.PersonComparator.getComparator;
-import static seedu.address.model.person.SortField.ADDRESS;
 import static seedu.address.model.person.SortField.EMAIL;
-import static seedu.address.model.person.SortOrder.ASCENDING;
 import static seedu.address.model.person.SortOrder.DESCENDING;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -290,27 +288,14 @@ public class ModelManagerTest {
 
     @Test
     public void sortFilteredPersonList_completeTies_preservesPreviousDisplayedOrder() {
-        Person upperCaseAmy = new PersonBuilder()
-                .withName("Amy")
-                .withEmail("same@example.com")
-                .withAddress("Alpha street")
-                .build();
-        Person lowerCaseAmy = new PersonBuilder()
-                .withName("amy")
-                .withEmail("SAME@example.com")
-                .withAddress("Zulu street")
-                .build();
-        AddressBook addressBook = new AddressBookBuilder()
-                .withPerson(upperCaseAmy).withPerson(lowerCaseAmy).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
         modelManager = new ModelManager(addressBook, new UserPrefs());
-        Person displayedUpperCaseAmy = modelManager.getFilteredPersonList().get(0);
-        Person displayedLowerCaseAmy = modelManager.getFilteredPersonList().get(1);
-        modelManager.sortFilteredPersonList(getComparator(ADDRESS, DESCENDING));
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+        List<Person> previousOrder = List.copyOf(modelManager.getFilteredPersonList());
 
-        modelManager.sortFilteredPersonList(getComparator(EMAIL, ASCENDING));
+        modelManager.sortFilteredPersonList((firstPerson, secondPerson) -> 0);
 
-        assertEquals(List.of(displayedLowerCaseAmy, displayedUpperCaseAmy),
-                modelManager.getFilteredPersonList());
+        assertEquals(previousOrder, modelManager.getFilteredPersonList());
     }
 
     @Test

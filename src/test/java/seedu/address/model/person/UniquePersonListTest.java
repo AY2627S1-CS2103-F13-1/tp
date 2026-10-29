@@ -10,6 +10,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,15 @@ public class UniquePersonListTest {
         Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
         assertTrue(uniquePersonList.contains(editedAlice));
+    }
+
+    @Test
+    public void contains_personWithNormalizedIdentityInList_returnsTrue() {
+        uniquePersonList.add(BOB);
+        String duplicateNameVariant = BOB.getName().toString().toUpperCase(Locale.ROOT).replace(" ", "  ");
+        Person editedBob = new PersonBuilder(BOB).withName(duplicateNameVariant).build();
+
+        assertTrue(uniquePersonList.contains(editedBob));
     }
 
     @Test
