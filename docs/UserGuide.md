@@ -23,7 +23,7 @@ ByLine is a **desktop contact manager for journalists**. It helps you keep track
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to show the command guide.<br>
    Some example commands you can try:
 
    * `list` : Lists all active (not archived) contacts.
@@ -87,14 +87,20 @@ Tag `t/` | Letters, numbers and spaces. Saved in lowercase.
 
 Two contacts can't have the same name. ByLine ignores upper/lower case and extra spaces when comparing names, so `John Doe` and `john doe` count as the same contact. Names are saved exactly as you typed them.
 
+### Viewing a contact's details
+
+Click a contact in the list to see all of its details, including whether it is archived, in the panel on the right. Until you select a contact, the panel shows "Select a contact to view details here."
+
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Shows the command guide in the panel on the right.
 
 ![help message](images/helpMessage.png)
 
 Format: `help`
 
+* You can also press `F1`, or choose **Help** from the menu.
+* Click any contact to show its details in the panel again.
 
 ### Adding a contact: `add`
 
@@ -477,7 +483,6 @@ Furthermore, certain edits can cause the ByLine to behave in unexpected ways (e.
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
