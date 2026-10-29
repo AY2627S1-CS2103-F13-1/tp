@@ -997,7 +997,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1e. Another contact already has the same name, ignoring letter case and repeated spaces.
+* 1e. Another contact already has the same name and phone number, ignoring letter case and repeated spaces in the name.
 
     * 1e1. ByLine shows an error message stating that the contact already exists.
 
@@ -1110,13 +1110,16 @@ testers are expected to do more *exploratory* testing.
    2. Test case: `add n/Jane Tan p/91234567 e/jane@example.com a/12 Kent Ridge Road t/economist`<br>
       Expected: Jane Tan is added with ID 7 and shown in the list of active contacts. The status message shows her details.
 
-   3. Test case: `add n/Jane Tan p/98765432 e/jt@example.com a/Clementi` (after the previous test case)<br>
-      Expected: No contact is added. An error says the contact already exists.
+   3. Test case: `add n/JANE TAN p/91234567 e/jt@example.com a/Clementi` (after the previous test case)<br>
+      Expected: No contact is added. An error says a contact with the same name and phone number already exists.
 
-   4. Test case: `add n/Kim Lee p/12ab e/kim@example.com a/Clementi`<br>
+   4. Test case: `add n/Jane Tan p/98765432 e/jt@example.com a/Clementi` (after the previous test case)<br>
+      Expected: A second Jane Tan is added with ID 8, because her phone number is different.
+
+   5. Test case: `add n/Kim Lee p/12ab e/kim@example.com a/Clementi`<br>
       Expected: No contact is added. The error describes the valid phone number format.
 
-   5. Other incorrect add commands to try: `add`, `add n/Kim Lee p/91234567`, `add n/Kim Lee p/91234567 e/kim a/Clementi`<br>
+   6. Other incorrect add commands to try: `add`, `add n/Kim Lee p/91234567`, `add n/Kim Lee p/91234567 e/kim a/Clementi`<br>
       Expected: No contact is added. An error message is shown.
 
 ### Listing contacts
@@ -1149,8 +1152,8 @@ testers are expected to do more *exploratory* testing.
    3. Test case: `edit 2 t/`<br>
       Expected: All of Bernice Yu's tags are removed.
 
-   4. Test case: `edit 1 n/Bernice Yu`<br>
-      Expected: Nothing is changed. An error says the contact already exists.
+   4. Test case: `edit 1 n/Bernice Yu p/99272758`<br>
+      Expected: Nothing is changed. An error says a contact with the same name and phone number already exists.
 
    5. Test case: `edit 1`<br>
       Expected: Nothing is changed. An error says at least one field must be given.
