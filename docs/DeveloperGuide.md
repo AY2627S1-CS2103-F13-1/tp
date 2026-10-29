@@ -278,23 +278,27 @@ The parser does not reject empty input or duplicate prefixes. With no preamble o
 
 #### Design considerations
 
-**Aspect: substring vs whole-keyword matching**
+**Aspect: Matching the entire search text versus any whole-word keyword**
 
-* **Alternative 1 (current choice): match if a field contains a specific substring**
-    * Pros: More specific
-    * Cons: Might not contain user's desired search result
-* **Alternative 2: match if a field contains a specific whole word**
-    * Pros: More broad
-    * Cons: Too many search results, although list would more likely contain user's desired contact, it would be harder for them to identify it.
+* **Alternative 1 (current choice): Match each search value as one consecutive substring.**
+  * Pros: Users can search using incomplete details, such as part of a name, phone number or email address. Spaces and word order remain meaningful: `Alex Yeoh` is treated as one search value instead of two alternatives, helping users narrow their search with a phrase.
+  * Cons: A phrase may miss a contact whose details contain the words in a different order or with additional text between them. Short substrings can still match unrelated contacts.
+* **Alternative 2 (original behavior): Split the input into keywords and match any complete keyword.**
+  * Pros: A contact can match even if the user remembers only one correct word. Word order and intervening text do not matter, and users can search for several alternative names in one command.
+  * Cons: Adding keywords broadens the search instead of narrowing it. For example, `Alex Yeoh` also matches `Alex Tan` and `Bernice Yeoh`, which can make the intended contact harder to identify. Whole-word matching also prevents searching with partial words.
 
-**Aspect: one combined predicate vs a separate predicate for each kind of search**
+Matching the entire search value supports finding contacts from partial details while preserving the meaning of multi-word phrases. The current implementation also falls back to approximate substring matching through `Search.substringThenLevenshtein`, allowing limited typing errors at the cost of potentially including additional matches.
 
-* **Alternative 1 (current choice): one combined predicate**
-    * Pros: one syntax to rule them all
-    * Cons: nothing?
-* **Alternative 2: Mutliple predicates, depending on which syntax is used**
-    * Pros: Predicates have separate code for different functions
-    * Cons: The code to choose which predicate to use is dependent on the syntax the user enters, which makes things very fragmented. This code could be moved from FindCommandParser.java to a predicate class.
+**Aspect: One combined predicate versus separate predicates for each search type**
+
+* **Alternative 1 (current choice): Use one `MatchPersonPredicate` for general, field and combined searches.**
+  * Pros: `FindCommandParser` follows the same construction path for every supported combination of arguments. The predicate keeps the AND relationship between general, field and tag conditions in one place, so combined searches do not require separate parser branches.
+  * Cons: The predicate handles several kinds of conditions and depends on the parser's `ArgumentMultimap` representation. Adding search options can make it harder to read and increases the combinations that need testing.
+* **Alternative 2: Use separate predicates for general and field-specific searches, composing them when needed.**
+  * Pros: Each predicate has a focused responsibility and can be tested or reused independently.
+  * Cons: The parser or a dedicated helper must select and compose the predicates for each combination of arguments. Shared matching rules may be duplicated unless they are extracted into common helpers.
+
+A combined predicate keeps construction simple while supporting general and prefixed conditions in the same command. Separate predicates would become more useful if the search types developed substantially different rules or needed independent reuse.
 
 ### Filter feature
 
