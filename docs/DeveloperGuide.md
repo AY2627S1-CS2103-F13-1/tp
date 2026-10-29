@@ -546,45 +546,39 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-**System:** Byline<br>
-**Use case:** UC01 - Delete a person<br>
+**System:** ByLine<br>
+**Use case:** UC01 - Delete a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list persons
-2.  Byline shows a list of persons
-3.  Journalist requests to delete a specific person by its ID
-4.  Byline deletes the person
+1.  Journalist requests to delete a specific contact by its ID
+2.  ByLine deletes the contact and shows the details of the deleted contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The given ID is not a whole number from 1 to 999999.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message stating the correct format.
 
-* 3a. The given ID is not a whole number from 1 to 999999.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message stating the correct format.
+* 1b. No contact has the given ID.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating that no contact has that ID.
 
-* 3b. No person has the given ID.
+      Use case resumes at step 1.
 
-    * 3b1. Byline shows an error message stating that no contact has that ID.
-
-      Use case resumes at step 2.
-
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC02 - Add a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
 1.  Journalist requests to add a contact, providing the contact's name, phone number, email and address, and optionally tags
-2.  Byline adds the contact and shows the details of the added contact
+2.  ByLine adds the contact and shows the details of the added contact
 
     Use case ends.
 
@@ -592,25 +586,25 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. A compulsory detail (name, phone number, email or address) is missing.
 
-    * 1a1. Byline shows an error message stating the correct format.
+    * 1a1. ByLine shows an error message stating the correct format.
 
       Use case resumes at step 1.
 
 * 1b. One or more of the given details is invalid (e.g. the phone number contains non-digit characters).
 
-    * 1b1. Byline shows an error message describing the valid format of that detail.
+    * 1b1. ByLine shows an error message describing the valid format of that detail.
 
       Use case resumes at step 1.
 
 * 1c. A contact with the same name and phone number already exists, ignoring letter case and repeated spaces in the name.
 
-    * 1c1. Byline shows an error message stating that the person already exists.
+    * 1c1. ByLine shows an error message stating that a contact with the same name and phone number already exists.
 
       Use case resumes at step 1.
 
 * 1d. Every contact ID up to 999999 has been used.
 
-    * 1d1. Byline shows an error message stating that no more contacts can be added.
+    * 1d1. ByLine shows an error message stating that no more contacts can be added.
 
       Use case ends.
 
@@ -618,14 +612,14 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * The contact is added only if all given details are valid.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC03 - List contacts<br>
 **Actor:** Journalist
 
 **MSS**
 
 1.  Journalist requests to list active contacts
-2.  Byline shows the contacts that are not archived
+2.  ByLine shows the contacts that are not archived
 
     Use case ends.
 
@@ -633,83 +627,83 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. Journalist requests to list all contacts instead.
 
-    * 1a1. Byline shows all contacts, including archived ones.
+    * 1a1. ByLine shows all contacts, including archived ones.
 
       Use case ends.
 
 * 1b. Journalist requests to list archived contacts instead.
 
-    * 1b1. Byline shows only the archived contacts.
+    * 1b1. ByLine shows only the archived contacts.
 
       Use case ends.
 
 * 1c. The request is not in a valid format.
 
-    * 1c1. Byline shows an error message with the accepted formats. The displayed list is unchanged.
+    * 1c1. ByLine shows an error message with the accepted formats. The displayed list is unchanged.
 
       Use case ends.
 
 * 2a. There are no contacts to show.
 
-    * 2a1. Byline shows an empty list.
+    * 2a1. ByLine shows an empty list.
 
       Use case ends.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC04 - Tag a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list contacts
-2.  Byline shows a list of contacts
-3.  Journalist requests to add one or more tags to a specific contact by its ID
-4.  Byline adds the tags to the contact and shows the updated contact
+1.  Journalist requests to add one or more tags to a specific contact by its ID
+2.  ByLine adds the tags to the contact and shows the updated contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message.
 
-* 3a. The given ID is not valid, or no contact has that ID.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message.
+* 1b. A given tag contains characters other than letters, numbers and spaces.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating that tags can contain only letters, numbers and spaces.
 
-* 3b. A given tag contains characters other than letters, numbers and spaces.
+      Use case resumes at step 1.
 
-    * 3b1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
+* 1c. The contact already has one of the given tags (ignoring upper/lower case).
 
-      Use case resumes at step 2.
-
-* 3c. The contact already has one of the given tags (ignoring upper/lower case).
-
-    * 3c1. Byline keeps the existing tag and adds the remaining tags.
-
-      Use case resumes at step 4.
-
-* 3d. No tag is given.
-
-    * 3d1. Byline shows an error message stating the correct format.
+    * 1c1. ByLine keeps the existing tag and adds the remaining tags.
 
       Use case resumes at step 2.
+
+* 1d. No tag is given.
+
+    * 1d1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1e. The contact already has every given tag.
+
+    * 1e1. ByLine shows an error message stating that no tags were added.
+
+      Use case resumes at step 1.
 
 **Guarantees**
 
 * A contact never has two tags that differ only in upper/lower case.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC05 - Search for contacts<br>
 **Actor:** Journalist
 
 **MSS**
 
 1.  Journalist requests to search for contacts, giving one or more search criteria (name, phone number, email, address and/or tag)
-2.  Byline shows the contacts that match all the given criteria
+2.  ByLine shows the contacts that match all the given criteria
 
     Use case ends.
 
@@ -723,13 +717,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1b. Journalist gives search text without any prefix.
 
-    * 1b1. Byline shows the contacts that have the text in any of their details.
+    * 1b1. ByLine shows the contacts that have the text in any of their details.
 
       Use case ends.
 
 * 2a. No contacts match all the given criteria.
 
-    * 2a1. Byline shows an empty list.
+    * 2a1. ByLine shows an empty list.
 
       Use case ends.
 
@@ -739,9 +733,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1. Journalist views a list of contacts.
-2. Journalist requests to sort the displayed contacts, specifying a supported field and optionally an order.
-3. ByLine reorders the displayed contacts and shows the successful sort message.
+1. Journalist views a list of contacts
+2. Journalist requests to sort the displayed contacts, specifying a supported field and optionally an order
+3. ByLine reorders the displayed contacts
 
    Use case ends.
 
@@ -751,128 +745,126 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     * 2a1. ByLine shows an error message listing the valid fields. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
 * 2b. The order is invalid.
 
     * 2b1. ByLine shows an error message listing the valid orders. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
 * 2c. The field is missing.
 
     * 2c1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
 * 2d. Extra arguments are supplied.
 
     * 2d1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
-**System:** Byline<br>
+* 3a. Fewer than two contacts are displayed.
+
+    * 3a1. ByLine reports the sort as successful, but the order does not change.
+
+      Use case ends.
+
+**System:** ByLine<br>
 **Use case:** UC07 - Archive a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list contacts
-2.  Byline shows a list of contacts
-3.  Journalist requests to archive a specific contact by its ID
-4.  Byline marks the contact as archived and shows the archived contact
+1.  Journalist requests to archive a specific contact by its ID
+2.  ByLine marks the contact as archived and shows the archived contact
 
     Use case ends.
 
 **Extensions**
 
-* 3a. The given ID is not valid, or no contact has that ID.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-    * 3a1. Byline shows an error message.
+    * 1a1. ByLine shows an error message.
 
-      Use case resumes at step 2.
+      Use case resumes at step 1.
 
-* 3b. The contact is already archived.
+* 1b. The contact is already archived.
 
-    * 3b1. Byline shows an error message stating that the contact is already archived.
+    * 1b1. ByLine shows an error message stating that the contact is already archived.
 
-      Use case resumes at step 2.
+      Use case resumes at step 1.
 
 **Guarantees**
 
 * The contact's details and ID are unchanged.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC08 - Restore an archived contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list archived contacts
-2.  Byline shows the archived contacts
-3.  Journalist requests to restore a specific contact by its ID
-4.  Byline marks the contact as no longer archived and shows the restored contact
+1.  Journalist requests to restore a specific archived contact by its ID
+2.  ByLine marks the contact as no longer archived and shows the restored contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. There are no archived contacts.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message.
 
-* 3a. The given ID is not valid, or no contact has that ID.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message.
+* 1b. The contact is not archived.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating that the contact is not archived.
 
-* 3b. The contact is not archived.
-
-    * 3b1. Byline shows an error message stating that the contact is not archived.
-
-      Use case resumes at step 2.
+      Use case resumes at step 1.
 
 **Guarantees**
 
 * The contact's details and ID are unchanged.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC09 - Remove tags from a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list contacts
-2.  Byline shows a list of contacts
-3.  Journalist requests to remove one or more tags from a specific contact by its ID
-4.  Byline removes the tags from the contact and shows the updated contact
+1.  Journalist requests to remove one or more tags from a specific contact by its ID
+2.  ByLine removes the tags from the contact and shows the updated contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message.
 
-* 3a. The given ID is not valid, or no contact has that ID.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message.
+* 1b. No tag is given.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating the correct format.
 
-* 3b. No tag is given.
+      Use case resumes at step 1.
 
-    * 3b1. Byline shows an error message stating the correct format.
+* 1c. A given tag contains characters other than letters, numbers and spaces.
 
-      Use case resumes at step 2.
+    * 1c1. ByLine shows an error message stating that tags can contain only letters, numbers and spaces.
 
-* 3c. A given tag contains characters other than letters, numbers and spaces.
+      Use case resumes at step 1.
 
-    * 3c1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
+* 1d. The contact has none of the given tags.
 
-      Use case resumes at step 2.
+    * 1d1. ByLine shows an error message stating that no tags were removed.
+
+      Use case resumes at step 1.
 
 **Guarantees**
 
@@ -884,8 +876,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1. Journalist requests to filter contacts using one or more complete tags.
-2. ByLine shows contacts that have every specified tag and reports the number listed.
+1. Journalist requests to filter contacts using one or more complete tags
+2. ByLine shows contacts that have every specified tag and reports the number listed
 
    Use case ends.
 
@@ -914,7 +906,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * Filtering does not change contact data or stored contact order.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC11 - Undo a change<br>
 **Actor:** Journalist
 
@@ -922,7 +914,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist makes a change to the contacts, e.g. deletes a contact (UC01)
 2.  Journalist requests to undo the last change
-3.  Byline restores the contacts to how they were before the change, keeping the current view
+3.  ByLine restores the contacts to how they were before the change
 
     Use case ends.
 
@@ -930,13 +922,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. There is no change to undo.
 
-    * 2a1. Byline shows an error message stating that there is nothing to undo.
+    * 2a1. ByLine shows an error message stating that there is nothing to undo.
 
       Use case ends.
 
 * 2b. The request includes extra words, e.g. a number.
 
-    * 2b1. Byline shows an error message stating the correct format.
+    * 2b1. ByLine shows an error message stating the correct format.
 
       Use case ends.
 
@@ -944,7 +936,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * Only the most recent change is undone.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC12 - Redo an undone change<br>
 **Actor:** Journalist
 
@@ -952,7 +944,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist undoes a change (UC11)
 2.  Journalist requests to redo the change
-3.  Byline makes the change again, keeping the current view
+3.  ByLine makes the change again
 
     Use case ends.
 
@@ -960,13 +952,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. There is no undone change to redo, e.g. because the journalist made a new change after undoing.
 
-    * 2a1. Byline shows an error message stating that there is nothing to redo.
+    * 2a1. ByLine shows an error message stating that there is nothing to redo.
 
       Use case ends.
 
 * 2b. The request includes extra words, e.g. a number.
 
-    * 2b1. Byline shows an error message stating the correct format.
+    * 2b1. ByLine shows an error message stating the correct format.
 
       Use case ends.
 
@@ -1009,7 +1001,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1e. Another contact already has the same name and phone number, ignoring letter case and repeated spaces in the name.
 
-    * 1e1. ByLine shows an error message stating that the contact already exists.
+    * 1e1. ByLine shows an error message stating that a contact with the same name and phone number already exists.
 
       Use case resumes at step 1.
 
