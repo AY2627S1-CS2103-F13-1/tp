@@ -274,8 +274,6 @@ The parser does not reject empty input or duplicate prefixes. With no preamble o
 
 `MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results. The predicate is applied through the [displayed-list layers](#displayed-list-layers).
 
-`MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
-
 #### Design considerations
 
 **Aspect: Matching the entire search text versus any whole-word keyword**
