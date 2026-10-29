@@ -214,7 +214,7 @@ Format: `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG
 * The general substring searches the name, phone number, email, address and tags. It must appear within at least one of these fields or one tag.
 * Each prefixed substring searches only its corresponding field. A contact must match the general substring, if supplied, and every field and tag condition.
 * Search text is matched as one consecutive substring, including internal spaces. For example, `Alex Ye` matches `Alex Yeoh`, but `Ye Alex` does not.
-* Small typing mistakes are allowed: about one wrong, missing or extra character for every three characters you type. For example, `find Alx` still finds `Alex`. Searches of one or two characters must match exactly.
+* Small typing mistakes are allowed: about one wrong, missing or extra character for every four characters you type. For example, `find n/Bernise` still finds `Bernice Yu`. Searches of one to three characters must match exactly.
 * Put the general substring before the first prefix. Text after a prefix belongs to that prefix until the next recognised prefix or the end of the command. For example, `find example n/Alex` combines a general search for `example` with a name search for `Alex`; `find n/Alex example` searches the name for the single substring `Alex example`.
 * Prefixes may appear in any order. If `n/`, `p/`, `e/` or `a/` is repeated, only its last value is used.
 * For multiple `t/` prefixes, every tag substring must match at least one of the contact's tags.
