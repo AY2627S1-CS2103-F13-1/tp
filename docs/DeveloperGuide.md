@@ -669,9 +669,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. No search criteria are given.
 
-    * 1a1. Byline shows an error message stating the correct format.
+    * 1a1. ByLine shows an empty list.
 
-      Use case resumes at step 1.
+      Use case ends.
 
 * 1b. Journalist gives search text without any prefix.
 
@@ -681,7 +681,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. No contacts match all the given criteria.
 
-    * 2a1. Byline shows an empty list and a message that 0 persons are listed.
+    * 2a1. Byline shows an empty list.
 
       Use case ends.
 
