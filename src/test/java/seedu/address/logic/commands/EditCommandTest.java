@@ -183,10 +183,22 @@ public class EditCommandTest {
         String duplicateNameVariant = ALICE.getName().toString()
                 .toUpperCase(Locale.ROOT)
                 .replace(" ", "  ");
-        EditCommand editCommand = new EditCommand(TARGET_BENSON,
-                new EditPersonDescriptorBuilder().withName(duplicateNameVariant).build());
+        EditCommand editCommand = new EditCommand(TARGET_BENSON, new EditPersonDescriptorBuilder()
+                .withName(duplicateNameVariant).withPhone(ALICE.getPhone().toString()).build());
 
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_sameNameAsOtherPersonDifferentPhone_success() {
+        Person editedPerson = new PersonBuilder(BENSON).withName(ALICE.getName().toString()).build();
+        EditCommand editCommand = new EditCommand(TARGET_BENSON,
+                new EditPersonDescriptorBuilder().withName(ALICE.getName().toString()).build());
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
