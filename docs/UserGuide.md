@@ -79,11 +79,11 @@ Every contact has an ID, a whole number shown as `ID: 3` on the contact's card. 
 
 Field | Rules
 ------|------
-Name `n/` | Letters, numbers and spaces. Must not start with a space.
+Name `n/` | English letters (A–Z), numbers and spaces. Must not start with a space.
 Phone `p/` | Digits only, at least 3 digits.
 Email `e/` | In the form `local-part@domain`, e.g. `jane@example.com`.
 Address `a/` | Any text, but not blank.
-Tag `t/` | Letters, numbers and spaces. Saved in lowercase.
+Tag `t/` | Letters in any language, numbers and spaces, e.g. `housing policy`. Saved in lowercase.
 
 Two contacts can't have the same name **and** phone number. ByLine ignores upper/lower case and extra spaces when comparing names, so `John Doe` and `john doe` with the same phone number count as the same contact. Contacts with the same name but different phone numbers are allowed. Names are saved exactly as you typed them.
 
@@ -114,7 +114,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 * After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A contact can have any number of tags, including zero. Tags can contain letters, numbers and spaces, and are saved in lowercase.
+A contact can have any number of tags, including zero.
 </div>
 
 Examples:
@@ -166,8 +166,9 @@ Format: `tag ID t/TAG [t/TAG]…​`
 
 * Adds the given tags to the contact with the given `ID`. See [Contact IDs](#contact-ids).
 * At least one tag must be given.
-* A tag can contain letters, numbers and spaces, e.g. `housing policy`.
+* See [Contact details](#contact-details) for what a tag can contain.
 * Tags are saved in lowercase, so `t/Expert` is saved as `expert`. Tags that differ only in upper/lower case count as the same tag.
+* If the contact already has every given tag, ByLine shows `No tags were added because the contact already has the specified tags.`
 
 Examples:
 * `tag 3 t/expert` adds the tag `expert` to the contact with ID 3.
@@ -182,6 +183,7 @@ Format: `untag ID t/TAG [t/TAG]…​`
 * Removes the given tags from the contact with the given `ID`. See [Contact IDs](#contact-ids).
 * At least one tag must be given.
 * Tags are matched ignoring upper/lower case, so `t/Expert` removes the tag `expert`.
+* If the contact has none of the given tags, ByLine shows `No tags were removed because the contact does not have the specified tags.`
 
 Examples:
 * `untag 3 t/expert` removes the tag `expert` from the contact with ID 3.
@@ -195,11 +197,12 @@ Format: `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG
 
 * Searches are case-insensitive: `al` matches both `Alex` and `Balakrishnan`.
 * The general substring searches the name, phone number, email, address and tags. It must appear within at least one of these fields or one tag.
-* Each prefixed substring searches only its corresponding field. A person must match the general substring, if supplied, and every field and tag condition.
+* Each prefixed substring searches only its corresponding field. A contact must match the general substring, if supplied, and every field and tag condition.
 * Search text is matched as one consecutive substring, including internal spaces. For example, `Alex Ye` matches `Alex Yeoh`, but `Ye Alex` does not.
+* Small typing mistakes are allowed: about one wrong, missing or extra character for every three characters you type. For example, `find Alx` still finds `Alex`. Searches of one or two characters must match exactly.
 * Put the general substring before the first prefix. Text after a prefix belongs to that prefix until the next recognised prefix or the end of the command. For example, `find example n/Alex` combines a general search for `example` with a name search for `Alex`; `find n/Alex example` searches the name for the single substring `Alex example`.
 * Prefixes may appear in any order. If `n/`, `p/`, `e/` or `a/` is repeated, only its last value is used.
-* For multiple `t/` prefixes, every tag substring must match at least one of the person's tags.
+* For multiple `t/` prefixes, every tag substring must match at least one of the contact's tags.
 * `find` without search text or prefixes shows no contacts.
 * An empty value after `n/`, `p/`, `e/` or `a/` imposes no restriction on that field. An empty `t/` value matches any contact with at least one tag.
 * Archived contacts are included in the results.
@@ -386,7 +389,7 @@ Undoes the last change to your contacts.
 
 Format: `undo`
 
-* These commands can be undone: `add`, `edit`, `delete`, `clear`, `archive`, `restore`, `tag` and `untag`.
+* These commands can be undone: `add`, `edit`, `delete`, `clear`, `archive`, `restore`, `tag`, `untag` and `load`.
 * Commands that only change what is shown, such as `list`, `find` and `sort`, are not undone. `undo` skips over them to the last change.
 * You can undo up to 20 changes in a row. Older changes can no longer be undone.
 * `undo` keeps the current view. For example, after a `find`, ByLine still shows only the contacts that match the search.
