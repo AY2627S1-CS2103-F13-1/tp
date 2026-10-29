@@ -53,6 +53,11 @@ public class TagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.addAll(tagsToAdd);
 
+        if (updatedTags.equals(original.getTags())) {
+            throw new CommandException(
+                    "No tags were added because the contact already has the specified tags.");
+        }
+
         Person updated = original.withTags(updatedTags);
 
         model.setPerson(original, updated);
