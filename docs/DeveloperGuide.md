@@ -65,6 +65,9 @@ For example, the `Logic` component defines its API in `Logic.java` and implement
 
 <img src="images/ComponentManagers.png" width="300" />
 
+<div markdown="span" class="alert alert-info">:information_source: **Note:** Backups are an exception. `ExportCommand`, `LoadCommand` and `LogicManager` use `BackupStorage`, a class in the `Storage` component, directly rather than through the `Storage` interface. See [Export and load feature](#export-and-load-feature).
+</div>
+
 The sections below give more details of each component.
 
 ### UI component
@@ -143,6 +146,7 @@ The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * saves each person's ID and the next ID to give out, so that IDs stay the same after a restart and are never reused.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* also has `BackupStorage`, which writes and reads the backup files for `export` and `load`. It is separate from `StorageManager`, which handles only the main data file and user preferences.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -209,7 +213,7 @@ New commands that act on one contact should parse a `PersonId` with `ParserUtil#
 
 `TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonId` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
 
-When executed, both commands find the contact with `Model#findPersonById(targetId)` and unwrap the result and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
+When executed, both commands find the contact with `Model#findPersonById(targetId)`, then copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. If the set does not change, because the contact already has every given tag (`tag`) or has none of them (`untag`), the command throws a `CommandException` and the contact is not changed. Otherwise, the command replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
 
 `Tag` saves its name in lowercase, and tags are compared by that name. A contact's tags are a `Set<Tag>`, so adding a tag the contact already has, in any upper/lower case, does not create a second copy, and removing a tag matches it regardless of case.
 
@@ -382,6 +386,31 @@ Other commands, such as `find`, `tag` and `delete`, treat archived contacts like
   * Pros: Active and archived contacts are clearly separated.
   * Cons: Looking up an ID would have to search two lists, and archiving would move a contact between lists.
 
+### Export and load feature
+
+`AddressBookParser` passes the arguments of `export` and `load` to `BackupCommandParser`, which reads the whole argument as a file path. Surrounding double quotes are removed, and `.json` is added if the path does not end with it. A blank path gives the command's usage message.
+
+`ExportCommand` calls `BackupStorage#exportAddressBook`, which writes every contact, including archived contacts, and the ID counter to the file in the same JSON format as the main data file. The file is created with `CREATE_NEW`, so an existing file is never overwritten. `LogicManager` returns straight after `export`, without calling `Model#commitAddressBook()` or saving the main data file, because the address book has not changed.
+
+`load` replaces the whole address book, so `LogicManager` handles it in stages to avoid losing data if something fails:
+
+1. `LoadCommand` runs on a copy of the model. It reads and checks the backup with `BackupStorage#readAddressBook` and puts the loaded contacts in the copy. If the file cannot be read or contains invalid data, the command throws a `CommandException` and the real model is unchanged.
+2. `LogicManager` saves the current contacts to a new `before-load-<timestamp>-<random id>.json` file in the same folder as the backup, using `BackupStorage#backupBeforeLoad`. This is skipped if the address book is empty or equals the sample data. If the copy cannot be saved, the load is cancelled.
+3. `LogicManager` saves the loaded contacts to the main data file, copies them into the real model and calls `Model#commitAddressBook()`, so `undo` can reverse a load.
+
+The result message names the file that holds the previous contacts, so the journalist can `load` it to go back.
+
+#### Design considerations
+
+**Aspect: How load protects the current contacts**
+
+* **Alternative 1 (current choice): Save a copy of the current contacts automatically before replacing them.**
+  * Pros: A mistaken load can be reversed from the copy, even after ByLine is closed and the undo history is gone.
+  * Cons: Each load can leave an extra file in the backup folder.
+* **Alternative 2: Ask the journalist to confirm before loading.**
+  * Pros: No extra files.
+  * Cons: Needs a confirmation step that does not fit a one-line command, and gives no way back once confirmed.
+
 ### Undo/redo feature
 
 The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as `states`, a list of `AddressBook` copies, and `currentStateIndex`. It implements the following operations:
@@ -392,7 +421,7 @@ The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `Ad
 
 These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively, along with `Model#canUndoAddressBook()` and `Model#canRedoAddressBook()`.
 
-`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully; individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
+`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully, except `export`, which changes no data. Individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
 
 Each saved state is a copy made with `new AddressBook(...)`, which includes the ID counter `nextPersonId`. Undoing an `add` therefore also rolls the counter back, so the next contact added gets the undone contact's ID. The history keeps the initial state plus at most `VersionedAddressBook.HISTORY_LIMIT` (20) changes. When a commit would exceed this, the oldest state is removed.
 
