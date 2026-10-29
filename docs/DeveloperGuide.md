@@ -251,8 +251,6 @@ The predicate combines the following conditions with AND. Matching is case-insen
 * **Field substrings:** `getValue(...)` returns an `Optional<String>` for each of the name, phone, email and address prefixes. An absent prefix imposes no restriction. A present substring must occur within its corresponding field. If a prefix is repeated, `getValue(...)` returns its last value.
 * **Tag substrings:** `getAllValues(PREFIX_TAG)` returns every supplied tag substring. Each must match at least one tag, but multiple substrings may match the same tag. An empty list imposes no tag restriction.
 
-The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix.
-
 Example: `find example n/Alex t/fri`
 
 Part of the command | Read as | A contact matches if
@@ -270,11 +268,17 @@ Other allowed combinations of the find command include:
 * `find n/Alex t/Fri` or `find t/fri n/Alex`: returns contacts that contain "Alex" in their name and "fri" in their tags.
 * `find`: returns an empty list.
 
+The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix.
+
 The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
 
 `MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results. The predicate is applied through the [displayed-list layers](#displayed-list-layers).
 
 `MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
+
+#### Design considerations
+
+[TEMP: This feature is designed with general and prefixed arguments because a teammate told me to do this shit.]
 
 ### Filter feature
 
