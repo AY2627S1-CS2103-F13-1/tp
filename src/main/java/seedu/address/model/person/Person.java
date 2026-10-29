@@ -106,7 +106,8 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name, ignoring letter case and repeated or surrounding spaces.
+     * Returns true if both persons have the same name and the same phone number.
+     * Names are compared ignoring letter case and repeated or surrounding spaces.
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -115,7 +116,8 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getName().isSameName(getName());
+                && otherPerson.getName().isSameName(getName())
+                && otherPerson.getPhone().equals(getPhone());
     }
 
     /**

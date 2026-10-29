@@ -2,7 +2,9 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
-import java.util.Locale;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -14,10 +16,10 @@ import seedu.address.model.person.SortOrder;
  */
 public class SortCommandParser implements Parser<SortCommand> {
 
-    public static final String MESSAGE_INVALID_SORT_FIELD =
-            "Invalid sort field. Valid fields are name, phone, email, address, and tag.";
-    public static final String MESSAGE_INVALID_SORT_ORDER =
-            "Invalid sort order. ORDER must be asc or desc.";
+    public static final String MESSAGE_INVALID_SORT_FIELD = "Invalid sort field. Valid fields are "
+            + getValidSortFieldsDescription() + ".";
+    public static final String MESSAGE_INVALID_SORT_ORDER = "Invalid sort order. ORDER must be "
+            + getValidSortOrdersDescription() + ".";
 
     /**
      * Parses the given {@code String} of arguments in the context of the {@code SortCommand}.
@@ -44,22 +46,27 @@ public class SortCommandParser implements Parser<SortCommand> {
     }
 
     private static SortField parseSortField(String field) throws ParseException {
-        return switch (field.toLowerCase(Locale.ROOT)) {
-            case "name" -> SortField.NAME;
-            case "phone" -> SortField.PHONE;
-            case "email" -> SortField.EMAIL;
-            case "address" -> SortField.ADDRESS;
-            case "tag" -> SortField.TAG;
-            default -> throw new ParseException(MESSAGE_INVALID_SORT_FIELD);
-        };
+        return SortField.fromCommandValue(field)
+                .orElseThrow(() -> new ParseException(MESSAGE_INVALID_SORT_FIELD));
     }
 
     private static SortOrder parseSortOrder(String order) throws ParseException {
-        return switch (order.toLowerCase(Locale.ROOT)) {
-            case "asc" -> SortOrder.ASCENDING;
-            case "desc" -> SortOrder.DESCENDING;
-            default -> throw new ParseException(MESSAGE_INVALID_SORT_ORDER);
-        };
+        return SortOrder.fromCommandValue(order)
+                .orElseThrow(() -> new ParseException(MESSAGE_INVALID_SORT_ORDER));
+    }
+
+    private static String getValidSortFieldsDescription() {
+        List<String> fields = Arrays.stream(SortField.values())
+                .map(SortField::getCommandValue)
+                .collect(Collectors.toList());
+        String finalField = fields.remove(fields.size() - 1);
+        return String.join(", ", fields) + ", and " + finalField;
+    }
+
+    private static String getValidSortOrdersDescription() {
+        return Arrays.stream(SortOrder.values())
+                .map(SortOrder::getCommandValue)
+                .collect(Collectors.joining(" or "));
     }
 
     private static ParseException createInvalidCommandFormatException() {

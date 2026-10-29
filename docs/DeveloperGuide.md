@@ -124,8 +124,8 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* considers two `Person` objects duplicates when their names match after letter case is ignored and each run of spaces
-  is treated as one space. The name is otherwise stored exactly as entered.
+* considers two `Person` objects duplicates when they have the same phone number and their names match after letter
+  case is ignored and each run of spaces is treated as one space. The name is otherwise stored exactly as entered.
 * gives every `Person` a `PersonId` when it is added, using a counter of the next ID to give out (see [Contact ID feature](#contact-id-feature)).
 * keeps the displayed contacts in a `FilteredList` wrapped by a `SortedList`. See [Displayed-list layers](#displayed-list-layers) for how these lists form the view exposed to the UI.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
@@ -176,11 +176,11 @@ Once ID 999999 has been given out, the counter is 1000000 and `AddressBook#hasAv
 
 #### Selecting a contact by ID
 
-1. The command's parser calls `ParserUtil#parsePersonTarget`, which reads the number before the first prefix, e.g. the `3` in `edit 3 p/91234567`. Anything that is not a whole number from 1 to 999999 gives the invalid command format message.
-2. The parser creates the command with a `PersonTarget` for that ID.
-3. When the command runs, `PersonTarget#resolve(Model)` calls `Model#findPersonById`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. If no contact has the ID, `resolve` throws a `CommandException` with `No contact has the ID 3.`
+1. The command's parser calls `ParserUtil#parsePersonId` on the preamble, which contains the number before the first prefix, e.g. the `3` in `edit 3 p/91234567`. Anything that is not a whole number from 1 to 999999 gives the invalid command format message.
+2. The parser creates the command with the parsed `PersonId`, stored as `targetId`.
+3. When the command runs, it calls `Model#findPersonById(targetId)`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. The command unwraps the returned `Optional<Person>`. If no contact has the ID, it throws a `CommandException` with `No contact has the ID 3.`
 
-New commands that act on one contact should use `parsePersonTarget` and `PersonTarget`, so that every command reads IDs the same way.
+New commands that act on one contact should parse a `PersonId` with `ParserUtil#parsePersonId` and wrap parsing failures in the command's invalid-format usage message. Each command looks up the ID during execution and converts an empty result into a `CommandException` using `Messages.MESSAGE_PERSON_ID_NOT_FOUND`.
 
 #### Saving IDs
 
@@ -212,9 +212,9 @@ New commands that act on one contact should use `parsePersonTarget` and `PersonT
 
 ### Tag and untag feature
 
-`TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonTarget` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
+`TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonId` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
 
-When executed, both commands find the contact with `PersonTarget#resolve` and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
+When executed, both commands find the contact with `Model#findPersonById(targetId)` and unwrap the result and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
 
 `Tag` saves its name in lowercase, and tags are compared by that name. A contact's tags are a `Set<Tag>`, so adding a tag the contact already has, in any upper/lower case, does not create a second copy, and removing a tag matches it regardless of case.
 
@@ -309,6 +309,12 @@ The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`.
 
 When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. Each filter evaluates the full stored address book instead of the currently displayed subset. The predicate does not inspect archive status, so matching archived contacts are included. See [Displayed-list layers](#displayed-list-layers) for how a new predicate replaces the displayed view and clears its previous sort.
 
+If no contact matches, `FilterCommand` obtains every stored contact through `Model#getAddressBook()`, flattens their
+tag sets, removes duplicate tag names, and sorts the remaining names alphabetically. The command appends this list to
+its result as `Available tags: ...`; tags from archived contacts are included because filtering also includes archived
+contacts. If the address book contains no tags, the command reports `Available tags: none`. This feedback does not
+alter the exact-match predicate or any stored data.
+
 Filtering changes only the displayed list; stored contact data never changes.
 
 #### Design considerations
@@ -360,7 +366,7 @@ Text fields are compared case-insensitively, phone numbers numerically, and tags
 
 ### Archive feature
 
-Each `Person` has an `archived` flag, which is `false` for new contacts. `ArchiveCommand` and `RestoreCommand` select the contact by ID through `PersonTarget` (see [Contact ID feature](#contact-id-feature)), then replace it with a copy whose flag is `true` or `false`. All other fields, including the ID, are copied unchanged. Archiving a contact that is already archived, or restoring one that is not, throws a `CommandException` and changes nothing.
+Each `Person` has an `archived` flag, which is `false` for new contacts. `ArchiveCommand` and `RestoreCommand` select the contact by calling `Model#findPersonById(targetId)` and unwrapping the result (see [Contact ID feature](#contact-id-feature)), then replace it with a copy whose flag is `true` or `false`. All other fields, including the ID, are copied unchanged. Archiving a contact that is already archived, or restoring one that is not, throws a `CommandException` and changes nothing.
 
 `JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
 
@@ -600,7 +606,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1c. A contact with the same name already exists, ignoring letter case and repeated spaces.
+* 1c. A contact with the same name and phone number already exists, ignoring letter case and repeated spaces in the name.
 
     * 1c1. Byline shows an error message stating that the person already exists.
 
@@ -903,7 +909,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. No contact has every specified tag.
 
-    * 2a1. ByLine shows an empty list.
+    * 2a1. ByLine shows an empty list and reports the available tags in alphabetical order. If no tags exist, ByLine
+      reports that none are available.
 
       Use case ends.
 
@@ -1012,8 +1019,8 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
 * **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
-* **Duplicate contact**: A contact whose name matches an existing contact's name after letter case is ignored and each
-  run of spaces is treated as one space. ByLine does not allow duplicate contacts.
+* **Duplicate contact**: A contact whose name and phone number match an existing contact's. Names are compared after
+  letter case is ignored and each run of spaces is treated as one space. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
 * **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
@@ -1138,7 +1145,9 @@ testers are expected to do more *exploratory* testing.
       Expected: Only Alex is shown because every specified tag is required.
 
    4. Test case: `filter t/housing`<br>
-      Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result is `0 person(s) listed!`.
+      Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result reports
+      `0 person(s) listed!` followed by an alphabetical list of all available tags, including tags that belong only to
+      archived contacts.
 
    5. Test case: `filter t/EXPERT`, then `filter t/expert t/EXPERT`<br>
       Expected: Both commands show the same contacts because matching ignores case and repeated equivalent tags form one condition.

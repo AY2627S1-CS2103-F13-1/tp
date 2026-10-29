@@ -1,5 +1,7 @@
 package seedu.address.logic.parser;
 
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+
 import seedu.address.logic.commands.RestoreCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -15,7 +17,11 @@ public class RestoreCommandParser implements Parser<RestoreCommand> {
      */
     public RestoreCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args);
-        return new RestoreCommand(ParserUtil.parsePersonTarget(argMultimap, RestoreCommand.MESSAGE_USAGE));
+        try {
+            return new RestoreCommand(ParserUtil.parsePersonId(argMultimap.getPreamble()));
+        } catch (ParseException pe) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RestoreCommand.MESSAGE_USAGE), pe);
+        }
     }
 
 }

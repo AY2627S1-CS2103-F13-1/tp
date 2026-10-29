@@ -64,6 +64,31 @@ public class AddCommandIntegrationTest {
     }
 
     @Test
+    public void execute_sameNameAndPhoneDifferentEmail_throwsCommandException() {
+        Person personInList = model.getAddressBook().getPersonList().get(0);
+        Person duplicatePerson = new PersonBuilder(personInList).withEmail("another@example.com").build();
+
+        assertCommandFailure(new AddCommand(duplicatePerson), model,
+                AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_sameNameDifferentPhoneAndEmail_success() {
+        Person personInList = model.getAddressBook().getPersonList().get(0);
+        Person sameNamePerson = new PersonBuilder().withName(personInList.getName().toString())
+                .withPhone("92345678").withEmail("another@example.com").build();
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.addPerson(sameNamePerson);
+
+        // the typical persons have IDs 1 to 7, so the new person gets ID 8
+        Person addedPerson = new PersonBuilder(sameNamePerson).withId("8").build();
+        assertCommandSuccess(new AddCommand(sameNamePerson), model,
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(addedPerson)),
+                expectedModel);
+    }
+
+    @Test
     public void execute_noIdsLeft_throwsCommandException() {
         Model fullModel = new ModelManager(new AddressBook(PersonId.MAX_VALUE + 1), new UserPrefs());
         assertCommandFailure(new AddCommand(new PersonBuilder().build()), fullModel,

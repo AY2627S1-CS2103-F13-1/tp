@@ -7,6 +7,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 
 /**
  * Deletes a person identified by its ID from the address book.
@@ -22,20 +23,21 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
 
-    private final PersonTarget target;
+    private final PersonId targetId;
 
     /**
-     * Creates a DeleteCommand to delete the person selected by {@code target}.
+     * Creates a DeleteCommand to delete the person with {@code targetId}.
      */
-    public DeleteCommand(PersonTarget target) {
-        requireNonNull(target);
-        this.target = target;
+    public DeleteCommand(PersonId targetId) {
+        requireNonNull(targetId);
+        this.targetId = targetId;
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person personToDelete = target.resolve(model);
+        Person personToDelete = model.findPersonById(targetId).orElseThrow(() ->
+                new CommandException(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, targetId.getValue())));
         model.deletePerson(personToDelete);
         return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
     }
@@ -51,13 +53,13 @@ public class DeleteCommand extends Command {
             return false;
         }
 
-        return target.equals(otherDeleteCommand.target);
+        return targetId.equals(otherDeleteCommand.targetId);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("target", target)
+                .add("targetId", targetId)
                 .toString();
     }
 }

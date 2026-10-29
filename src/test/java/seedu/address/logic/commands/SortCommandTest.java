@@ -143,7 +143,7 @@ public class SortCommandTest {
         Person firstDisplayedPerson = model.getFilteredPersonList().get(0);
 
         // ID 1 is ALICE, even though GEORGE is now displayed first
-        CommandResult result = new DeleteCommand(PersonTarget.ofId(new PersonId(1))).execute(model);
+        CommandResult result = new DeleteCommand(new PersonId(1)).execute(model);
 
         assertEquals(GEORGE, firstDisplayedPerson);
         assertEquals(String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(ALICE)),
