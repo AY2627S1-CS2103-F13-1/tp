@@ -1105,7 +1105,8 @@ These requirements define the quality targets and operating constraints for ByLi
 
 1. **Keyboard usability:** After launch, journalists should be able to add, list, edit, delete, tag,
    search, and filter contacts using only the keyboard.
-2. **Typing speed:** A journalist who types quickly should be able to complete most tasks faster with commands than with the mouse.
+2. **Typing efficiency:** A journalist who types at 40 words per minute should be able to add a contact with a name,
+   phone number, email and address in under 30 seconds.
 3. **Capacity and performance:** ByLine should support 1,000 contacts. With that dataset, adding,
    listing, editing, deleting, tagging, searching, and filtering contacts should each display a result within
    one second on a machine with at least a dual-core 2 GHz processor, 8 GB RAM, local SSD storage,
@@ -1115,10 +1116,13 @@ These requirements define the quality targets and operating constraints for ByLi
    and Linux with a compatible Java 25 runtime, without requiring an IDE.
 5. **Offline operation:** After installation, managing contacts and saving or loading contact data
    should work without an internet connection or an external database service.
-6. **Persistent local storage:** Contact data should be stored locally in JSON format. When the
-   configured data location is writable, each successfully completed command that changes contacts
-   should save the updated data without a separate save action. Restarting ByLine should restore
-   the saved contact details and tags.
+6. **Local storage format:** Contact data should be stored in a human-readable JSON file on the journalist's
+   computer, so that it can be copied or backed up without ByLine.
+7. **Single-file distribution:** ByLine should be distributed as a single JAR file of at most 100 MB that runs
+   without an installer.
+8. **Screen sizes:** The GUI should work well, with no content cut off, on screens of 1920x1080 or higher at 100%
+   and 125% scaling, and should remain usable on screens of 1280x720 or higher at 150% scaling.
+9. **Privacy:** ByLine should never send contact data over the network.
 
 ### Glossary
 
