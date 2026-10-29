@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+import static seedu.address.logic.commands.FilterCommand.MESSAGE_AVAILABLE_TAGS;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.Arrays;
@@ -35,7 +36,7 @@ public class FilterCommandTest {
     private static final Person CARLOS = new PersonBuilder().withId("3").withName("Carlos Ong")
             .withTags("expert", "economics").build();
     private static final Person DINA = new PersonBuilder().withId("4").withName("Dina Lee")
-            .withTags("expert").withArchiveStatus(true).build();
+            .withTags("expert", "confidential").withArchiveStatus(true).build();
 
     private AddressBook addressBook;
     private Model model;
@@ -57,10 +58,25 @@ public class FilterCommandTest {
     }
 
     @Test
-    public void execute_noMatchingContacts_returnsZeroResult() {
+    public void execute_noMatchingContacts_returnsAvailableTags() {
         CommandResult result = createFilterCommand("marine biology").execute(model);
 
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), result.getFeedbackToUser());
+        String expectedFeedback = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0)
+                + "\n" + String.format(MESSAGE_AVAILABLE_TAGS,
+                        "confidential, economics, expert, housing policy");
+        assertEquals(expectedFeedback, result.getFeedbackToUser());
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_noMatchingContactsAndNoStoredTags_returnsNoAvailableTags() {
+        model = new ModelManager(new AddressBook(), new UserPrefs());
+
+        CommandResult result = createFilterCommand("marine biology").execute(model);
+
+        String expectedFeedback = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0)
+                + "\n" + String.format(MESSAGE_AVAILABLE_TAGS, "none");
+        assertEquals(expectedFeedback, result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPersonList());
     }
 

@@ -10,6 +10,7 @@ import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.logic.commands.FilterCommand.MESSAGE_AVAILABLE_TAGS;
 import static seedu.address.logic.parser.SortCommandParser.MESSAGE_INVALID_SORT_ORDER;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -145,7 +146,9 @@ public class LogicManagerTest {
         assertEquals(List.of(ALICE, BENSON, DANIEL), logic.getFilteredPersonList());
 
         CommandResult exactFilterResult = logic.execute("filter t/fri");
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), exactFilterResult.getFeedbackToUser());
+        String expectedFilterFeedback = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0)
+                + "\n" + String.format(MESSAGE_AVAILABLE_TAGS, "friends, owesmoney");
+        assertEquals(expectedFilterFeedback, exactFilterResult.getFeedbackToUser());
         assertEquals(List.of(), logic.getFilteredPersonList());
 
         logic.execute("filter t/friends");

@@ -19,7 +19,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 
 3. Copy the file to the folder you want to use as the _home folder_ for your ByLine.
 
-4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar ByLine.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -91,8 +91,9 @@ Adds a person to the address book.
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
 * The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
-* ByLine rejects a contact whose name differs from an existing contact only in letter case or repeated spaces. The
-  original letter case and spacing of accepted names are preserved.
+* ByLine rejects a contact that has the same name and phone number as an existing contact. Names are matched ignoring
+  letter case and repeated spaces, so `John  DOE` matches `John Doe`. Contacts with the same name but different phone
+  numbers can both be added. The original letter case and spacing of accepted names are preserved.
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
 * After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
@@ -227,7 +228,16 @@ Examples:
 * `filter t/housing-policy`, `filter t/housing_policy`, `filter t/@expert`, and `filter t/policy/research` contain invalid tag characters.
 * `filter t/expert t/housing-policy` fails completely; ByLine does not filter using only the valid tag.
 
-On success, including when no contacts match, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!` or `0 person(s) listed!`.
+On success, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!`. When no contacts match,
+ByLine also shows all available tags in alphabetical order so that you can identify the complete tag to use. Tags
+from both active and archived contacts are included. For example:
+
+```text
+0 person(s) listed!
+Available tags: economics, expert, housing policy
+```
+
+If no contacts have any tags, ByLine shows `Available tags: none` instead.
 
 For a command-structure error, ByLine shows:
 
