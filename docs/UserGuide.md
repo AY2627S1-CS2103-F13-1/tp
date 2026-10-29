@@ -121,23 +121,6 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/source e/betsycrowe@example.com a/12 Kent Ridge Road p/91234567 t/housing policy`
 
-### Listing contacts: `list`
-
-Shows contacts in ByLine.
-
-Formats:
-
-* `list` shows only active contacts, i.e. contacts that are not archived. ByLine also shows these when it starts.
-* `list all` shows all contacts, including archived ones.
-* `list archive` shows only archived contacts.
-* `all` and `archive` can be typed in upper or lower case, e.g. `list ARCHIVE`.
-* Any other input, such as `list archived`, shows an error listing the accepted formats, and the displayed list stays the same.
-
-Examples:
-* `list` shows your active contacts.
-* `list archive` shows only archived contacts.
-* `list all` shows every contact.
-
 ### Editing a contact: `edit`
 
 Edits an existing contact in ByLine.
@@ -157,6 +140,21 @@ Format: `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the contact with ID 1 to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the contact with ID 2 to be `Betsy Crower` and clears all existing tags.
+
+### Deleting a contact: `delete`
+
+Deletes the specified contact from ByLine.
+
+Format: `delete ID`
+
+* Deletes the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
+* The contact is deleted even if it is not in the list currently shown.
+* If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is deleted.
+* The deleted contact's ID is never given to another contact.
+
+Examples:
+* `delete 2` deletes the contact with ID 2.
+* `find Betsy` shows the matching contacts with their IDs. If Betsy's card shows `ID: 5`, `delete 5` deletes that contact.
 
 ### Adding tags to a contact: `tag`
 
@@ -188,6 +186,23 @@ Format: `untag ID t/TAG [t/TAG]…​`
 Examples:
 * `untag 3 t/expert` removes the tag `expert` from the contact with ID 3.
 * `untag 3 t/housing policy t/interviewee` removes both tags from the contact with ID 3.
+
+### Listing contacts: `list`
+
+Shows contacts in ByLine.
+
+Formats:
+
+* `list` shows only active contacts, i.e. contacts that are not archived. ByLine also shows these when it starts.
+* `list all` shows all contacts, including archived ones.
+* `list archive` shows only archived contacts.
+* `all` and `archive` can be typed in upper or lower case, e.g. `list ARCHIVE`.
+* Any other input, such as `list archived`, shows an error listing the accepted formats, and the displayed list stays the same.
+
+Examples:
+* `list` shows your active contacts.
+* `list archive` shows only archived contacts.
+* `list all` shows every contact.
 
 ### Finding contacts: `find`
 
@@ -271,21 +286,6 @@ Examples:
 * `sort phone desc` sorts by phone number, largest first.
 * `sort tag` sorts by first tag, with untagged contacts last.
 
-### Deleting a contact: `delete`
-
-Deletes the specified contact from ByLine.
-
-Format: `delete ID`
-
-* Deletes the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
-* The contact is deleted even if it is not in the list currently shown.
-* If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is deleted.
-* The deleted contact's ID is never given to another contact.
-
-Examples:
-* `delete 2` deletes the contact with ID 2.
-* `find Betsy` shows the matching contacts with their IDs. If Betsy's card shows `ID: 5`, `delete 5` deletes that contact.
-
 ### Archiving a contact: `archive`
 
 Archives a contact you are no longer working with, without deleting it.
@@ -365,12 +365,6 @@ Format: `redo`
 Examples:
 * `delete 3`, then `undo`, then `redo` deletes the contact with ID 3 again.
 
-### Exiting the program: `exit`
-
-Exits the program.
-
-Format: `exit`
-
 ### Exporting a backup: `export`
 
 Saves all your contacts, including archived contacts, to a backup file.
@@ -404,6 +398,12 @@ Format: `load PATH`
 
 Examples:
 * `load C:/My Contacts/October backup` replaces your contacts with those in `C:/My Contacts/October backup.json`.
+
+### Exiting the program: `exit`
+
+Exits the program.
+
+Format: `exit`
 
 ### Saving the data
 
