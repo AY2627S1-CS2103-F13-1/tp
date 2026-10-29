@@ -85,7 +85,7 @@ Email `e/` | In the form `local-part@domain`, e.g. `jane@example.com`.
 Address `a/` | Any text, but not blank.
 Tag `t/` | Letters, numbers and spaces. Saved in lowercase.
 
-Two contacts can't have the same name. ByLine ignores upper/lower case and extra spaces when comparing names, so `John Doe` and `john doe` count as the same contact. Names are saved exactly as you typed them.
+Two contacts can't have the same name **and** phone number. ByLine ignores upper/lower case and extra spaces when comparing names, so `John Doe` and `john doe` with the same phone number count as the same contact. Contacts with the same name but different phone numbers are allowed. Names are saved exactly as you typed them.
 
 ### Viewing a contact's details
 
@@ -109,9 +109,7 @@ Adds a contact to ByLine.
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
 * The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
-* ByLine rejects a contact that has the same name and phone number as an existing contact. Names are matched ignoring
-  letter case and repeated spaces, so `John  DOE` matches `John Doe`. Contacts with the same name but different phone
-  numbers can both be added. The original letter case and spacing of accepted names are preserved.
+* ByLine rejects a contact with the same name and phone number as an existing contact. See [Contact details](#contact-details).
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
 * After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
@@ -150,6 +148,7 @@ Format: `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is changed.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* If the new name and phone number match another contact's, ByLine rejects the edit. See [Contact details](#contact-details).
 * When editing tags, all of the contact's existing tags are removed; adding tags is not cumulative.
 * To remove all of a contact's tags, enter `t/` without a tag after it.
 * To add or remove only some tags, use [`tag`](#adding-tags-to-a-contact-tag) or [`untag`](#removing-tags-from-a-contact-untag) instead.
