@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
@@ -21,6 +22,9 @@ public class FilterCommand extends Command {
             + ": Filters contacts that have every specified tag.\n"
             + "Parameters: t/TAG [t/TAG]...\n"
             + "Example: " + COMMAND_WORD + " t/housing policy t/expert";
+    public static final String MESSAGE_AVAILABLE_TAGS = "Available tags: %1$s";
+
+    private static final String NO_AVAILABLE_TAGS = "none";
 
     private static final Logger logger = LogsCenter.getLogger(FilterCommand.class);
 
@@ -41,8 +45,26 @@ public class FilterCommand extends Command {
         int numberOfMatchingPersons = model.getFilteredPersonList().size();
         logger.fine("Filter command displayed " + numberOfMatchingPersons + " contact(s).");
 
-        return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, numberOfMatchingPersons));
+        String feedback = String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, numberOfMatchingPersons);
+        if (numberOfMatchingPersons == 0) {
+            feedback += "\n" + String.format(MESSAGE_AVAILABLE_TAGS, formatAvailableTags(model));
+        }
+
+        return new CommandResult(feedback);
+    }
+
+    /**
+     * Returns the unique tags in the address book as an alphabetically sorted, comma-separated string.
+     */
+    private static String formatAvailableTags(Model model) {
+        String availableTags = model.getAddressBook().getPersonList().stream()
+                .flatMap(person -> person.getTags().stream())
+                .map(tag -> tag.tagName)
+                .distinct()
+                .sorted()
+                .collect(Collectors.joining(", "));
+
+        return availableTags.isEmpty() ? NO_AVAILABLE_TAGS : availableTags;
     }
 
     @Override
