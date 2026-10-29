@@ -50,7 +50,7 @@ public class MatchPersonPredicateTest {
 
     @Test
     public void test_generalTypo_matchesWithinTolerance() {
-        assertTrue(createPredicate("Alx").test(person));
+        assertFalse(createPredicate("Alx").test(person));
         assertTrue(createPredicate("EXMPLE").test(person));
         assertFalse(createPredicate("Azzx").test(person));
         assertFalse(createPredicate("zzzx").test(person));
@@ -68,18 +68,18 @@ public class MatchPersonPredicateTest {
     }
 
     @Test
-    public void test_shortTypo_matchesTwoSamplePersons() {
+    public void test_threeCharacterTypo_matchesNoSamplePersons() {
         List<String> matchingNames = Arrays.stream(SampleDataUtil.getSamplePersons())
                 .filter(createPredicate("Alx"))
                 .map(samplePerson -> samplePerson.getName().fullName)
                 .toList();
-        assertEquals(List.of("Alex Yeoh", "Roy Balakrishnan"), matchingNames);
+        assertEquals(List.of(), matchingNames);
     }
 
     @Test
     public void test_fieldTypos_matchesWithinTolerance() {
         Prefix[] prefixes = {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG};
-        String[] matchingValues = {"Alx", "2349", "@exzzple", "Mzin", "Frzznds"};
+        String[] matchingValues = {"Alez", "2349", "@exmple", "Mzin", "Frends"};
         String[] nonMatchingValues = {"Azzx", "2399", "@zzzzple", "Mzzn", "zzzznds"};
         for (int index = 0; index < prefixes.length; index++) {
             assertTrue(createPredicate("", prefixes[index], matchingValues[index]).test(person),

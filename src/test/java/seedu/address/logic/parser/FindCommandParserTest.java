@@ -6,7 +6,6 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
-import static seedu.address.testutil.TypicalPersons.ELLE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_eachPrefix_matchesItsField() throws Exception {
-        assertMatches(" n/Mei", BENSON, DANIEL, ELLE);
+        assertMatches(" n/Mei", BENSON, DANIEL);
         assertMatches(" p/9435", ALICE, CARL);
         assertMatches(" e/johnd", BENSON);
         assertMatches(" a/Clementi", BENSON);
@@ -50,7 +49,7 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_generalAndPrefixes_requiresEveryCondition() throws Exception {
-        assertMatches(" example n/Mei", BENSON, DANIEL, ELLE);
+        assertMatches(" example n/Mei", BENSON, DANIEL);
         assertMatches(" Clementi n/Mei t/fri", BENSON);
         assertMatches(" nonexistent n/Mei");
         assertMatches(" Clementi n/Alice");
@@ -97,7 +96,7 @@ public class FindCommandParserTest {
     @Test
     public void parse_repeatedNonTagPrefixes_usesLastValue() throws Exception {
         assertMatches(" n/Alice n/Benson", BENSON);
-        assertMatches(" p/9435 p/987", BENSON, DANIEL);
+        assertMatches(" p/9435 p/987", BENSON);
         assertMatches(" e/alice e/johnd", BENSON);
         assertMatches(" a/Jurong a/Clementi", BENSON);
     }

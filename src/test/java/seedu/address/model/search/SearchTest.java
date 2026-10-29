@@ -57,12 +57,12 @@ public class SearchTest {
 
     @Test
     public void substringThenLevenshtein_typoInSubstring_matchesWithinTolerance() {
-        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alx"));
+        assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Alx"));
         assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alez"));
         assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Aleex"));
         assertTrue(Search.substringThenLevenshtein("alex@example.com", "EXMPLE"));
         assertTrue(Search.substringThenLevenshtein("Mr Alex Yeoh Jr", "Alx Yeo"));
-        assertTrue(Search.substringThenLevenshtein("prefix kitten suffix", "sittin"));
+        assertFalse(Search.substringThenLevenshtein("prefix kitten suffix", "sittin"));
         assertFalse(Search.substringThenLevenshtein("prefix kitten suffix", "siztin"));
         assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Bob"));
     }
@@ -75,16 +75,18 @@ public class SearchTest {
 
     @Test
     public void substringThenLevenshtein_fractionalEditLimit_roundsDown() {
-        assertTrue(Search.substringThenLevenshtein("abc", "abz"));
+        assertFalse(Search.substringThenLevenshtein("abc", "abz"));
         assertFalse(Search.substringThenLevenshtein("abc", "azz"));
         assertTrue(Search.substringThenLevenshtein("abcd", "abcz"));
         assertFalse(Search.substringThenLevenshtein("abcd", "abzz"));
         assertFalse(Search.substringThenLevenshtein("abcd", "azzz"));
-        assertTrue(Search.substringThenLevenshtein("abcdef", "abcdzz"));
+        assertFalse(Search.substringThenLevenshtein("abcdef", "abcdzz"));
         assertFalse(Search.substringThenLevenshtein("abcdef", "abczzz"));
-        assertTrue(Search.substringThenLevenshtein("abcdefg", "abcdezz"));
+        assertFalse(Search.substringThenLevenshtein("abcdefg", "abcdezz"));
         assertFalse(Search.substringThenLevenshtein("abcdefg", "abcdzzz"));
         assertFalse(Search.substringThenLevenshtein("abcdefg", "abczzzz"));
+        assertTrue(Search.substringThenLevenshtein("abcdefgh", "abcdefzz"));
+        assertFalse(Search.substringThenLevenshtein("abcdefgh", "abcdezzz"));
     }
 
     @Test
@@ -93,7 +95,7 @@ public class SearchTest {
         assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "AL"));
         assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "z"));
         assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Az"));
-        assertTrue(Search.substringThenLevenshtein("Alex Yeoh", "Alx"));
+        assertFalse(Search.substringThenLevenshtein("Alex Yeoh", "Alx"));
     }
 
     @Test
