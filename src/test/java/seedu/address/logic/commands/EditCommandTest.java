@@ -16,6 +16,7 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -175,6 +176,32 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(TARGET_ALICE, new EditPersonDescriptorBuilder(BENSON).build());
 
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_duplicatePersonWithNormalizedName_failure() {
+        String duplicateNameVariant = ALICE.getName().toString()
+                .toUpperCase(Locale.ROOT)
+                .replace(" ", "  ");
+        EditCommand editCommand = new EditCommand(TARGET_BENSON,
+                new EditPersonDescriptorBuilder().withName(duplicateNameVariant).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_editOwnNameWithDifferentCaseAndSpacing_success() {
+        String editedName = ALICE.getName().toString()
+                .toUpperCase(Locale.ROOT)
+                .replace(" ", "  ");
+        Person editedPerson = new PersonBuilder(ALICE).withName(editedName).build();
+        EditCommand editCommand = new EditCommand(TARGET_ALICE,
+                new EditPersonDescriptorBuilder().withName(editedName).build());
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test

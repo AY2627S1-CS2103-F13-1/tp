@@ -15,15 +15,15 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103-F13-1/tp/releases).
+2. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103-F13-1/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your ByLine.
+3. Copy the file to the folder you want to use as the _home folder_ for your ByLine.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
    * `list` : Lists all active (not archived) contacts.
@@ -36,7 +36,7 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
 
    * `exit` : Exits the app.
 
-1. Refer to the [Features](#features) section below for details of each command.
+6. Refer to the [Features](#features) section below for details of each command.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -91,6 +91,8 @@ Adds a person to the address book.
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
 * The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
+* ByLine rejects a contact whose name differs from an existing contact only in letter case or repeated spaces. The
+  original letter case and spacing of accepted names are preserved.
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
 * After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
@@ -118,7 +120,7 @@ Formats:
 
 Edits an existing person in the address book.
 
-Format: `edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
+Format: `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
 * Edits the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
 * If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is changed.
@@ -162,11 +164,11 @@ Examples:
 * `untag 3 t/expert` removes the tag `expert` from the contact with ID 3.
 * `untag 3 t/housing policy t/interviewee` removes both tags from the contact with ID 3.
 
-### Finding persons: `find`
+### Finding contacts: `find`
 
-Finds persons using part of their details. Combine one general substring with any selection of field-specific substrings, or use either kind of search on its own.
+Finds contacts using part of their details. Combine one general substring with any selection of field-specific substrings, or use either kind of search on its own.
 
-Format: `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`
+Format: `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`
 
 * Searches are case-insensitive: `al` matches both `Alex` and `Balakrishnan`.
 * The general substring searches the name, phone number, email, address and tags. It must appear within at least one of these fields or one tag.
@@ -175,19 +177,19 @@ Format: `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`
 * Put the general substring before the first prefix. Text after a prefix belongs to that prefix until the next recognised prefix or the end of the command. For example, `find example n/Alex` combines a general search for `example` with a name search for `Alex`; `find n/Alex example` searches the name for the single substring `Alex example`.
 * Prefixes may appear in any order. If `n/`, `p/`, `e/` or `a/` is repeated, only its last value is used.
 * For multiple `t/` prefixes, every tag substring must match at least one of the person's tags.
-* `find` without search text or prefixes shows no persons.
+* `find` without search text or prefixes shows no contacts.
 * An empty value after `n/`, `p/`, `e/` or `a/` imposes no restriction on that field. An empty `t/` value matches any contact with at least one tag.
 * Archived contacts are included in the results.
 
 Examples:
 
-* `find oak` finds persons with `oak` anywhere in their details, such as the name `Prof Oak` or the address `Oak Street`.
-* `find n/Al` finds persons whose names contain `Al`.
+* `find oak` finds contacts with `oak` anywhere in their details, such as the name `Prof Oak` or the address `Oak Street`.
+* `find n/Al` finds contacts whose names contain `Al`.
   ![Results for 'find n/Al'](images/findNameAl.png)
-* `find p/2345` finds persons whose phone numbers contain `2345`.
-* `find n/Al e/example.com` finds persons whose names contain `Al` and whose email addresses contain `example.com`.
-* `find example n/Al t/fri` finds persons with `example` in any searchable field, `Al` in their name and `fri` in at least one tag.
-* `find t/fri t/col` finds persons whose tags match **both** substrings, such as someone tagged with both `friends` and `colleagues`. Persons tagged only with `friends` or only with `colleagues` are excluded. Adding field or tag conditions narrows the search instead of broadening it.
+* `find p/2345` finds contacts whose phone numbers contain `2345`.
+* `find n/Al e/example.com` finds contacts whose names contain `Al` and whose email addresses contain `example.com`.
+* `find example n/Al t/fri` finds contacts with `example` in any searchable field, `Al` in their name and `fri` in at least one tag.
+* `find t/fri t/col` finds contacts whose tags match **both** substrings, such as someone tagged with both `friends` and `colleagues`. Contacts tagged only with `friends` or only with `colleagues` are excluded. Adding field or tag conditions narrows the search instead of broadening it.
   ![Results for 'find t/fri t/col', requiring both tag conditions to match](images/findTagsFriCol.png)
 
 ### Filtering contacts by tag: `filter`
@@ -468,7 +470,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
+**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
 **Filter** | `filter t/TAG [t/TAG]…​`<br> e.g., `filter t/housing policy t/expert`
 **List** | `list`, `list all` or `list archive`
 **Help** | `help`

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 public class NameTest {
@@ -56,5 +58,28 @@ public class NameTest {
 
         // different values -> returns false
         assertFalse(name.equals(new Name("Other Valid Name")));
+    }
+
+    @Test
+    public void isSameName() {
+        Name name = new Name("Eve Ng");
+
+        // same object -> returns true
+        assertTrue(name.isSameName(name));
+
+        // null -> returns false
+        assertFalse(name.isSameName(null));
+
+        // same name with different letter case or repeated spaces -> returns true
+        List<String> duplicateNames = List.of("Eve Ng", "Eve ng", "eve Ng", "eve ng", "eVe nG", "eve  ng");
+        for (String duplicateName : duplicateNames) {
+            assertTrue(name.isSameName(new Name(duplicateName)));
+        }
+
+        // same name with surrounding spaces -> returns true
+        assertTrue(name.isSameName(new Name("Eve Ng ")));
+
+        // different name -> returns false
+        assertFalse(name.isSameName(new Name("Eve Ong")));
     }
 }

@@ -93,11 +93,11 @@ public class MatchPersonPredicate implements Predicate<Person> {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof MatchPersonPredicate otherNameContainsKeywordsPredicate)) {
+        if (!(other instanceof MatchPersonPredicate otherMatchPersonPredicate)) {
             return false;
         }
 
-        return argMultimap.equals(otherNameContainsKeywordsPredicate.argMultimap);
+        return argMultimap.equals(otherMatchPersonPredicate.argMultimap);
     }
 
     @Override

@@ -3,8 +3,6 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.person.PersonComparator.getComparator;
 
-import java.util.Locale;
-
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.Model;
 import seedu.address.model.person.SortField;
@@ -37,9 +35,8 @@ public class SortCommand extends Command {
         requireNonNull(model);
         model.sortFilteredPersonList(getComparator(sortField, sortOrder));
 
-        String normalizedField = sortField.name().toLowerCase(Locale.ROOT);
-        String normalizedOrder = sortOrder == SortOrder.ASCENDING ? "ascending" : "descending";
-        return new CommandResult(String.format(MESSAGE_SORT_SUCCESS, normalizedField, normalizedOrder));
+        return new CommandResult(String.format(
+                MESSAGE_SORT_SUCCESS, sortField.getCommandValue(), sortOrder.getDescription()));
     }
 
     @Override
