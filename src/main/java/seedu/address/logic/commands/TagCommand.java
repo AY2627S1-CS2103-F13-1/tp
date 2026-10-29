@@ -12,6 +12,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -29,16 +30,16 @@ public class TagCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Tagged contact: %1$s";
 
-    private final PersonTarget target;
+    private final PersonId targetId;
     private final Set<Tag> tagsToAdd;
 
     /**
-     * Creates a command that adds tags to the contact selected by {@code target}.
+     * Creates a command that adds tags to the contact selected by {@code targetId}.
      */
-    public TagCommand(PersonTarget target, Set<Tag> tagsToAdd) {
-        requireNonNull(target);
+    public TagCommand(PersonId targetId, Set<Tag> tagsToAdd) {
+        requireNonNull(targetId);
         requireNonNull(tagsToAdd);
-        this.target = target;
+        this.targetId = targetId;
         this.tagsToAdd = new HashSet<>(tagsToAdd);
     }
 
@@ -46,7 +47,8 @@ public class TagCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Person original = target.resolve(model);
+        Person original = model.findPersonById(targetId).orElseThrow(() ->
+                new CommandException(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, targetId.getValue())));
 
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.addAll(tagsToAdd);
@@ -69,19 +71,19 @@ public class TagCommand extends Command {
             return false;
         }
 
-        return target.equals(otherCommand.target)
+        return targetId.equals(otherCommand.targetId)
                 && tagsToAdd.equals(otherCommand.tagsToAdd);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(target, tagsToAdd);
+        return Objects.hash(targetId, tagsToAdd);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("target", target)
+                .add("targetId", targetId)
                 .add("tagsToAdd", tagsToAdd)
                 .toString();
     }

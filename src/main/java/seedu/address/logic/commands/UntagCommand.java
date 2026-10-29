@@ -12,6 +12,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -29,17 +30,17 @@ public class UntagCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Removed tags from contact: %1$s";
 
-    private final PersonTarget target;
+    private final PersonId targetId;
     private final Set<Tag> tagsToRemove;
 
     /**
-     * Creates a command that removes tags from the contact selected by {@code target}.
+     * Creates a command that removes tags from the contact selected by {@code targetId}.
      */
-    public UntagCommand(PersonTarget target, Set<Tag> tagsToRemove) {
-        requireNonNull(target);
+    public UntagCommand(PersonId targetId, Set<Tag> tagsToRemove) {
+        requireNonNull(targetId);
         requireNonNull(tagsToRemove);
 
-        this.target = target;
+        this.targetId = targetId;
         this.tagsToRemove = new HashSet<>(tagsToRemove);
     }
 
@@ -47,7 +48,8 @@ public class UntagCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Person original = target.resolve(model);
+        Person original = model.findPersonById(targetId).orElseThrow(() ->
+                new CommandException(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, targetId.getValue())));
 
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.removeAll(tagsToRemove);
@@ -70,19 +72,19 @@ public class UntagCommand extends Command {
             return false;
         }
 
-        return target.equals(otherCommand.target)
+        return targetId.equals(otherCommand.targetId)
                 && tagsToRemove.equals(otherCommand.tagsToRemove);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(target, tagsToRemove);
+        return Objects.hash(targetId, tagsToRemove);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("target", target)
+                .add("targetId", targetId)
                 .add("tagsToRemove", tagsToRemove)
                 .toString();
     }

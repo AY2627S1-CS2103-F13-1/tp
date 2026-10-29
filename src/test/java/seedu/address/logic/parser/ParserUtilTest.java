@@ -2,7 +2,6 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -34,8 +32,6 @@ public class ParserUtilTest {
     private static final String VALID_TAG_2 = "neighbour";
 
     private static final String WHITESPACE = " \t\r\n";
-
-    private static final String MESSAGE_USAGE = "command: usage";
 
     @Test
     public void parsePersonId_null_throwsNullPointerException() {
@@ -64,26 +60,6 @@ public class ParserUtilTest {
     @Test
     public void parsePersonId_validValueWithWhitespace_returnsTrimmedPersonId() throws Exception {
         assertEquals(new PersonId(42), ParserUtil.parsePersonId(WHITESPACE + "42" + WHITESPACE));
-    }
-
-    @Test
-    public void parsePersonTarget_null_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> ParserUtil.parsePersonTarget(null, MESSAGE_USAGE));
-    }
-
-    @Test
-    public void parsePersonTarget_validId_returnsTarget() throws Exception {
-        assertEquals(PersonTarget.ofId(new PersonId(42)),
-                ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize("  42  "), MESSAGE_USAGE));
-    }
-
-    @Test
-    public void parsePersonTarget_invalidOrMissingId_throwsParseException() {
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE);
-        for (String invalid : new String[] {"", "a", "0", "C42", "id/42"}) {
-            assertThrows(ParseException.class, expectedMessage, () ->
-                    ParserUtil.parsePersonTarget(ArgumentTokenizer.tokenize(invalid), MESSAGE_USAGE));
-        }
     }
 
     @Test

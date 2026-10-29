@@ -36,8 +36,8 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class EditCommandTest {
 
-    private static final PersonTarget TARGET_ALICE = PersonTarget.ofId(ALICE.getId().orElseThrow());
-    private static final PersonTarget TARGET_BENSON = PersonTarget.ofId(BENSON.getId().orElseThrow());
+    private static final PersonId TARGET_ALICE = ALICE.getId().orElseThrow();
+    private static final PersonId TARGET_BENSON = BENSON.getId().orElseThrow();
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
@@ -122,7 +122,7 @@ public class EditCommandTest {
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withTags(VALID_TAG_HUSBAND).build();
-        EditCommand editCommand = new EditCommand(PersonTarget.ofId(lastPerson.getId().orElseThrow()), descriptor);
+        EditCommand editCommand = new EditCommand(lastPerson.getId().orElseThrow(), descriptor);
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
@@ -206,11 +206,11 @@ public class EditCommandTest {
 
     @Test
     public void equals() {
-        final EditCommand standardCommand = new EditCommand(PersonTarget.ofId(new PersonId(1)), DESC_AMY);
+        final EditCommand standardCommand = new EditCommand(new PersonId(1), DESC_AMY);
 
         // same values -> returns true
         EditPersonDescriptor copyDescriptor = new EditPersonDescriptor(DESC_AMY);
-        EditCommand commandWithSameValues = new EditCommand(PersonTarget.ofId(new PersonId(1)), copyDescriptor);
+        EditCommand commandWithSameValues = new EditCommand(new PersonId(1), copyDescriptor);
         assertTrue(standardCommand.equals(commandWithSameValues));
 
         // same object -> returns true
@@ -223,10 +223,10 @@ public class EditCommandTest {
         assertFalse(standardCommand.equals(new ClearCommand()));
 
         // different ID -> returns false
-        assertFalse(standardCommand.equals(new EditCommand(PersonTarget.ofId(new PersonId(2)), DESC_AMY)));
+        assertFalse(standardCommand.equals(new EditCommand(new PersonId(2), DESC_AMY)));
 
         // different descriptor -> returns false
-        assertFalse(standardCommand.equals(new EditCommand(PersonTarget.ofId(new PersonId(1)), DESC_BOB)));
+        assertFalse(standardCommand.equals(new EditCommand(new PersonId(1), DESC_BOB)));
     }
 
     @Test
@@ -263,17 +263,17 @@ public class EditCommandTest {
 
     @Test
     public void execute_unknownId_failure() {
-        EditCommand editCommand = new EditCommand(PersonTarget.ofId(new PersonId(99)), DESC_BOB);
+        EditCommand editCommand = new EditCommand(new PersonId(99), DESC_BOB);
 
         assertCommandFailure(editCommand, model, String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, 99));
     }
 
     @Test
     public void toStringMethod() {
-        PersonTarget target = PersonTarget.ofId(new PersonId(1));
+        PersonId target = new PersonId(1);
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         EditCommand editCommand = new EditCommand(target, editPersonDescriptor);
-        String expected = EditCommand.class.getCanonicalName() + "{target=" + target
+        String expected = EditCommand.class.getCanonicalName() + "{targetId=" + target
                 + ", editPersonDescriptor=" + editPersonDescriptor + "}";
         assertEquals(expected, editCommand.toString());
     }

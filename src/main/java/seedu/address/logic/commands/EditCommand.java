@@ -52,25 +52,26 @@ public class EditCommand extends Command {
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
 
-    private final PersonTarget target;
+    private final PersonId targetId;
     private final EditPersonDescriptor editPersonDescriptor;
 
     /**
-     * @param target selects the person to edit
+     * @param targetId selects the person to edit
      * @param editPersonDescriptor details to edit the person with
      */
-    public EditCommand(PersonTarget target, EditPersonDescriptor editPersonDescriptor) {
-        requireNonNull(target);
+    public EditCommand(PersonId targetId, EditPersonDescriptor editPersonDescriptor) {
+        requireNonNull(targetId);
         requireNonNull(editPersonDescriptor);
 
-        this.target = target;
+        this.targetId = targetId;
         this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person personToEdit = target.resolve(model);
+        Person personToEdit = model.findPersonById(targetId).orElseThrow(() ->
+                new CommandException(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, targetId.getValue())));
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
@@ -116,14 +117,14 @@ public class EditCommand extends Command {
             return false;
         }
 
-        return target.equals(otherEditCommand.target)
+        return targetId.equals(otherEditCommand.targetId)
                 && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("target", target)
+                .add("targetId", targetId)
                 .add("editPersonDescriptor", editPersonDescriptor)
                 .toString();
     }

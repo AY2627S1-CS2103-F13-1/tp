@@ -7,6 +7,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonId;
 
 /**
  * Restores a contact identified by its ID.
@@ -24,19 +25,20 @@ public class RestoreCommand extends Command {
 
     public static final String MESSAGE_WRONG_STATUS = "This person is not archived.";
 
-    private final PersonTarget target;
+    private final PersonId targetId;
 
     /**
-     * Creates a RestoreCommand to restore the person selected by {@code target}.
+     * Creates a RestoreCommand to restore the person selected by {@code targetId}.
      */
-    public RestoreCommand(PersonTarget target) {
-        this.target = requireNonNull(target);
+    public RestoreCommand(PersonId targetId) {
+        this.targetId = requireNonNull(targetId);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person personToChange = target.resolve(model);
+        Person personToChange = model.findPersonById(targetId).orElseThrow(() ->
+                new CommandException(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, targetId.getValue())));
         if (!personToChange.isArchived()) {
             throw new CommandException(MESSAGE_WRONG_STATUS);
         }
@@ -56,13 +58,13 @@ public class RestoreCommand extends Command {
             return false;
         }
 
-        return target.equals(otherRestoreCommand.target);
+        return targetId.equals(otherRestoreCommand.targetId);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("target", target)
+                .add("targetId", targetId)
                 .toString();
     }
 }
