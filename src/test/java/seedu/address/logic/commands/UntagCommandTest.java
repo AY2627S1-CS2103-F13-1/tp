@@ -91,9 +91,8 @@ public class UntagCommandTest {
         model.setPerson(original, archived);
         new ListCommand(ListCommand.View.ARCHIVED).execute(model);
 
-        assertThrows(
-                CommandException.class,
-                () -> new UntagCommand(TARGET_BENSON, Set.of(new Tag("expert"))).execute(model));
+        UntagCommand command = new UntagCommand(TARGET_BENSON, Set.of(new Tag("expert")));
+        assertThrows(CommandException.class, () -> command.execute(model));
 
         assertEquals(archived, model.getAddressBook().getPersonList().get(1));
         assertEquals(List.of(archived), model.getFilteredPersonList());
@@ -142,9 +141,7 @@ public class UntagCommandTest {
         UntagCommand command = new UntagCommand(
                 TARGET_ALICE, Set.of(new Tag("expert")));
 
-        assertThrows(
-                CommandException.class,
-                () -> command.execute(model));
+        assertThrows(CommandException.class, () -> command.execute(model));
 
         assertEquals(Set.of(new Tag("politics")),
                 model.getFilteredPersonList().get(0).getTags());
