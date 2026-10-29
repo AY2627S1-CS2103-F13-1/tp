@@ -1127,8 +1127,9 @@ These requirements define the quality targets and operating constraints for ByLi
 ### Glossary
 
 * **AB3**: AddressBook Level 3, the application on which ByLine is based. Some inherited class names and implementation details continue to use AB3 terminology.
-* **Address**: The free-text field used to record a contact's address or general location.
+* **Active contact**: A contact that is not archived. `list` shows only active contacts.
 * **Address book**: The internal collection that stores all contact records. This name is inherited from AB3 and is represented by the `AddressBook` class in the codebase.
+* **Archived contact**: A contact hidden with `archive`. It keeps its ID and details, is not shown by `list`, and can be brought back with `restore`.
 * **ByLine**: A desktop, CLI-based contact-management application that helps journalists organise and retrieve professional contacts relevant to their reporting. Users interact with ByLine primarily by typing commands, while a GUI displays their contacts and command results.
 * **Case-insensitive matching**: Comparing text without treating uppercase and lowercase letters as different. For example, `Housing` and `housing` are considered equivalent.
 * **CLI (Command Line Interface)**: A text-based interface through which users operate ByLine by typing commands.
@@ -1148,8 +1149,10 @@ These requirements define the quality targets and operating constraints for ByLi
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
 * **Interviewee**: A contact whom a journalist has interviewed or intends to interview.
 * **Journalist**: The target user of ByLine, who manages professional contacts for reporting purposes and prefers a command-driven desktop application.
+* **MSS (Main Success Scenario)**: The steps of a use case when nothing goes wrong.
 * **Partial match**: A match that occurs when a search value appears within a stored field without being equal to the complete field value.
 * **Person**: The internal model entity used to represent a contact. This term is inherited from AB3 and appears in class names such as `Person` and `UniquePersonList`; user-facing documentation should use **contact** instead.
+* **Preamble**: The text between the command word and the first prefix, e.g. `example` in `find example n/Alex`, or `3` in `edit 3 p/91234567`.
 * **Search criterion**: A field and value used to restrict search results, such as a name, phone number, email address, address, or tag.
 * **Source**: A contact who provides, or may provide, information, evidence, background, or commentary for a journalist's reporting.
 * **Story**: A news article, investigation, or other reporting assignment on which a journalist is working.
