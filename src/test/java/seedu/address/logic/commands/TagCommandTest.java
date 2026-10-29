@@ -91,10 +91,12 @@ public class TagCommandTest {
 
         Tag existing = original.getTags().iterator().next();
 
-        new TagCommand(
-                TARGET_ALICE,
-                Set.of(new Tag(existing.tagName.toUpperCase(
-                        java.util.Locale.ROOT)))).execute(model);
+        assertThrows(
+                CommandException.class,
+                () -> new TagCommand(
+                        TARGET_ALICE,
+                        Set.of(new Tag(existing.tagName.toUpperCase(
+                                java.util.Locale.ROOT)))).execute(model));
 
         Person updated = model.getFilteredPersonList().get(0);
 

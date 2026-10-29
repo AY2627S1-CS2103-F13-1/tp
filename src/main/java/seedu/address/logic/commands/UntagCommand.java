@@ -52,6 +52,11 @@ public class UntagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(original.getTags());
         updatedTags.removeAll(tagsToRemove);
 
+        if (updatedTags.equals(original.getTags())) {
+            throw new CommandException(
+                    "No tags were removed because the contact does not have the specified tags.");
+        }
+
         Person updated = original.withTags(updatedTags);
 
         model.setPerson(original, updated);
