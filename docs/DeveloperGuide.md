@@ -9,7 +9,8 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* ByLine is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org).
+* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -36,7 +37,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -64,17 +65,20 @@ For example, the `Logic` component defines its API in `Logic.java` and implement
 
 <img src="images/ComponentManagers.png" width="300" />
 
+<div markdown="span" class="alert alert-info">:information_source: **Note:** Backups are an exception. `ExportCommand`, `LoadCommand` and `LogicManager` use `BackupStorage`, a class in the `Storage` component, directly rather than through the `Storage` interface. See [Export and load feature](#export-and-load-feature).
+</div>
+
 The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/ui/Ui.java)
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -86,7 +90,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -116,7 +120,7 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
@@ -131,16 +135,10 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
-
-<img src="images/BetterModelClassDiagram.png" width="450" />
-
-</div>
-
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
@@ -148,6 +146,7 @@ The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * saves each person's ID and the next ID to give out, so that IDs stay the same after a restart and are never reused.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* also has `BackupStorage`, which writes and reads the backup files for `export` and `load`. It is separate from `StorageManager`, which handles only the main data file and user preferences.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -214,7 +213,7 @@ New commands that act on one contact should parse a `PersonId` with `ParserUtil#
 
 `TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonId` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
 
-When executed, both commands find the contact with `Model#findPersonById(targetId)` and unwrap the result and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
+When executed, both commands find the contact with `Model#findPersonById(targetId)`, then copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. If the set does not change, because the contact already has every given tag (`tag`) or has none of them (`untag`), the command throws a `CommandException` and the contact is not changed. Otherwise, the command replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
 
 `Tag` saves its name in lowercase, and tags are compared by that name. A contact's tags are a `Set<Tag>`, so adding a tag the contact already has, in any upper/lower case, does not create a second copy, and removing a tag matches it regardless of case.
 
@@ -389,9 +388,32 @@ Other commands, such as `find`, `tag` and `delete`, treat archived contacts like
   * Pros: Active and archived contacts are clearly separated.
   * Cons: Looking up an ID would have to search two lists, and archiving would move a contact between lists.
 
-### Undo/redo feature
+### Export and load feature
 
-#### Implementation
+`AddressBookParser` passes the arguments of `export` and `load` to `BackupCommandParser`, which reads the whole argument as a file path. Surrounding double quotes are removed, and `.json` is added if the path does not end with it. A blank path gives the command's usage message.
+
+`ExportCommand` calls `BackupStorage#exportAddressBook`, which writes every contact, including archived contacts, and the ID counter to the file in the same JSON format as the main data file. The file is created with `CREATE_NEW`, so an existing file is never overwritten. `LogicManager` returns straight after `export`, without calling `Model#commitAddressBook()` or saving the main data file, because the address book has not changed.
+
+`load` replaces the whole address book, so `LogicManager` handles it in stages to avoid losing data if something fails:
+
+1. `LoadCommand` runs on a copy of the model. It reads and checks the backup with `BackupStorage#readAddressBook` and puts the loaded contacts in the copy. If the file cannot be read or contains invalid data, the command throws a `CommandException` and the real model is unchanged.
+2. `LogicManager` saves the current contacts to a new `before-load-<timestamp>-<random id>.json` file in the same folder as the backup, using `BackupStorage#backupBeforeLoad`. This is skipped if the address book is empty or equals the sample data. If the copy cannot be saved, the load is cancelled.
+3. `LogicManager` saves the loaded contacts to the main data file, copies them into the real model and calls `Model#commitAddressBook()`, so `undo` can reverse a load.
+
+The result message names the file that holds the previous contacts, so the journalist can `load` it to go back.
+
+#### Design considerations
+
+**Aspect: How load protects the current contacts**
+
+* **Alternative 1 (current choice): Save a copy of the current contacts automatically before replacing them.**
+  * Pros: A mistaken load can be reversed from the copy, even after ByLine is closed and the undo history is gone.
+  * Cons: Each load can leave an extra file in the backup folder.
+* **Alternative 2: Ask the journalist to confirm before loading.**
+  * Pros: No extra files.
+  * Cons: Needs a confirmation step that does not fit a one-line command, and gives no way back once confirmed.
+
+### Undo/redo feature
 
 The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as `states`, a list of `AddressBook` copies, and `currentStateIndex`. It implements the following operations:
 
@@ -401,7 +423,7 @@ The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `Ad
 
 These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively, along with `Model#canUndoAddressBook()` and `Model#canRedoAddressBook()`.
 
-`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully; individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
+`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully, except `export`, which changes no data. Individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
 
 Each saved state is a copy made with `new AddressBook(...)`, which includes the ID counter `nextPersonId`. Undoing an `add` therefore also rolls the counter back, so the next contact added gets the undone contact's ID. The history keeps the initial state plus at most `VersionedAddressBook.HISTORY_LIMIT` (20) changes. When a commit would exceed this, the oldest state is removed.
 
@@ -465,9 +487,9 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 <img src="images/CommitActivityDiagram.png" width="250" />
 
-#### Design considerations:
+#### Design considerations
 
-**Aspect: How undo & redo execute:**
+**Aspect: How undo and redo execute**
 
 * **Alternative 1 (current choice):** Saves the entire address book.
   * Pros: Easy to implement. Saved states share the same immutable `Person` objects, so each state costs only a list of references.
@@ -478,7 +500,7 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-**Aspect: Where states are saved:**
+**Aspect: Where states are saved**
 
 * **Alternative 1 (current choice):** `LogicManager` calls `Model#commitAddressBook()` after every successful command, and `VersionedAddressBook#commit()` skips states that equal the current one.
   * Pros: Commands need no undo-related code, and new commands that change data are undoable automatically.
@@ -488,7 +510,7 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Commands that do not change data cost nothing extra.
   * Cons: Every new command that changes data must remember the call, or it silently cannot be undone.
 
-**Aspect: What happens to the ID counter on undo:**
+**Aspect: What happens to the ID counter on undo**
 
 * **Alternative 1 (current choice):** The counter is part of each saved state, so undo rolls it back.
   * Pros: Undo restores the address book exactly as it was, and an undone `add` leaves no gap in the IDs.
@@ -532,16 +554,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 | Priority | As a …​ | I want to …​ | So that I can…​ |
 | -------- | -------- | ------------ | ---------------- |
-| `* * *` | new user | see usage instructions | refer to instructions when I forget how to use ByLine |
+| `* * *` | journalist | see a guide to the commands inside ByLine | look up a command's format without leaving the app |
 | `* * *` | journalist | add a new contact | keep track of people who may be useful for my reporting |
 | `* * *` | journalist | list my contacts | see the contacts I have saved |
 | `* * *` | journalist | delete a contact | remove contacts that I no longer need |
+| `* * *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* * *` | journalist | refer to a contact by a fixed ID | act on the right contact even after searching or sorting the list |
 | `* * *` | journalist | search for contacts by their details | quickly locate relevant contacts without going through the entire list |
 | `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
 | `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
 | `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
-| `* *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
 | `* *` | journalist | remove tags from a contact | keep a contact's tags accurate when their role or relevance changes |
 | `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
@@ -549,48 +571,45 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *` | journalist | view only my active or only my archived contacts | focus on the contacts I need right now |
 | `* *` | journalist | undo my last change | quickly fix a mistake such as deleting the wrong contact |
 | `* *` | journalist | redo a change I undid | get back a change I did not mean to undo |
+| `* *` | journalist | delete all my contacts at once | start afresh, e.g. after trying ByLine with the sample data |
+| `* *` | journalist | export all my contacts to a backup file | keep a copy of my sources in case my computer fails |
+| `* *` | journalist | load my contacts from a backup file | recover my contacts or move them to another computer |
 
 ### Use cases
 
-**System:** Byline<br>
-**Use case:** UC01 - Delete a person<br>
+**System:** ByLine<br>
+**Use case:** UC01 - Delete a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list persons
-2.  Byline shows a list of persons
-3.  Journalist requests to delete a specific person by its ID
-4.  Byline deletes the person
+1.  Journalist requests to delete a specific contact by its ID
+2.  ByLine deletes the contact and shows the details of the deleted contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The given ID is not a whole number from 1 to 999999.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message stating the correct format.
 
-* 3a. The given ID is not a whole number from 1 to 999999.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message stating the correct format.
+* 1b. No contact has the given ID.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating that no contact has that ID.
 
-* 3b. No person has the given ID.
+      Use case resumes at step 1.
 
-    * 3b1. Byline shows an error message stating that no contact has that ID.
-
-      Use case resumes at step 2.
-
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC02 - Add a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
 1.  Journalist requests to add a contact, providing the contact's name, phone number, email and address, and optionally tags
-2.  Byline adds the contact and shows the details of the added contact
+2.  ByLine adds the contact and shows the details of the added contact
 
     Use case ends.
 
@@ -598,25 +617,25 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. A compulsory detail (name, phone number, email or address) is missing.
 
-    * 1a1. Byline shows an error message stating the correct format.
+    * 1a1. ByLine shows an error message stating the correct format.
 
       Use case resumes at step 1.
 
 * 1b. One or more of the given details is invalid (e.g. the phone number contains non-digit characters).
 
-    * 1b1. Byline shows an error message describing the valid format of that detail.
+    * 1b1. ByLine shows an error message describing the valid format of that detail.
 
       Use case resumes at step 1.
 
 * 1c. A contact with the same name and phone number already exists, ignoring letter case and repeated spaces in the name.
 
-    * 1c1. Byline shows an error message stating that the person already exists.
+    * 1c1. ByLine shows an error message stating that a contact with the same name and phone number already exists.
 
       Use case resumes at step 1.
 
 * 1d. Every contact ID up to 999999 has been used.
 
-    * 1d1. Byline shows an error message stating that no more contacts can be added.
+    * 1d1. ByLine shows an error message stating that no more contacts can be added.
 
       Use case ends.
 
@@ -624,14 +643,14 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * The contact is added only if all given details are valid.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC03 - List contacts<br>
 **Actor:** Journalist
 
 **MSS**
 
 1.  Journalist requests to list active contacts
-2.  Byline shows the contacts that are not archived
+2.  ByLine shows the contacts that are not archived
 
     Use case ends.
 
@@ -639,83 +658,83 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. Journalist requests to list all contacts instead.
 
-    * 1a1. Byline shows all contacts, including archived ones.
+    * 1a1. ByLine shows all contacts, including archived ones.
 
       Use case ends.
 
 * 1b. Journalist requests to list archived contacts instead.
 
-    * 1b1. Byline shows only the archived contacts.
+    * 1b1. ByLine shows only the archived contacts.
 
       Use case ends.
 
 * 1c. The request is not in a valid format.
 
-    * 1c1. Byline shows an error message with the accepted formats. The displayed list is unchanged.
+    * 1c1. ByLine shows an error message with the accepted formats. The displayed list is unchanged.
 
       Use case ends.
 
 * 2a. There are no contacts to show.
 
-    * 2a1. Byline shows an empty list.
+    * 2a1. ByLine shows an empty list.
 
       Use case ends.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC04 - Tag a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list contacts
-2.  Byline shows a list of contacts
-3.  Journalist requests to add one or more tags to a specific contact by its ID
-4.  Byline adds the tags to the contact and shows the updated contact
+1.  Journalist requests to add one or more tags to a specific contact by its ID
+2.  ByLine adds the tags to the contact and shows the updated contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message.
 
-* 3a. The given ID is not valid, or no contact has that ID.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message.
+* 1b. A given tag contains characters other than letters, numbers and spaces.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating that tags can contain only letters, numbers and spaces.
 
-* 3b. A given tag contains characters other than letters, numbers and spaces.
+      Use case resumes at step 1.
 
-    * 3b1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
+* 1c. The contact already has one of the given tags (ignoring upper/lower case).
 
-      Use case resumes at step 2.
-
-* 3c. The contact already has one of the given tags (ignoring upper/lower case).
-
-    * 3c1. Byline keeps the existing tag and adds the remaining tags.
-
-      Use case resumes at step 4.
-
-* 3d. No tag is given.
-
-    * 3d1. Byline shows an error message stating the correct format.
+    * 1c1. ByLine keeps the existing tag and adds the remaining tags.
 
       Use case resumes at step 2.
+
+* 1d. No tag is given.
+
+    * 1d1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1e. The contact already has every given tag.
+
+    * 1e1. ByLine shows an error message stating that no tags were added.
+
+      Use case resumes at step 1.
 
 **Guarantees**
 
 * A contact never has two tags that differ only in upper/lower case.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC05 - Search for contacts<br>
 **Actor:** Journalist
 
 **MSS**
 
 1.  Journalist requests to search for contacts, giving one or more search criteria (name, phone number, email, address and/or tag)
-2.  Byline shows the contacts that match all the given criteria
+2.  ByLine shows the contacts that match all the given criteria
 
     Use case ends.
 
@@ -729,13 +748,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1b. Journalist gives search text without any prefix.
 
-    * 1b1. Byline shows the contacts that have the text in any of their details.
+    * 1b1. ByLine shows the contacts that have the text in any of their details.
 
       Use case ends.
 
 * 2a. No contacts match all the given criteria.
 
-    * 2a1. Byline shows an empty list.
+    * 2a1. ByLine shows an empty list.
 
       Use case ends.
 
@@ -745,9 +764,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1. Journalist views a list of contacts.
-2. Journalist requests to sort the displayed contacts, specifying a supported field and optionally an order.
-3. ByLine reorders the displayed contacts and shows the successful sort message.
+1. Journalist views a list of contacts
+2. Journalist requests to sort the displayed contacts, specifying a supported field and optionally an order
+3. ByLine reorders the displayed contacts
 
    Use case ends.
 
@@ -757,128 +776,126 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     * 2a1. ByLine shows an error message listing the valid fields. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
 * 2b. The order is invalid.
 
     * 2b1. ByLine shows an error message listing the valid orders. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
 * 2c. The field is missing.
 
     * 2c1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
 * 2d. Extra arguments are supplied.
 
     * 2d1. ByLine shows an error message describing the accepted command format. The displayed list is unchanged.
 
-      Use case resumes at step 1.
+      Use case resumes at step 2.
 
-**System:** Byline<br>
+* 3a. Fewer than two contacts are displayed.
+
+    * 3a1. ByLine reports the sort as successful, but the order does not change.
+
+      Use case ends.
+
+**System:** ByLine<br>
 **Use case:** UC07 - Archive a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list contacts
-2.  Byline shows a list of contacts
-3.  Journalist requests to archive a specific contact by its ID
-4.  Byline marks the contact as archived and shows the archived contact
+1.  Journalist requests to archive a specific contact by its ID
+2.  ByLine marks the contact as archived and shows the archived contact
 
     Use case ends.
 
 **Extensions**
 
-* 3a. The given ID is not valid, or no contact has that ID.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-    * 3a1. Byline shows an error message.
+    * 1a1. ByLine shows an error message.
 
-      Use case resumes at step 2.
+      Use case resumes at step 1.
 
-* 3b. The contact is already archived.
+* 1b. The contact is already archived.
 
-    * 3b1. Byline shows an error message stating that the contact is already archived.
+    * 1b1. ByLine shows an error message stating that the contact is already archived.
 
-      Use case resumes at step 2.
+      Use case resumes at step 1.
 
 **Guarantees**
 
 * The contact's details and ID are unchanged.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC08 - Restore an archived contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list archived contacts
-2.  Byline shows the archived contacts
-3.  Journalist requests to restore a specific contact by its ID
-4.  Byline marks the contact as no longer archived and shows the restored contact
+1.  Journalist requests to restore a specific archived contact by its ID
+2.  ByLine marks the contact as no longer archived and shows the restored contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. There are no archived contacts.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message.
 
-* 3a. The given ID is not valid, or no contact has that ID.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message.
+* 1b. The contact is not archived.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating that the contact is not archived.
 
-* 3b. The contact is not archived.
-
-    * 3b1. Byline shows an error message stating that the contact is not archived.
-
-      Use case resumes at step 2.
+      Use case resumes at step 1.
 
 **Guarantees**
 
 * The contact's details and ID are unchanged.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC09 - Remove tags from a contact<br>
 **Actor:** Journalist
 
 **MSS**
 
-1.  Journalist requests to list contacts
-2.  Byline shows a list of contacts
-3.  Journalist requests to remove one or more tags from a specific contact by its ID
-4.  Byline removes the tags from the contact and shows the updated contact
+1.  Journalist requests to remove one or more tags from a specific contact by its ID
+2.  ByLine removes the tags from the contact and shows the updated contact
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The given ID is not valid, or no contact has that ID.
 
-  Use case ends.
+    * 1a1. ByLine shows an error message.
 
-* 3a. The given ID is not valid, or no contact has that ID.
+      Use case resumes at step 1.
 
-    * 3a1. Byline shows an error message.
+* 1b. No tag is given.
 
-      Use case resumes at step 2.
+    * 1b1. ByLine shows an error message stating the correct format.
 
-* 3b. No tag is given.
+      Use case resumes at step 1.
 
-    * 3b1. Byline shows an error message stating the correct format.
+* 1c. A given tag contains characters other than letters, numbers and spaces.
 
-      Use case resumes at step 2.
+    * 1c1. ByLine shows an error message stating that tags can contain only letters, numbers and spaces.
 
-* 3c. A given tag contains characters other than letters, numbers and spaces.
+      Use case resumes at step 1.
 
-    * 3c1. Byline shows an error message stating that tags can contain only letters, numbers and spaces.
+* 1d. The contact has none of the given tags.
 
-      Use case resumes at step 2.
+    * 1d1. ByLine shows an error message stating that no tags were removed.
+
+      Use case resumes at step 1.
 
 **Guarantees**
 
@@ -890,8 +907,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1. Journalist requests to filter contacts using one or more complete tags.
-2. ByLine shows contacts that have every specified tag and reports the number listed.
+1. Journalist requests to filter contacts using one or more complete tags
+2. ByLine shows contacts that have every specified tag and reports the number listed
 
    Use case ends.
 
@@ -920,7 +937,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * Filtering does not change contact data or stored contact order.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC11 - Undo a change<br>
 **Actor:** Journalist
 
@@ -928,7 +945,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist makes a change to the contacts, e.g. deletes a contact (UC01)
 2.  Journalist requests to undo the last change
-3.  Byline restores the contacts to how they were before the change, keeping the current view
+3.  ByLine restores the contacts to how they were before the change
 
     Use case ends.
 
@@ -936,13 +953,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. There is no change to undo.
 
-    * 2a1. Byline shows an error message stating that there is nothing to undo.
+    * 2a1. ByLine shows an error message stating that there is nothing to undo.
 
       Use case ends.
 
 * 2b. The request includes extra words, e.g. a number.
 
-    * 2b1. Byline shows an error message stating the correct format.
+    * 2b1. ByLine shows an error message stating the correct format.
 
       Use case ends.
 
@@ -950,7 +967,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * Only the most recent change is undone.
 
-**System:** Byline<br>
+**System:** ByLine<br>
 **Use case:** UC12 - Redo an undone change<br>
 **Actor:** Journalist
 
@@ -958,7 +975,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  Journalist undoes a change (UC11)
 2.  Journalist requests to redo the change
-3.  Byline makes the change again, keeping the current view
+3.  ByLine makes the change again
 
     Use case ends.
 
@@ -966,15 +983,152 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. There is no undone change to redo, e.g. because the journalist made a new change after undoing.
 
-    * 2a1. Byline shows an error message stating that there is nothing to redo.
+    * 2a1. ByLine shows an error message stating that there is nothing to redo.
 
       Use case ends.
 
 * 2b. The request includes extra words, e.g. a number.
 
-    * 2b1. Byline shows an error message stating the correct format.
+    * 2b1. ByLine shows an error message stating the correct format.
 
       Use case ends.
+
+**System:** ByLine<br>
+**Use case:** UC13 - Edit a contact<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to edit a contact, giving its ID and new values for one or more of its details
+2.  ByLine updates the contact, replacing its tags if new tags are given, and shows the details of the edited contact
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The ID is not a valid contact ID (e.g. `0` or `abc`).
+
+    * 1a1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. No contact has the given ID.
+
+    * 1b1. ByLine shows an error message stating that no contact has that ID.
+
+      Use case resumes at step 1.
+
+* 1c. No details to change are given.
+
+    * 1c1. ByLine shows an error message stating that at least one detail must be given.
+
+      Use case resumes at step 1.
+
+* 1d. One or more of the new values is invalid (e.g. the phone number contains non-digit characters).
+
+    * 1d1. ByLine shows an error message describing the valid format of that detail.
+
+      Use case resumes at step 1.
+
+* 1e. Another contact already has the same name and phone number, ignoring letter case and repeated spaces in the name.
+
+    * 1e1. ByLine shows an error message stating that a contact with the same name and phone number already exists.
+
+      Use case resumes at step 1.
+
+**Guarantees**
+
+* The contact is changed only if all given values are valid.
+* The contact keeps its ID.
+
+**System:** ByLine<br>
+**Use case:** UC14 - Clear all contacts<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to clear all contacts
+2.  ByLine deletes every contact, including archived contacts
+
+    Use case ends.
+
+**Guarantees**
+
+* The ID counter is not reset, so the deleted contacts' IDs are not given out again.
+* The journalist can undo the clear (UC11).
+
+**System:** ByLine<br>
+**Use case:** UC15 - Export contacts to a backup file<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to export all contacts, giving a file path
+2.  ByLine saves all contacts, including archived contacts, and the ID counter to a new JSON file at that path
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No path is given.
+
+    * 1a1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. A file already exists at the path, or the folder does not exist or cannot be written to.
+
+    * 1b1. ByLine shows an error message stating that the contacts could not be exported.
+
+      Use case resumes at step 1.
+
+**Guarantees**
+
+* An existing file is never overwritten.
+* The contacts in ByLine are unchanged.
+
+**System:** ByLine<br>
+**Use case:** UC16 - Load contacts from a backup file<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to load contacts from a backup file, giving its path
+2.  ByLine saves a copy of the current contacts to a new file in the same folder as the backup
+3.  ByLine replaces all contacts with the contacts in the backup and shows where the copy was saved
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No path is given.
+
+    * 1a1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. The file does not exist or does not contain valid contact data.
+
+    * 1b1. ByLine shows an error message stating that the contacts could not be loaded.
+
+      Use case resumes at step 1.
+
+* 2a. ByLine has no contacts, or only the unchanged sample contacts.
+
+    * 2a1. ByLine does not save a copy.
+
+      Use case resumes at step 3.
+
+* 2b. The copy cannot be saved.
+
+    * 2b1. ByLine shows an error message stating that the load was cancelled.
+
+      Use case ends.
+
+**Guarantees**
+
+* If the load fails, the current contacts are unchanged.
+* The journalist can undo the load (UC11).
 
 ### Non-Functional Requirements
 
@@ -982,8 +1136,8 @@ These requirements define the quality targets and operating constraints for ByLi
 
 1. **Keyboard usability:** After launch, journalists should be able to add, list, edit, delete, tag,
    search, and filter contacts using only the keyboard.
-2. **Error guidance:** Invalid command syntax or contact details should produce a visible error
-   message explaining the accepted command format or the relevant field constraint.
+2. **Typing efficiency:** A journalist who types at 40 words per minute should be able to add a contact with a name,
+   phone number, email and address in under 30 seconds.
 3. **Capacity and performance:** ByLine should support 1,000 contacts. With that dataset, adding,
    listing, editing, deleting, tagging, searching, and filtering contacts should each display a result within
    one second on a machine with at least a dual-core 2 GHz processor, 8 GB RAM, local SSD storage,
@@ -993,24 +1147,20 @@ These requirements define the quality targets and operating constraints for ByLi
    and Linux with a compatible Java 25 runtime, without requiring an IDE.
 5. **Offline operation:** After installation, managing contacts and saving or loading contact data
    should work without an internet connection or an external database service.
-6. **Persistent local storage:** Contact data should be stored locally in JSON format. When the
-   configured data location is writable, each successfully completed command that changes contacts
-   should save the updated data without a separate save action. Restarting ByLine should restore
-   the saved contact details and tags.
-7. **Input reliability:** A command rejected because of invalid syntax, invalid field values, or
-   an invalid or unknown contact ID should leave existing contact records unchanged and allow the user
-   to enter another command without restarting ByLine.
-8. **Storage failure reporting:** If saving contact data fails, ByLine should show a visible error
-   indicating that the save failed, rather than reporting the command as successfully completed.
+6. **Local storage format:** Contact data should be stored in a human-readable JSON file on the journalist's
+   computer, so that it can be copied or backed up without ByLine.
+7. **Single-file distribution:** ByLine should be distributed as a single JAR file of at most 100 MB that runs
+   without an installer.
+8. **Screen sizes:** The GUI should work well, with no content cut off, on screens of 1920x1080 or higher at 100%
+   and 125% scaling, and should remain usable on screens of 1280x720 or higher at 150% scaling.
+9. **Privacy:** ByLine should never send contact data over the network.
 
 ### Glossary
 
-The terms below are used consistently throughout the requirements, design, implementation, and testing sections of this guide.
-
 * **AB3**: AddressBook Level 3, the application on which ByLine is based. Some inherited class names and implementation details continue to use AB3 terminology.
-* **Address**: The free-text field used to record a contact's address or general location.
+* **Active contact**: A contact that is not archived. `list` shows only active contacts.
 * **Address book**: The internal collection that stores all contact records. This name is inherited from AB3 and is represented by the `AddressBook` class in the codebase.
-* **AND search**: A search involving multiple criteria in which a contact must satisfy every specified criterion to be included in the results.
+* **Archived contact**: A contact hidden with `archive`. It keeps its ID and details, is not shown by `list`, and can be brought back with `restore`.
 * **ByLine**: A desktop, CLI-based contact-management application that helps journalists organise and retrieve professional contacts relevant to their reporting. Users interact with ByLine primarily by typing commands, while a GUI displays their contacts and command results.
 * **Case-insensitive matching**: Comparing text without treating uppercase and lowercase letters as different. For example, `Housing` and `housing` are considered equivalent.
 * **CLI (Command Line Interface)**: A text-based interface through which users operate ByLine by typing commands.
@@ -1020,21 +1170,20 @@ The terms below are used consistently throughout the requirements, design, imple
 * **Contact**: A person whose details a journalist stores in ByLine because the person may be relevant to current or future reporting.
 * **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
-* **Displayed contact list**: The contacts currently visible in the UI. It may contain all stored contacts or only the contacts returned by a search.
+* **Displayed contact list**: The contacts currently shown. `list`, `find` and `filter` choose which contacts are shown, and `sort` sets their order.
 * **Duplicate contact**: A contact whose name and phone number match an existing contact's. Names are compared after
   letter case is ignored and each run of spaces is treated as one space. ByLine does not allow duplicate contacts.
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
 * **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
-* **Filtered contact list**: The internal list of contacts that satisfy the current search criteria. It provides the data shown in the displayed contact list.
+* **Filtered contact list**: The internal list behind the displayed contact list. It holds the contacts chosen to be shown, before `sort` orders them.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
 * **Interviewee**: A contact whom a journalist has interviewed or intends to interview.
 * **Journalist**: The target user of ByLine, who manages professional contacts for reporting purposes and prefers a command-driven desktop application.
-* **Mainstream OS**: Windows, Linux, Unix, or macOS.
-* **MVP (Minimum Viable Product)**: The smallest set of features required for ByLine to provide its intended core value to journalists.
+* **MSS (Main Success Scenario)**: The steps of a use case when nothing goes wrong.
 * **Partial match**: A match that occurs when a search value appears within a stored field without being equal to the complete field value.
 * **Person**: The internal model entity used to represent a contact. This term is inherited from AB3 and appears in class names such as `Person` and `UniquePersonList`; user-facing documentation should use **contact** instead.
-* **Potential source**: A contact who may be able to provide information for a story but has not necessarily been approached or interviewed.
+* **Preamble**: The text between the command word and the first prefix, e.g. `example` in `find example n/Alex`, or `3` in `edit 3 p/91234567`.
 * **Search criterion**: A field and value used to restrict search results, such as a name, phone number, email address, address, or tag.
 * **Source**: A contact who provides, or may provide, information, evidence, background, or commentary for a journalist's reporting.
 * **Story**: A news article, investigation, or other reporting assignment on which a journalist is working.
@@ -1068,7 +1217,81 @@ testers are expected to do more *exploratory* testing.
    2. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
-3. _{ more test cases …​ }_
+### Viewing help
+
+1. Opening the Command Guide
+
+   1. Test case: `help`<br>
+      Expected: The right-hand panel shows the Command Guide.
+
+   2. Test case: Click any contact, then press `F1`.<br>
+      Expected: Same as previous.
+
+   3. Test case: With the guide shown, click any contact.<br>
+      Expected: The right-hand panel shows that contact's details instead of the guide.
+
+### Adding a contact
+
+1. Adding a contact
+
+   1. Prerequisites: Start with the sample data (6 contacts, IDs 1 to 6).
+
+   2. Test case: `add n/Jane Tan p/91234567 e/jane@example.com a/12 Kent Ridge Road t/economist`<br>
+      Expected: Jane Tan is added with ID 7 and shown in the list of active contacts. The status message shows her details.
+
+   3. Test case: `add n/JANE TAN p/91234567 e/jt@example.com a/Clementi` (after the previous test case)<br>
+      Expected: No contact is added. An error says a contact with the same name and phone number already exists.
+
+   4. Test case: `add n/Jane Tan p/98765432 e/jt@example.com a/Clementi` (after the previous test case)<br>
+      Expected: A second Jane Tan is added with ID 8, because her phone number is different.
+
+   5. Test case: `add n/Kim Lee p/12ab e/kim@example.com a/Clementi`<br>
+      Expected: No contact is added. The error describes the valid phone number format.
+
+   6. Other incorrect add commands to try: `add`, `add n/Kim Lee p/91234567`, `add n/Kim Lee p/91234567 e/kim a/Clementi`<br>
+      Expected: No contact is added. An error message is shown.
+
+### Listing contacts
+
+1. Switching between list views
+
+   1. Prerequisites: Start with the sample data, then run `archive 1`.
+
+   2. Test case: `list`<br>
+      Expected: Every contact except Alex Yeoh is shown.
+
+   3. Test case: `list archive`<br>
+      Expected: Only Alex Yeoh is shown, with `[Archived]` after the name.
+
+   4. Test case: `list all`<br>
+      Expected: All 6 contacts are shown, including Alex Yeoh.
+
+   5. Test case: `list archived`<br>
+      Expected: The displayed list does not change. An error lists the accepted formats.
+
+### Editing a contact
+
+1. Editing a contact by ID
+
+   1. Prerequisites: Start with the sample data.
+
+   2. Test case: `edit 1 p/91234567 e/alex@example.com`<br>
+      Expected: Alex Yeoh's phone number and email are updated. The status message shows the edited details.
+
+   3. Test case: `edit 2 t/`<br>
+      Expected: All of Bernice Yu's tags are removed.
+
+   4. Test case: `edit 1 n/Bernice Yu p/99272758`<br>
+      Expected: Nothing is changed. An error says a contact with the same name and phone number already exists.
+
+   5. Test case: `edit 1`<br>
+      Expected: Nothing is changed. An error says at least one field must be given.
+
+   6. Test case: `edit 99 p/91234567`<br>
+      Expected: Nothing is changed. An error says no contact has the ID 99.
+
+   7. Other incorrect edit commands to try: `edit 0 p/91234567`, `edit 1 p/12ab`<br>
+      Expected: Nothing is changed. An error message is shown.
 
 ### Deleting a person
 
@@ -1096,7 +1319,20 @@ testers are expected to do more *exploratory* testing.
    1. Test case: Delete the contact with the highest ID, then add a new contact.<br>
       Expected: The new contact gets the next ID after the deleted one, not the deleted ID.
 
-3. _{ more test cases …​ }_
+### Clearing all contacts
+
+1. Clearing and undoing
+
+   1. Prerequisites: Start with the sample data, then run `archive 1`.
+
+   2. Test case: `clear`, then `list all`<br>
+      Expected: No contacts are shown. The archived contact was removed too.
+
+   3. Test case: `undo` (straight after the previous test case), then `list all`<br>
+      Expected: All 6 contacts are back with their original IDs, and Alex Yeoh is still archived.
+
+   4. Test case: `clear`, then `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi`<br>
+      Expected: Jane Tan gets ID 7, not ID 1, because IDs are never reused.
 
 ### Finding contacts
 
@@ -1324,8 +1560,14 @@ testers are expected to do more *exploratory* testing.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Dealing with a missing data file
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Run a command that changes contacts, e.g. `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi`, so that `data/addressbook.json` exists.
 
-2. _{ more test cases …​ }_
+   2. Test case: Close ByLine, delete `data/addressbook.json`, then relaunch ByLine.<br>
+      Expected: ByLine starts with the sample contacts.
+
+2. Dealing with a corrupted data file
+
+   1. Test case: Close ByLine. In `data/addressbook.json`, change one contact's `id` value to `abc`, e.g. `"id" : "abc"`. Relaunch ByLine.<br>
+      Expected: ByLine starts with an empty contact list.
