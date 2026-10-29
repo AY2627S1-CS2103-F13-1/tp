@@ -240,7 +240,11 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 ### Find feature
 
-`AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`. Find no longer uses `AnyFieldContainsSubstringPredicate` or `EachFieldContainsSubstringPredicate`.
+Syntax: `find [general_substring] [prefix_substring] [prefix_substring]...`
+- `general_substring`: optional, must be positioned first, has no prefix.
+- `prefix_substring`: optional, must be positioned after general_substring, can have any supported prefix.
+
+`AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`.
 
 The predicate combines the following conditions with AND. Matching is case-insensitive and uses consecutive substrings:
 
@@ -248,13 +252,52 @@ The predicate combines the following conditions with AND. Matching is case-insen
 * **Field substrings:** `getValue(...)` returns an `Optional<String>` for each of the name, phone, email and address prefixes. An absent prefix imposes no restriction. A present substring must occur within its corresponding field. If a prefix is repeated, `getValue(...)` returns its last value.
 * **Tag substrings:** `getAllValues(PREFIX_TAG)` returns every supplied tag substring. Each must match at least one tag, but multiple substrings may match the same tag. An empty list imposes no tag restriction.
 
-The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix. For example, `find example n/Alex` requires `example` in any searchable field and `Alex` in the name, whereas `find n/Alex example` requires the name to contain `Alex example`.
+Example: `find example n/Alex t/fri`
+
+Part of the command | Read as | A contact matches if
+--------------------|---------|---------------------
+`example` (before the first prefix) | general substring (preamble) | its name, phone, email, address or one of its tags contains `example`
+`n/Alex` | name substring | its name contains `Alex`
+`t/fri` | tag substring | at least one of its tags contains `fri`
+
+If a general substring is used, it must be placed before any prefixed substrings. In `find n/Alex example` there is no preamble, so search returns contacts whose names contain `Alex example`, if any.
+
+Other allowed combinations of the find command include:
+* `find example`: returns contacts that contain "example" in any field.
+* `find n/Alex`: returns contacts that contain "Alex" in their name.
+* `find t/fri`: returns contacts that contain "fri" in their tags.
+* `find n/Alex t/Fri` or `find t/fri n/Alex`: returns contacts that contain "Alex" in their name and "fri" in their tags.
+* `find`: returns an empty list.
+
+The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix.
 
 The parser does not reject empty input or duplicate prefixes. With no preamble or prefixes, the predicate returns false for every person. An empty name, phone, email or address substring matches every value of that field; an empty tag substring requires at least one tag.
 
 `MatchPersonPredicate` implements `Predicate<Person>` and is passed to `FindCommand`. On execution, the command calls `Model.updateFilteredPersonList(predicate)` and reports the number of matching persons. The new predicate replaces the previous filter, so each search considers the whole address book. The predicate does not check the archive flag, so archived contacts appear in search results. The predicate is applied through the [displayed-list layers](#displayed-list-layers).
 
-`MatchPersonPredicateTest` covers general, field and combined matching. `FindCommandParserTest` covers all non-empty combinations of supported prefixes with and without a preamble, prefix order, trailing text and repeated prefixes. `FindCommandTest` and `AddressBookParserTest` verify command execution and parsing against expected search results.
+#### Design considerations
+
+**Aspect: Matching the entire search text versus any whole-word keyword**
+
+* **Alternative 1 (current choice): Match each search value as one consecutive substring.**
+  * Pros: Users can search using incomplete details, such as part of a name, phone number or email address. Spaces and word order remain meaningful: `Alex Yeoh` is treated as one search value instead of two alternatives, helping users narrow their search with a phrase.
+  * Cons: A phrase may miss a contact whose details contain the words in a different order or with additional text between them. Short substrings can still match unrelated contacts.
+* **Alternative 2 (original behavior): Split the input into keywords and match any complete keyword.**
+  * Pros: A contact can match even if the user remembers only one correct word. Word order and intervening text do not matter, and users can search for several alternative names in one command.
+  * Cons: Adding keywords broadens the search instead of narrowing it. For example, `Alex Yeoh` also matches `Alex Tan` and `Bernice Yeoh`, which can make the intended contact harder to identify. Whole-word matching also prevents searching with partial words.
+
+Matching the entire search value supports finding contacts from partial details while preserving the meaning of multi-word phrases. The current implementation also falls back to approximate substring matching through `Search.substringThenLevenshtein`, allowing limited typing errors at the cost of potentially including additional matches.
+
+**Aspect: One combined predicate versus separate predicates for each search type**
+
+* **Alternative 1 (current choice): Use one `MatchPersonPredicate` for general, field and combined searches.**
+  * Pros: `FindCommandParser` follows the same construction path for every supported combination of arguments. The predicate keeps the AND relationship between general, field and tag conditions in one place, so combined searches do not require separate parser branches.
+  * Cons: The predicate handles several kinds of conditions and depends on the parser's `ArgumentMultimap` representation. Adding search options can make it harder to read and increases the combinations that need testing.
+* **Alternative 2: Use separate predicates for general and field-specific searches, composing them when needed.**
+  * Pros: Each predicate has a focused responsibility and can be tested or reused independently.
+  * Cons: The parser or a dedicated helper must select and compose the predicates for each combination of arguments. Shared matching rules may be duplicated unless they are extracted into common helpers.
+
+A combined predicate keeps construction simple while supporting general and prefixed conditions in the same command. Separate predicates would become more useful if the search types developed substantially different rules or needed independent reuse.
 
 ### Filter feature
 
@@ -670,9 +713,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. No search criteria are given.
 
-    * 1a1. Byline shows an error message stating the correct format.
+    * 1a1. ByLine shows an empty list.
 
-      Use case resumes at step 1.
+      Use case ends.
 
 * 1b. Journalist gives search text without any prefix.
 
@@ -682,7 +725,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. No contacts match all the given criteria.
 
-    * 2a1. Byline shows an empty list and a message that 0 persons are listed.
+    * 2a1. Byline shows an empty list.
 
       Use case ends.
 
