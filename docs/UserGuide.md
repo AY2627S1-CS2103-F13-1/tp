@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-ByLine is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, ByLine can help you manage contacts faster than traditional GUI applications.
+ByLine is a **desktop contact manager for journalists**. It helps you keep track of sources, experts and interviewees, tag them by topic, and find the right person quickly when a story breaks. You use ByLine by typing commands (a Command Line Interface, or CLI), and the window shows your contacts and the results. If you type quickly, this is faster than clicking through menus.
 
 * Table of Contents
 {:toc}
@@ -23,12 +23,12 @@ ByLine is a **desktop application for managing contacts, optimized for use throu
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to show the command guide.<br>
    Some example commands you can try:
 
    * `list` : Lists all active (not archived) contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to ByLine.
 
    * `delete 3` : Deletes the contact with ID 3. Each contact's ID is shown as `ID: 3` on its card.
 
@@ -75,51 +75,55 @@ Every contact has an ID, a whole number shown as `ID: 3` on the contact's card. 
 * Type the ID as a plain number, e.g. `delete 3`.
 * IDs go up to 999999. Because IDs are never reused, no more contacts can be added once ID 999999 has been given out.
 
+### Contact details
+
+Field | Rules
+------|------
+Name `n/` | English letters (A–Z), numbers and spaces. Must not start with a space.
+Phone `p/` | Digits only, at least 3 digits.
+Email `e/` | In the form `local-part@domain`, e.g. `jane@example.com`.
+Address `a/` | Any text, but not blank.
+Tag `t/` | Letters in any language, numbers and spaces, e.g. `housing policy`. Saved in lowercase.
+
+Two contacts can't have the same name **and** phone number. ByLine ignores upper/lower case and extra spaces when comparing names, so `John Doe` and `john doe` with the same phone number count as the same contact. Contacts with the same name but different phone numbers are allowed. Names are saved exactly as you typed them.
+
+### Viewing a contact's details
+
+Click a contact in the list to see all of its details, including whether it is archived, in the panel on the right. Until you select a contact, the panel shows "Select a contact to view details here."
+
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Shows the command guide in the panel on the right.
 
 ![help message](images/helpMessage.png)
 
 Format: `help`
 
+* You can also press `F1`, or choose **Help** from the menu.
+* Click any contact to show its details in the panel again.
 
-### Adding a person: `add`
+### Adding a contact: `add`
 
-Adds a person to the address book.
+Adds a contact to ByLine.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
 * The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
-* ByLine rejects a contact that has the same name and phone number as an existing contact. Names are matched ignoring
-  letter case and repeated spaces, so `John  DOE` matches `John Doe`. Contacts with the same name but different phone
-  numbers can both be added. The original letter case and spacing of accepted names are preserved.
+* ByLine rejects a contact with the same name and phone number as an existing contact. See [Contact details](#contact-details).
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
 * After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero. Tags can contain letters, numbers and spaces, and are saved in lowercase.
+A contact can have any number of tags, including zero.
 </div>
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/Betsy Crowe t/source e/betsycrowe@example.com a/12 Kent Ridge Road p/91234567 t/housing policy`
 
-### Listing contacts: `list`
+### Editing a contact: `edit`
 
-Shows contacts in the address book.
-
-Formats:
-
-* `list` shows only active contacts, i.e. contacts that are not archived. ByLine also shows these when it starts.
-* `list all` shows all contacts, including archived ones.
-* `list archive` shows only archived contacts.
-* `all` and `archive` can be typed in upper or lower case, e.g. `list ARCHIVE`.
-* Any other input, such as `list archived`, shows an error listing the accepted formats, and the displayed list stays the same.
-
-### Editing a person: `edit`
-
-Edits an existing person in the address book.
+Edits an existing contact in ByLine.
 
 Format: `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
@@ -127,14 +131,30 @@ Format: `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is changed.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* If the new name and phone number match another contact's, ByLine rejects the edit. See [Contact details](#contact-details).
+* When editing tags, all of the contact's existing tags are removed; adding tags is not cumulative.
+* To remove all of a contact's tags, enter `t/` without a tag after it.
 * To add or remove only some tags, use [`tag`](#adding-tags-to-a-contact-tag) or [`untag`](#removing-tags-from-a-contact-untag) instead.
 * After the edit, ByLine shows the group the contact is in: your active contacts, or your archived contacts if the edited contact is archived. The edited contact stays in view.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the contact with ID 1 to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the contact with ID 2 to be `Betsy Crower` and clears all existing tags.
+
+### Deleting a contact: `delete`
+
+Deletes the specified contact from ByLine.
+
+Format: `delete ID`
+
+* Deletes the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
+* The contact is deleted even if it is not in the list currently shown.
+* If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is deleted.
+* The deleted contact's ID is never given to another contact.
+
+Examples:
+* `delete 2` deletes the contact with ID 2.
+* `find Betsy` shows the matching contacts with their IDs. If Betsy's card shows `ID: 5`, `delete 5` deletes that contact.
 
 ### Adding tags to a contact: `tag`
 
@@ -144,8 +164,9 @@ Format: `tag ID t/TAG [t/TAG]…​`
 
 * Adds the given tags to the contact with the given `ID`. See [Contact IDs](#contact-ids).
 * At least one tag must be given.
-* A tag can contain letters, numbers and spaces, e.g. `housing policy`.
+* See [Contact details](#contact-details) for what a tag can contain.
 * Tags are saved in lowercase, so `t/Expert` is saved as `expert`. Tags that differ only in upper/lower case count as the same tag.
+* If the contact already has every given tag, ByLine shows `No tags were added because the contact already has the specified tags.`
 
 Examples:
 * `tag 3 t/expert` adds the tag `expert` to the contact with ID 3.
@@ -160,10 +181,28 @@ Format: `untag ID t/TAG [t/TAG]…​`
 * Removes the given tags from the contact with the given `ID`. See [Contact IDs](#contact-ids).
 * At least one tag must be given.
 * Tags are matched ignoring upper/lower case, so `t/Expert` removes the tag `expert`.
+* If the contact has none of the given tags, ByLine shows `No tags were removed because the contact does not have the specified tags.`
 
 Examples:
 * `untag 3 t/expert` removes the tag `expert` from the contact with ID 3.
 * `untag 3 t/housing policy t/interviewee` removes both tags from the contact with ID 3.
+
+### Listing contacts: `list`
+
+Shows contacts in ByLine.
+
+Formats:
+
+* `list` shows only active contacts, i.e. contacts that are not archived. ByLine also shows these when it starts.
+* `list all` shows all contacts, including archived ones.
+* `list archive` shows only archived contacts.
+* `all` and `archive` can be typed in upper or lower case, e.g. `list ARCHIVE`.
+* Any other input, such as `list archived`, shows an error listing the accepted formats, and the displayed list stays the same.
+
+Examples:
+* `list` shows your active contacts.
+* `list archive` shows only archived contacts.
+* `list all` shows every contact.
 
 ### Finding contacts: `find`
 
@@ -173,12 +212,12 @@ Format: `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG
 
 * Searches are case-insensitive: `al` matches both `Alex` and `Balakrishnan`.
 * The general substring searches the name, phone number, email, address and tags. It must appear within at least one of these fields or one tag.
-* Each prefixed substring searches only its corresponding field. A person must match the general substring, if supplied, and every field and tag condition.
+* Each prefixed substring searches only its corresponding field. A contact must match the general substring, if supplied, and every field and tag condition.
 * Search text is matched as one consecutive substring, including internal spaces. For example, `Alex Ye` matches `Alex Yeoh`, but `Ye Alex` does not.
-* Fuzzy search also allows insertions, deletions or substitutions up to one-third of each search value's length, rounded down, across all searchable fields and tags. For example, `find n/Alx` can match `Alex Yeoh`, while one- or two-character search values require an exact substring match.
+* Small typing mistakes are allowed: about one wrong, missing or extra character for every four characters you type. For example, `find n/Bernise` still finds `Bernice Yu`. Searches of one to three characters must match exactly.
 * Put the general substring before the first prefix. Text after a prefix belongs to that prefix until the next recognised prefix or the end of the command. For example, `find example n/Alex` combines a general search for `example` with a name search for `Alex`; `find n/Alex example` searches the name for the single substring `Alex example`.
 * Prefixes may appear in any order. If `n/`, `p/`, `e/` or `a/` is repeated, only its last value is used.
-* For multiple `t/` prefixes, every tag substring must match at least one of the person's tags.
+* For multiple `t/` prefixes, every tag substring must match at least one of the contact's tags.
 * `find` without search text or prefixes shows no contacts.
 * An empty value after `n/`, `p/`, `e/` or `a/` imposes no restriction on that field. An empty `t/` value matches any contact with at least one tag.
 * Archived contacts are included in the results.
@@ -196,130 +235,56 @@ Examples:
 
 ### Filtering contacts by tag: `filter`
 
-Shows contacts that have every specified complete tag. Unlike `find`, which matches partial text, `filter` matches only whole stored tag values.
+Shows contacts that have all the given tags. Unlike `find`, which matches part of a tag, `filter` matches only complete tags.
 
 Format: `filter t/TAG [t/TAG]…​`
 
-* At least one `t/TAG` must be given, and `t/` may be repeated in any order.
-* A contact must contain **all** distinct specified tags. Additional tags on the contact do not prevent a match.
-* Matching is case-insensitive. For example, `t/EXPERT` matches the stored tag `expert`.
-* Repeated equivalent tags count as one condition, so `filter t/expert t/EXPERT` behaves like `filter t/expert`.
-* Tags can contain letters, numbers and spaces. Leading and trailing spaces are ignored. Existing internal spaces are preserved, so exact matching also distinguishes different internal spacing. Punctuation and special characters are invalid.
-* Matching uses complete tag values: `filter t/policy` does not match `housing policy` or `policy researcher`. Use `find t/policy` when partial tag matching is wanted.
-* Each new `filter` examines all stored contacts and replaces any earlier `find` or `filter`; it does not narrow only the currently displayed list.
-* Archived contacts are included when their tags match.
-* `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort. `list` restores the active-contact view; `list all` restores the complete contact list.
-* Filtering is display-only: it does not add, edit, archive, restore, delete, or reorder stored contacts.
+* A contact must have **every** given tag. It may also have other tags.
+* Tags must match completely: `filter t/policy` does not match `housing policy`. Use `find t/policy` to match part of a tag.
+* Upper/lower case does not matter, so `t/EXPERT` matches `expert`.
+* Nothing may come before the first `t/`, and other prefixes such as `n/` are not allowed.
+* If any tag is invalid (see [Contact details](#contact-details)), the whole command fails and the list does not change.
+* `filter` searches all your contacts, including archived ones, not just the ones shown. It replaces the result of any earlier `find` or `filter`.
+* Filtering only changes which contacts are shown. Use `list` to go back to your active contacts.
 
-Examples:
-
-**Valid:**
-
-* `filter t/housing` matches only the complete tag `housing`.
-* `filter t/housing policy` matches contacts tagged `housing policy`.
-* `filter t/housing policy t/expert` matches only contacts that have both tags.
-* `filter t/interviewee t/singapore t/economics` requires all three tags.
-* `filter t/Housing Policy t/EXPERT` demonstrates case-insensitive matching.
-
-**Invalid:**
-
-* `filter` and `filter t/` do not provide a valid tag.
-* `filter housing t/expert` contains unsupported text before the first tag prefix.
-* `filter n/Alex` uses an unsupported prefix.
-* `filter t/housing-policy`, `filter t/housing_policy`, `filter t/@expert`, and `filter t/policy/research` contain invalid tag characters.
-* `filter t/expert t/housing-policy` fails completely; ByLine does not filter using only the valid tag.
-
-On success, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!`. When no contacts match,
-ByLine also shows all available tags in alphabetical order so that you can identify the complete tag to use. Tags
-from both active and archived contacts are included. For example:
+If no contact matches, ByLine lists every tag in use, so you can pick the exact one:
 
 ```text
 0 person(s) listed!
 Available tags: economics, expert, housing policy
 ```
 
-If no contacts have any tags, ByLine shows `Available tags: none` instead.
-
-For a command-structure error, ByLine shows:
-
-`Invalid command format!`<br>
-`filter: Filters contacts that have every specified tag.`<br>
-`Parameters: t/TAG [t/TAG]...`<br>
-`Example: filter t/housing policy t/expert`
-
-For an invalid tag, ByLine shows `Tag names should contain only letters, numbers and spaces`. Invalid commands leave the displayed contacts and their ordering unchanged.
+Examples:
+* `filter t/housing policy` shows contacts tagged `housing policy`.
+* `filter t/housing policy t/expert` shows only contacts with both tags.
+* `filter t/housing` does not show contacts tagged only `housing policy`, because the tag must match completely.
 
 ### Sorting displayed contacts: `sort`
 
-Arranges the currently displayed contacts by a selected contact field. Sorting changes only the displayed order; it does not change contact details or the order stored in the address book.
+Sorts the contacts currently shown by one of their details. Only the order on screen changes; your contacts are not changed.
 
 Format: `sort FIELD [ORDER]`
 
-* `FIELD` is mandatory. Supported fields are `name`, `phone`, `email`, `address`, and `tag`.
-* `ORDER` is optional. Supported orders are `asc` and `desc`; omitting `ORDER` uses `asc`.
-* `FIELD` and `ORDER` are case-insensitive. For example, `sort NAME DESC` is valid.
-* Name, email, and address values are compared alphabetically without regard to letter case. The complete stored value is compared.
-* Phone numbers are compared numerically. Leading zeroes do not affect their numeric value, so `000123` and `123` tie on phone number.
-* For tag sorting, a contact's primary tag is the alphabetically first tag, ignoring letter case. Only that tag is used. Contacts without tags remain after tagged contacts in both ascending and descending order.
-* Contacts that tie on the selected field are ordered by name in ascending order, regardless of the selected `ORDER`. If both the selected value and name tie, their existing relative order is preserved.
-* Only the contacts currently displayed are sorted. A search or filter result remains the same subset, and the stored contact order remains unchanged.
-* Running `list`, a new `find` or `filter`, `add` or `edit` replaces the sorted display. Run `sort` again to sort the new displayed list.
-* Sorting an empty list or a list containing one contact succeeds even though its visible order does not change.
+* `FIELD` is `name`, `phone`, `email`, `address` or `tag`.
+* `ORDER` is `asc` (A to Z, smallest first) or `desc`. If you leave it out, `asc` is used.
+* Upper/lower case does not matter, so `sort NAME DESC` works.
+* Names, emails and addresses are sorted alphabetically, ignoring upper/lower case. Phone numbers are sorted as numbers, so `000123` and `123` count as equal.
+* `sort tag` uses each contact's alphabetically first tag. Contacts without tags always come last.
+* Contacts that are equal on the chosen field are sorted by name, A to Z.
+* Only the contacts currently shown are sorted, e.g. the results of a `find`. Running `list`, `find`, `filter`, `add` or `edit` afterwards shows the list unsorted again.
 
-On success, ByLine shows the following message, substituting the selected field and the full order name:
-
-`Sorted contacts by FIELD in ORDER order.`
-
-For example, `sort name desc` shows `Sorted contacts by name in descending order.`
+On success, ByLine shows, for example, `Sorted contacts by name in descending order.`
 
 ![Result of sorting contacts by name in descending order](images/sortNameDescResult.png)
 
-Invalid commands leave the displayed contact list unchanged and show one of these exact messages:
-
-* Missing `FIELD` or extra arguments:<br>
-  `Invalid command format!`<br>
-  `Usage: sort FIELD [ORDER]`
-* Unsupported `FIELD`:<br>
-  `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
-* Unsupported `ORDER`:<br>
-  `Invalid sort order. ORDER must be asc or desc.`
-
-For example, an unsupported order leaves the displayed contact list unchanged:
+If the field or order is not one of the above, or there are extra words, ByLine shows an error and the order does not change:
 
 ![Result of entering an invalid sort order](images/sortInvalidOrderResult.png)
 
 Examples:
-
-**Valid:**
-
-* `sort name` sorts names in ascending order.
-* `sort phone asc` sorts phone numbers numerically in ascending order.
-* `sort email desc` sorts complete email addresses in descending order.
-* `sort tag` sorts by primary tag in ascending order and keeps untagged contacts last.
-* `sort NAME DESC` sorts names in descending order because both parameters are case-insensitive.
-
-**Invalid:**
-
-* `sort` is missing the mandatory field.
-* `sort date` uses an unsupported field.
-* `sort name upward` uses an unsupported order.
-* `sort name email` treats `email` as an invalid order.
-* `sort name asc extra` contains an extra argument.
-
-### Deleting a person: `delete`
-
-Deletes the specified person from the address book.
-
-Format: `delete ID`
-
-* Deletes the contact with the given `ID`, shown as `ID: 3` on the contact's card. See [Contact IDs](#contact-ids).
-* The contact is deleted even if it is not in the list currently shown.
-* If no contact has that ID, ByLine shows `No contact has the ID 3.` and nothing is deleted.
-* The deleted contact's ID is never given to another contact.
-
-Examples:
-* `delete 2` deletes the contact with ID 2.
-* `find Betsy` shows the matching contacts with their IDs. If Betsy's card shows `ID: 5`, `delete 5` deletes that contact.
+* `sort name` sorts by name, A to Z.
+* `sort phone desc` sorts by phone number, largest first.
+* `sort tag` sorts by first tag, with untagged contacts last.
 
 ### Archiving a contact: `archive`
 
@@ -349,13 +314,18 @@ Format: `restore ID`
 Examples:
 * `list archive` shows the archived contacts. If one of them shows `ID: 4`, `restore 4` restores it and it disappears from the archived list. Run `list` to see it among your active contacts.
 
-### Clearing all entries: `clear`
+### Clearing all contacts: `clear`
 
-Clears all entries from the address book.
+Clears all contacts from ByLine.
 
 Format: `clear`
 
-IDs are not reset: the next contact you add still gets a new ID.
+* Archived contacts are deleted too.
+* You can reverse `clear` with `undo`.
+* IDs are not reset: the next contact you add still gets a new ID.
+
+Examples:
+* `clear` deletes all contacts. Running `undo` straight after brings them all back.
 
 ### Undoing a change: `undo`
 
@@ -363,7 +333,7 @@ Undoes the last change to your contacts.
 
 Format: `undo`
 
-* These commands can be undone: `add`, `edit`, `delete`, `clear`, `archive`, `restore`, `tag` and `untag`.
+* These commands can be undone: `add`, `edit`, `delete`, `clear`, `archive`, `restore`, `tag`, `untag` and `load`.
 * Commands that only change what is shown, such as `list`, `find` and `sort`, are not undone. `undo` skips over them to the last change.
 * You can undo up to 20 changes in a row. Older changes can no longer be undone.
 * `undo` keeps the current view. For example, after a `find`, ByLine still shows only the contacts that match the search.
@@ -395,42 +365,45 @@ Format: `redo`
 Examples:
 * `delete 3`, then `undo`, then `redo` deletes the contact with ID 3 again.
 
+### Exporting a backup: `export`
+
+Saves all your contacts, including archived contacts, to a backup file.
+
+Format: `export PATH`
+
+* The backup keeps every contact's details, tags and ID, so `load` can bring them back exactly.
+* `.json` is added to the file name if you leave it out, so `C:/My Contacts/October backup` saves to `C:/My Contacts/October backup.json`.
+* Paths may contain spaces, with or without double quotes around the whole path.
+* The folder must already exist. ByLine never overwrites an existing file, so use a new file name for each backup.
+* A path that does not start with a drive or `/`, such as `backups/october`, is saved inside the folder you started ByLine from.
+* Every contact is saved, whatever the list currently shows. Settings such as the window size are not saved.
+
+Examples:
+* `export C:/My Contacts/October backup` saves all contacts to `C:/My Contacts/October backup.json`.
+* `export backups/october` saves to `october.json` in the `backups` folder inside the folder you started ByLine from.
+
+### Loading a backup: `load`
+
+Replaces all your contacts with the contacts in a backup file made by `export`.
+
+Format: `load PATH`
+
+* As with `export`, `.json` is optional and paths may contain spaces.
+* All current contacts, including archived ones, are replaced. Contacts keep the IDs they have in the backup.
+* Before replacing anything, ByLine saves a copy of your current contacts in the same folder as the backup, in a file whose name starts with `before-load-`. The result message shows where it is, so you can `load` that file to go back.
+* No copy is made if you have no contacts, or only the sample contacts ByLine starts with, unchanged.
+* ByLine does not ask you to confirm, so check the path first. If the backup can't be read, or the copy can't be saved, nothing is replaced.
+* The backup file itself is never changed.
+* You can reverse a `load` with `undo`.
+
+Examples:
+* `load C:/My Contacts/October backup` replaces your contacts with those in `C:/My Contacts/October backup.json`.
+
 ### Exiting the program: `exit`
 
 Exits the program.
 
 Format: `exit`
-
-### Exporting a backup: `export`
-
-Saves **all contacts**, including archived contacts, their tags, IDs, and the next ID counter, to a JSON file.
-
-Format: `export PATH`<br>
-Example: `export C:/My Contacts/October backup`
-
-* The destination folder must already exist. Existing files are not overwritten; choose a new filename for each backup.
-* The `.json` extension is added automatically when omitted; explicit `.json` filenames also work. For example, `C:/My Contacts/October backup` refers to `C:/My Contacts/October backup.json`.
-* Paths may contain spaces, with or without surrounding double quotes. Relative paths start from the application's working directory.
-* Export does not depend on the current list or search filter. It backs up contact data, not application preferences.
-
-### Loading a backup: `load`
-
-Format: `load PATH`<br>
-Example: `load C:/My Contacts/October backup`
-
-As with `export`, `.json` is optional and spaces do not require quotes.
-
-Loading replaces the **entire address book**, including archived contacts, with the backup's contacts and saved ID counter. Contacts absent from the backup are removed.
-
-The app validates the requested file first. If the current address book contains user data, it automatically saves that data to a uniquely named JSON file in the same folder as the file passed to `load`, using a `before-load-` filename to avoid overwriting the source before replacing it. The success message shows the backup path, which you can use with `load PATH` to recover the previous contacts. Earlier backups are retained.
-
-No automatic backup is created when the current address book is empty or exactly matches the unchanged starter sample data. Editing, tagging, or archiving a sample contact makes it non-default, so it will be backed up. The current list or search filter does not affect this decision.
-
-Loading requires no confirmation. If validation or a required backup fails, loading stops without replacing current contacts. If saving the loaded data fails after the backup succeeds, the error message includes the backup path. These backups are created before loading, not after every command.
-
-The source backup is not modified.
-
-`restore ID` continues to unarchive one contact; use `load` to recover a backup. `export` creates a manual backup; `load` automatically backs up non-default current data before replacement.
 
 ### Saving the data
 
@@ -443,8 +416,8 @@ ByLine data is saved automatically as a JSON file `[JAR file location]/data/addr
 Each contact in the file has an `id`, and the file has a `nextPersonId`, which is the ID the next new contact will get. Do not change these. Changing them can make ByLine reuse old IDs, or make the data file invalid, for example if two contacts have the same ID or an ID is above 999999.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, ByLine starts with an empty address book at the next run. The invalid file remains on disk until you run a command (ByLine saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the ByLine to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, ByLine starts with no contacts at the next run. The invalid file remains on disk until you run a command (ByLine saves after every command). Still, we recommend backing up the file before editing it.<br>
+Furthermore, certain edits can cause ByLine to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
 --------------------------------------------------------------------------------------------------------------------
@@ -452,14 +425,13 @@ Furthermore, certain edits can cause the ByLine to behave in unexpected ways (e.
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous ByLine home folder.
+**A**: On the old computer, run `export` and copy the backup file to the new computer. Then run `load` with that file there. You can also copy `data/addressbook.json` from your old ByLine folder into the new one.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -467,15 +439,18 @@ Furthermore, certain edits can cause the ByLine to behave in unexpected ways (e.
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/expert t/economics`
 **Archive** | `archive ID`<br> e.g., `archive 4`
 **Clear** | `clear`
 **Delete** | `delete ID`<br> e.g., `delete 3`
 **Edit** | `edit ID [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
+**Exit** | `exit`
+**Export** | `export PATH`<br> e.g., `export C:/My Contacts/October backup`
 **Filter** | `filter t/TAG [t/TAG]…​`<br> e.g., `filter t/housing policy t/expert`
-**List** | `list`, `list all` or `list archive`
+**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
 **Help** | `help`
+**List** | `list`, `list all` or `list archive`
+**Load** | `load PATH`<br> e.g., `load C:/My Contacts/October backup`
 **Redo** | `redo`
 **Restore** | `restore ID`<br> e.g., `restore 4`
 **Sort** | `sort FIELD [ORDER]`<br> e.g., `sort name desc`
