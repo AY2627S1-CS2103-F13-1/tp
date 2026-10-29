@@ -24,7 +24,6 @@ import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
-import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.TagCommand;
@@ -67,7 +66,7 @@ public class AddressBookParserTest {
     public void parseCommand_delete() throws Exception {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(
                 DeleteCommand.COMMAND_WORD + " " + TARGET_FIRST_ID.getValue());
-        assertEquals(new DeleteCommand(PersonTarget.ofId(TARGET_FIRST_ID)), command);
+        assertEquals(new DeleteCommand(TARGET_FIRST_ID), command);
     }
 
     @Test
@@ -77,7 +76,7 @@ public class AddressBookParserTest {
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
                 + TARGET_FIRST_ID.getValue() + " "
                 + PersonUtil.getEditPersonDescriptorDetails(descriptor));
-        assertEquals(new EditCommand(PersonTarget.ofId(TARGET_FIRST_ID), descriptor), command);
+        assertEquals(new EditCommand(TARGET_FIRST_ID, descriptor), command);
     }
 
     @Test
@@ -176,13 +175,13 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_tag() throws Exception {
-        assertEquals(new TagCommand(PersonTarget.ofId(TARGET_FIRST_ID), Set.of(new Tag("expert"))),
+        assertEquals(new TagCommand(TARGET_FIRST_ID, Set.of(new Tag("expert"))),
                 parser.parseCommand("tag 1 t/expert"));
     }
 
     @Test
     public void parseCommand_untag() throws Exception {
-        assertEquals(new UntagCommand(PersonTarget.ofId(TARGET_FIRST_ID), Set.of(new Tag("expert"))),
+        assertEquals(new UntagCommand(TARGET_FIRST_ID, Set.of(new Tag("expert"))),
                 parser.parseCommand("untag 1 t/expert"));
     }
 }

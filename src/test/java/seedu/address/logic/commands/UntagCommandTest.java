@@ -31,8 +31,8 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class UntagCommandTest {
 
-    private static final PersonTarget TARGET_ALICE = PersonTarget.ofId(ALICE.getId().orElseThrow());
-    private static final PersonTarget TARGET_BENSON = PersonTarget.ofId(BENSON.getId().orElseThrow());
+    private static final PersonId TARGET_ALICE = ALICE.getId().orElseThrow();
+    private static final PersonId TARGET_BENSON = BENSON.getId().orElseThrow();
 
     private Model model;
 
@@ -175,7 +175,7 @@ public class UntagCommandTest {
         // BENSON is tagged "owesMoney" and "friends"
         PersonId bensonId = BENSON.getId().orElseThrow();
 
-        new UntagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("owesMoney"))).execute(model);
+        new UntagCommand(bensonId, Set.of(new Tag("owesMoney"))).execute(model);
 
         Person updated = model.findPersonById(bensonId).orElseThrow();
         assertEquals(Set.of(new Tag("friends")), updated.getTags());
@@ -188,14 +188,14 @@ public class UntagCommandTest {
         showOnlyPerson(model, ALICE);
         PersonId bensonId = BENSON.getId().orElseThrow();
 
-        new UntagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("owesMoney"))).execute(model);
+        new UntagCommand(bensonId, Set.of(new Tag("owesMoney"))).execute(model);
 
         assertEquals(Set.of(new Tag("friends")), model.findPersonById(bensonId).orElseThrow().getTags());
     }
 
     @Test
     public void execute_unknownId_throwsCommandException() {
-        UntagCommand command = new UntagCommand(PersonTarget.ofId(new PersonId(99)), Set.of(new Tag("expert")));
+        UntagCommand command = new UntagCommand(new PersonId(99), Set.of(new Tag("expert")));
 
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, 99), exception.getMessage());

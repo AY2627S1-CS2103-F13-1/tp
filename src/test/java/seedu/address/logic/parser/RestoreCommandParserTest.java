@@ -6,7 +6,6 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSucces
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.commands.RestoreCommand;
 import seedu.address.model.person.PersonId;
 
@@ -16,7 +15,7 @@ public class RestoreCommandParserTest {
 
     @Test
     public void parse_validId_success() {
-        assertParseSuccess(parser, " 2", new RestoreCommand(PersonTarget.ofId(new PersonId(2))));
+        assertParseSuccess(parser, " 2", new RestoreCommand(new PersonId(2)));
     }
 
     @Test

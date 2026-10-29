@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.model.person.PersonId;
 import seedu.address.model.tag.Tag;
@@ -18,7 +17,7 @@ import seedu.address.model.tag.Tag;
  */
 public class TagCommandParserTest {
 
-    private static final PersonTarget TARGET_FIRST = PersonTarget.ofId(new PersonId(1));
+    private static final PersonId TARGET_FIRST = new PersonId(1);
 
     private final TagCommandParser parser = new TagCommandParser();
 

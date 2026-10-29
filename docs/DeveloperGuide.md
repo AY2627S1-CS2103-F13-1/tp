@@ -176,11 +176,11 @@ Once ID 999999 has been given out, the counter is 1000000 and `AddressBook#hasAv
 
 #### Selecting a contact by ID
 
-1. The command's parser calls `ParserUtil#parsePersonTarget`, which reads the number before the first prefix, e.g. the `3` in `edit 3 p/91234567`. Anything that is not a whole number from 1 to 999999 gives the invalid command format message.
-2. The parser creates the command with a `PersonTarget` for that ID.
-3. When the command runs, `PersonTarget#resolve(Model)` calls `Model#findPersonById`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. If no contact has the ID, `resolve` throws a `CommandException` with `No contact has the ID 3.`
+1. The command's parser calls `ParserUtil#parsePersonId` on the preamble, which contains the number before the first prefix, e.g. the `3` in `edit 3 p/91234567`. Anything that is not a whole number from 1 to 999999 gives the invalid command format message.
+2. The parser creates the command with the parsed `PersonId`, stored as `targetId`.
+3. When the command runs, it calls `Model#findPersonById(targetId)`, which searches the **whole** address book, not only the displayed list. A contact hidden by `find`, moved by `sort` or archived can therefore still be selected. The command unwraps the returned `Optional<Person>`. If no contact has the ID, it throws a `CommandException` with `No contact has the ID 3.`
 
-New commands that act on one contact should use `parsePersonTarget` and `PersonTarget`, so that every command reads IDs the same way.
+New commands that act on one contact should parse a `PersonId` with `ParserUtil#parsePersonId` and wrap parsing failures in the command's invalid-format usage message. Each command looks up the ID during execution and converts an empty result into a `CommandException` using `Messages.MESSAGE_PERSON_ID_NOT_FOUND`.
 
 #### Saving IDs
 
@@ -212,9 +212,9 @@ New commands that act on one contact should use `parsePersonTarget` and `PersonT
 
 ### Tag and untag feature
 
-`TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonTarget` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
+`TagCommandParser` and `UntagCommandParser` read the contact's ID with `ParserUtil#parsePersonId` (see [Contact ID feature](#contact-id-feature)) and the tags with `ParserUtil#parseTags`. At least one `t/` prefix is required. Otherwise, the parser throws a `ParseException` with the command's usage message.
 
-When executed, both commands find the contact with `PersonTarget#resolve` and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
+When executed, both commands find the contact with `Model#findPersonById(targetId)` and unwrap the result and copy its tags into a new set. `TagCommand` adds the given tags to the set, and `UntagCommand` removes them. The command then replaces the contact, through `Model#setPerson`, with a copy that has the new tags and the same ID, details and archive flag.
 
 `Tag` saves its name in lowercase, and tags are compared by that name. A contact's tags are a `Set<Tag>`, so adding a tag the contact already has, in any upper/lower case, does not create a second copy, and removing a tag matches it regardless of case.
 
@@ -366,7 +366,7 @@ Text fields are compared case-insensitively, phone numbers numerically, and tags
 
 ### Archive feature
 
-Each `Person` has an `archived` flag, which is `false` for new contacts. `ArchiveCommand` and `RestoreCommand` select the contact by ID through `PersonTarget` (see [Contact ID feature](#contact-id-feature)), then replace it with a copy whose flag is `true` or `false`. All other fields, including the ID, are copied unchanged. Archiving a contact that is already archived, or restoring one that is not, throws a `CommandException` and changes nothing.
+Each `Person` has an `archived` flag, which is `false` for new contacts. `ArchiveCommand` and `RestoreCommand` select the contact by calling `Model#findPersonById(targetId)` and unwrapping the result (see [Contact ID feature](#contact-id-feature)), then replace it with a copy whose flag is `true` or `false`. All other fields, including the ID, are copied unchanged. Archiving a contact that is already archived, or restoring one that is not, throws a `CommandException` and changes nothing.
 
 `JsonAdaptedPerson` saves the flag as `"archived"`. Files saved before archiving existed have no such field, so their contacts load as not archived. `PersonCard` adds `[Archived]` after the name of an archived contact.
 

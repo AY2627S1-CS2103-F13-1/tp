@@ -1,5 +1,7 @@
 package seedu.address.logic.parser;
 
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+
 import seedu.address.logic.commands.ArchiveCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -15,7 +17,11 @@ public class ArchiveCommandParser implements Parser<ArchiveCommand> {
      */
     public ArchiveCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args);
-        return new ArchiveCommand(ParserUtil.parsePersonTarget(argMultimap, ArchiveCommand.MESSAGE_USAGE));
+        try {
+            return new ArchiveCommand(ParserUtil.parsePersonId(argMultimap.getPreamble()));
+        } catch (ParseException pe) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ArchiveCommand.MESSAGE_USAGE), pe);
+        }
     }
 
 }

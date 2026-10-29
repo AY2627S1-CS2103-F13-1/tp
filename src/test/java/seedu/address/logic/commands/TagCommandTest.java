@@ -30,8 +30,8 @@ import seedu.address.model.tag.Tag;
  */
 public class TagCommandTest {
 
-    private static final PersonTarget TARGET_ALICE = PersonTarget.ofId(ALICE.getId().orElseThrow());
-    private static final PersonTarget TARGET_BENSON = PersonTarget.ofId(BENSON.getId().orElseThrow());
+    private static final PersonId TARGET_ALICE = ALICE.getId().orElseThrow();
+    private static final PersonId TARGET_BENSON = BENSON.getId().orElseThrow();
 
     private final Model model =
             new ModelManager(getTypicalAddressBook(), new UserPrefs());
@@ -133,7 +133,7 @@ public class TagCommandTest {
         Set<Tag> expectedTags = new HashSet<>(BENSON.getTags());
         expectedTags.add(new Tag("expert"));
 
-        new TagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("expert"))).execute(model);
+        new TagCommand(bensonId, Set.of(new Tag("expert"))).execute(model);
 
         Person updated = model.findPersonById(bensonId).orElseThrow();
         assertEquals(BENSON.getName(), updated.getName());
@@ -146,7 +146,7 @@ public class TagCommandTest {
         showOnlyPerson(model, ALICE);
         PersonId bensonId = BENSON.getId().orElseThrow();
 
-        new TagCommand(PersonTarget.ofId(bensonId), Set.of(new Tag("expert"))).execute(model);
+        new TagCommand(bensonId, Set.of(new Tag("expert"))).execute(model);
 
         Person updated = model.findPersonById(bensonId).orElseThrow();
         assertTrue(updated.getTags().contains(new Tag("expert")));
@@ -154,7 +154,7 @@ public class TagCommandTest {
 
     @Test
     public void execute_unknownId_throwsCommandException() {
-        TagCommand command = new TagCommand(PersonTarget.ofId(new PersonId(99)), Set.of(new Tag("expert")));
+        TagCommand command = new TagCommand(new PersonId(99), Set.of(new Tag("expert")));
 
         CommandException exception = assertThrows(
                 CommandException.class, () -> command.execute(model));
@@ -169,7 +169,7 @@ public class TagCommandTest {
                 TARGET_ALICE, Set.of(new Tag("expert")));
 
         String expected = TagCommand.class.getCanonicalName()
-                + "{target=" + TARGET_ALICE
+                + "{targetId=" + TARGET_ALICE
                 + ", tagsToAdd=" + Set.of(new Tag("expert")) + "}";
 
         assertEquals(expected, command.toString());

@@ -7,7 +7,6 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSucces
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.DeleteCommand;
-import seedu.address.logic.commands.PersonTarget;
 import seedu.address.model.person.PersonId;
 
 /**
@@ -23,10 +22,10 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_validId_returnsDeleteCommand() {
-        assertParseSuccess(parser, "42", new DeleteCommand(PersonTarget.ofId(new PersonId(42))));
+        assertParseSuccess(parser, "42", new DeleteCommand(new PersonId(42)));
 
         // whitespace around the ID
-        assertParseSuccess(parser, "  42  ", new DeleteCommand(PersonTarget.ofId(new PersonId(42))));
+        assertParseSuccess(parser, "  42  ", new DeleteCommand(new PersonId(42)));
     }
 
     @Test
@@ -34,6 +33,10 @@ public class DeleteCommandParserTest {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "a", expectedMessage);
         assertParseFailure(parser, "", expectedMessage); // missing ID
+        assertParseFailure(parser, "0", expectedMessage);
+        assertParseFailure(parser, "-1", expectedMessage);
+        assertParseFailure(parser, "1000000", expectedMessage);
+        assertParseFailure(parser, "1 extra", expectedMessage);
         assertParseFailure(parser, "C42", expectedMessage); // IDs are typed without the C
         assertParseFailure(parser, " id/42", expectedMessage); // id/ is no longer used
     }

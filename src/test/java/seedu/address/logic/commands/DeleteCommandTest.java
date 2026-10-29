@@ -33,7 +33,7 @@ public class DeleteCommandTest {
     public void execute_validIdOfDisplayedPersonInFilteredList_success() {
         // only ALICE is displayed, and she is deleted by her ID
         showOnlyPerson(model, ALICE);
-        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(ALICE.getId().orElseThrow()));
+        DeleteCommand deleteCommand = new DeleteCommand(ALICE.getId().orElseThrow());
 
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
                 Messages.format(ALICE));
@@ -47,14 +47,14 @@ public class DeleteCommandTest {
 
     @Test
     public void equals() {
-        DeleteCommand deleteFirstCommand = new DeleteCommand(PersonTarget.ofId(new PersonId(1)));
-        DeleteCommand deleteSecondCommand = new DeleteCommand(PersonTarget.ofId(new PersonId(2)));
+        DeleteCommand deleteFirstCommand = new DeleteCommand(new PersonId(1));
+        DeleteCommand deleteSecondCommand = new DeleteCommand(new PersonId(2));
 
         // same object -> returns true
         assertTrue(deleteFirstCommand.equals(deleteFirstCommand));
 
         // same values -> returns true
-        DeleteCommand deleteFirstCommandCopy = new DeleteCommand(PersonTarget.ofId(new PersonId(1)));
+        DeleteCommand deleteFirstCommandCopy = new DeleteCommand(new PersonId(1));
         assertTrue(deleteFirstCommand.equals(deleteFirstCommandCopy));
 
         // different types -> returns false
@@ -69,7 +69,7 @@ public class DeleteCommandTest {
 
     @Test
     public void execute_validIdUnfilteredList_success() {
-        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()));
+        DeleteCommand deleteCommand = new DeleteCommand(BENSON.getId().orElseThrow());
 
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
                 Messages.format(BENSON));
@@ -84,7 +84,7 @@ public class DeleteCommandTest {
     public void execute_validIdOfPersonHiddenByFilter_success() {
         // only ALICE is displayed, but BENSON can still be deleted by his ID
         showOnlyPerson(model, ALICE);
-        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()));
+        DeleteCommand deleteCommand = new DeleteCommand(BENSON.getId().orElseThrow());
 
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
                 Messages.format(BENSON));
@@ -102,7 +102,7 @@ public class DeleteCommandTest {
         Comparator<Person> reverseByName = Comparator.comparing((Person person) -> person.getName().fullName)
                 .reversed();
         model.sortFilteredPersonList(reverseByName);
-        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(BENSON.getId().orElseThrow()));
+        DeleteCommand deleteCommand = new DeleteCommand(BENSON.getId().orElseThrow());
 
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
                 Messages.format(BENSON));
@@ -116,7 +116,7 @@ public class DeleteCommandTest {
 
     @Test
     public void execute_unknownId_throwsCommandException() {
-        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(new PersonId(99)));
+        DeleteCommand deleteCommand = new DeleteCommand(new PersonId(99));
 
         assertCommandFailure(deleteCommand, model, String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, 99));
     }
@@ -125,7 +125,7 @@ public class DeleteCommandTest {
     public void execute_idOfDeletedPerson_throwsCommandException() {
         PersonId aliceId = ALICE.getId().orElseThrow();
         model.deletePerson(ALICE);
-        DeleteCommand deleteCommand = new DeleteCommand(PersonTarget.ofId(aliceId));
+        DeleteCommand deleteCommand = new DeleteCommand(aliceId);
 
         assertCommandFailure(deleteCommand, model,
                 String.format(Messages.MESSAGE_PERSON_ID_NOT_FOUND, aliceId.getValue()));
@@ -133,9 +133,9 @@ public class DeleteCommandTest {
 
     @Test
     public void toStringMethod() {
-        PersonTarget target = PersonTarget.ofId(new PersonId(1));
-        DeleteCommand deleteCommand = new DeleteCommand(target);
-        String expected = DeleteCommand.class.getCanonicalName() + "{target=" + target + "}";
+        PersonId targetId = new PersonId(1);
+        DeleteCommand deleteCommand = new DeleteCommand(targetId);
+        String expected = DeleteCommand.class.getCanonicalName() + "{targetId=" + targetId + "}";
         assertEquals(expected, deleteCommand.toString());
     }
 

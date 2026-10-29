@@ -1,14 +1,12 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import seedu.address.commons.util.StringUtil;
-import seedu.address.logic.commands.PersonTarget;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -40,23 +38,6 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_PERSON_ID);
         }
         return new PersonId(Integer.parseInt(trimmedPersonId));
-    }
-
-    /**
-     * Parses the person a command acts on from the ID in the preamble of {@code argMultimap},
-     * e.g. the {@code 3} in {@code edit 3 p/91234567}.
-     *
-     * @param messageUsage the usage message of the command, shown if the input is not in the expected format.
-     * @throws ParseException if the preamble is not a valid contact ID.
-     */
-    public static PersonTarget parsePersonTarget(ArgumentMultimap argMultimap, String messageUsage)
-            throws ParseException {
-        requireNonNull(argMultimap);
-        try {
-            return PersonTarget.ofId(parsePersonId(argMultimap.getPreamble()));
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, messageUsage), pe);
-        }
     }
 
     /**
