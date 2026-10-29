@@ -119,7 +119,7 @@ A contact can have any number of tags, including zero.
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/Betsy Crowe t/source e/betsycrowe@example.com a/12 Kent Ridge Road p/91234567 t/housing policy`
 
 ### Listing contacts: `list`
 
@@ -324,6 +324,9 @@ Format: `clear`
 * You can reverse `clear` with `undo`.
 * IDs are not reset: the next contact you add still gets a new ID.
 
+Examples:
+* `clear` deletes all contacts. Running `undo` straight after brings them all back.
+
 ### Undoing a change: `undo`
 
 Undoes the last change to your contacts.
@@ -413,8 +416,8 @@ ByLine data is saved automatically as a JSON file `[JAR file location]/data/addr
 Each contact in the file has an `id`, and the file has a `nextPersonId`, which is the ID the next new contact will get. Do not change these. Changing them can make ByLine reuse old IDs, or make the data file invalid, for example if two contacts have the same ID or an ID is above 999999.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, ByLine starts with an empty address book at the next run. The invalid file remains on disk until you run a command (ByLine saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the ByLine to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, ByLine starts with no contacts at the next run. The invalid file remains on disk until you run a command (ByLine saves after every command). Still, we recommend backing up the file before editing it.<br>
+Furthermore, certain edits can cause ByLine to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
 --------------------------------------------------------------------------------------------------------------------
@@ -422,7 +425,7 @@ Furthermore, certain edits can cause the ByLine to behave in unexpected ways (e.
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous ByLine home folder.
+**A**: On the old computer, run `export` and copy the backup file to the new computer. Then run `load` with that file there. You can also copy `data/addressbook.json` from your old ByLine folder into the new one.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -436,7 +439,7 @@ Furthermore, certain edits can cause the ByLine to behave in unexpected ways (e.
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/expert t/economics`
 **Archive** | `archive ID`<br> e.g., `archive 4`
 **Clear** | `clear`
 **Delete** | `delete ID`<br> e.g., `delete 3`
