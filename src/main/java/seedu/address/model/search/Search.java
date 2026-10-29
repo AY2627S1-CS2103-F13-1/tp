@@ -9,7 +9,7 @@ import java.util.Locale;
  */
 public class Search {
 
-    private static final double TOLERANCE = 1.0 / 3.0;
+    private static final double TOLERANCE = 1.0 / 4.0;
 
     private Search() {
     }
