@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -20,10 +21,11 @@ import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
+import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.MatchPersonPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonId;
 import seedu.address.model.person.SortField;
@@ -97,12 +99,14 @@ public class SortCommandTest {
 
     @Test
     public void execute_filteredList_sortsWithoutChangingMembership() {
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Meier"));
+        ArgumentMultimap arguments = new ArgumentMultimap();
+        arguments.put(PREFIX_NAME, "Meier");
+        MatchPersonPredicate predicate = new MatchPersonPredicate(arguments);
         model.updateFilteredPersonList(predicate);
 
         new SortCommand(SortField.NAME, SortOrder.DESCENDING).execute(model);
 
-        assertEquals(List.of(DANIEL, BENSON), model.getFilteredPersonList());
+        assertEquals(List.of(ELLE, DANIEL, BENSON), model.getFilteredPersonList());
     }
 
     @Test
@@ -124,12 +128,13 @@ public class SortCommandTest {
     @Test
     public void execute_newFindAfterSort_clearsSort() {
         new SortCommand(SortField.NAME, SortOrder.DESCENDING).execute(model);
-        NameContainsKeywordsPredicate predicate =
-                new NameContainsKeywordsPredicate(List.of("Kurz", "Elle", "Kunz"));
+        ArgumentMultimap arguments = new ArgumentMultimap();
+        arguments.put(PREFIX_NAME, "Meier");
+        MatchPersonPredicate predicate = new MatchPersonPredicate(arguments);
 
         new FindCommand(predicate).execute(model);
 
-        assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
+        assertEquals(List.of(BENSON, DANIEL, ELLE), model.getFilteredPersonList());
     }
 
     @Test

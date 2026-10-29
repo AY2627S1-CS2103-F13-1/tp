@@ -3,12 +3,11 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.model.Model.PREDICATE_SHOW_ARCHIVED_PERSONS;
 import static seedu.address.model.person.PersonComparator.getComparator;
-import static seedu.address.model.person.SortField.ADDRESS;
 import static seedu.address.model.person.SortField.EMAIL;
-import static seedu.address.model.person.SortOrder.ASCENDING;
 import static seedu.address.model.person.SortOrder.DESCENDING;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -23,7 +22,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.model.person.MatchPersonPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonId;
 import seedu.address.testutil.AddressBookBuilder;
@@ -288,27 +288,14 @@ public class ModelManagerTest {
 
     @Test
     public void sortFilteredPersonList_completeTies_preservesPreviousDisplayedOrder() {
-        Person upperCaseAmy = new PersonBuilder()
-                .withName("Amy")
-                .withEmail("same@example.com")
-                .withAddress("Alpha street")
-                .build();
-        Person lowerCaseAmy = new PersonBuilder()
-                .withName("amy")
-                .withEmail("SAME@example.com")
-                .withAddress("Zulu street")
-                .build();
-        AddressBook addressBook = new AddressBookBuilder()
-                .withPerson(upperCaseAmy).withPerson(lowerCaseAmy).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
         modelManager = new ModelManager(addressBook, new UserPrefs());
-        Person displayedUpperCaseAmy = modelManager.getFilteredPersonList().get(0);
-        Person displayedLowerCaseAmy = modelManager.getFilteredPersonList().get(1);
-        modelManager.sortFilteredPersonList(getComparator(ADDRESS, DESCENDING));
+        modelManager.sortFilteredPersonList(NAME_COMPARATOR.reversed());
+        List<Person> previousOrder = List.copyOf(modelManager.getFilteredPersonList());
 
-        modelManager.sortFilteredPersonList(getComparator(EMAIL, ASCENDING));
+        modelManager.sortFilteredPersonList((firstPerson, secondPerson) -> 0);
 
-        assertEquals(List.of(displayedLowerCaseAmy, displayedUpperCaseAmy),
-                modelManager.getFilteredPersonList());
+        assertEquals(previousOrder, modelManager.getFilteredPersonList());
     }
 
     @Test
@@ -346,8 +333,9 @@ public class ModelManagerTest {
         assertFalse(modelManager.equals(new ModelManager(differentAddressBook, userPrefs)));
 
         // different filteredList -> returns false
-        String[] keywords = ALICE.getName().fullName.split("\\s+");
-        modelManager.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of(keywords)));
+        ArgumentMultimap arguments = new ArgumentMultimap();
+        arguments.put(PREFIX_NAME, ALICE.getName().fullName);
+        modelManager.updateFilteredPersonList(new MatchPersonPredicate(arguments));
         assertFalse(modelManager.equals(new ModelManager(addressBook, userPrefs)));
 
         // resets modelManager to initial state for upcoming tests

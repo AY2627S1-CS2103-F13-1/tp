@@ -16,6 +16,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -145,7 +146,10 @@ public class AddressBookTest {
     @Test
     public void addPerson_duplicatePerson_doesNotAdvanceCounter() {
         addressBook.addPerson(HOON);
-        assertThrows(DuplicatePersonException.class, () -> addressBook.addPerson(HOON));
+        String duplicateNameVariant = HOON.getName().toString().toUpperCase(Locale.ROOT).replace(" ", "  ");
+        Person duplicateHoon = new PersonBuilder(HOON).withName(duplicateNameVariant).build();
+
+        assertThrows(DuplicatePersonException.class, () -> addressBook.addPerson(duplicateHoon));
         assertEquals(2, addressBook.getNextPersonId());
     }
 

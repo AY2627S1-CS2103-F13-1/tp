@@ -13,9 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.MatchPersonPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
@@ -116,8 +117,9 @@ public class CommandTestUtil {
     public static void showOnlyPerson(Model model, Person person) {
         assertTrue(model.hasPerson(person));
 
-        final String[] splitName = person.getName().fullName.split("\\s+");
-        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of(splitName[0])));
+        ArgumentMultimap arguments = new ArgumentMultimap();
+        arguments.put(PREFIX_NAME, person.getName().fullName);
+        model.updateFilteredPersonList(new MatchPersonPredicate(arguments));
 
         assertEquals(1, model.getFilteredPersonList().size());
     }
