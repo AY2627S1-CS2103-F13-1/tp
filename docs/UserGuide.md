@@ -220,115 +220,56 @@ Examples:
 
 ### Filtering contacts by tag: `filter`
 
-Shows contacts that have every specified complete tag. Unlike `find`, which matches partial text, `filter` matches only whole stored tag values.
+Shows contacts that have all the given tags. Unlike `find`, which matches part of a tag, `filter` matches only complete tags.
 
 Format: `filter t/TAG [t/TAG]…​`
 
-* At least one `t/TAG` must be given, and `t/` may be repeated in any order.
-* A contact must contain **all** distinct specified tags. Additional tags on the contact do not prevent a match.
-* Matching is case-insensitive. For example, `t/EXPERT` matches the stored tag `expert`.
-* Repeated equivalent tags count as one condition, so `filter t/expert t/EXPERT` behaves like `filter t/expert`.
-* Tags can contain letters, numbers and spaces. Leading and trailing spaces are ignored. Existing internal spaces are preserved, so exact matching also distinguishes different internal spacing. Punctuation and special characters are invalid.
-* Matching uses complete tag values: `filter t/policy` does not match `housing policy` or `policy researcher`. Use `find t/policy` when partial tag matching is wanted.
-* Each new `filter` examines all stored contacts and replaces any earlier `find` or `filter`; it does not narrow only the currently displayed list.
-* Archived contacts are included when their tags match.
-* `sort` after `filter` reorders only the matching contacts. A new `filter` clears a previous display-only sort. `list` restores the active-contact view; `list all` restores the complete contact list.
-* Filtering is display-only: it does not add, edit, archive, restore, delete, or reorder stored contacts.
+* A contact must have **every** given tag. It may also have other tags.
+* Tags must match completely: `filter t/policy` does not match `housing policy`. Use `find t/policy` to match part of a tag.
+* Upper/lower case does not matter, so `t/EXPERT` matches `expert`.
+* Nothing may come before the first `t/`, and other prefixes such as `n/` are not allowed.
+* If any tag is invalid (see [Contact details](#contact-details)), the whole command fails and the list does not change.
+* `filter` searches all your contacts, including archived ones, not just the ones shown. It replaces the result of any earlier `find` or `filter`.
+* Filtering only changes which contacts are shown. Use `list` to go back to your active contacts.
 
-Examples:
-
-**Valid:**
-
-* `filter t/housing` matches only the complete tag `housing`.
-* `filter t/housing policy` matches contacts tagged `housing policy`.
-* `filter t/housing policy t/expert` matches only contacts that have both tags.
-* `filter t/interviewee t/singapore t/economics` requires all three tags.
-* `filter t/Housing Policy t/EXPERT` demonstrates case-insensitive matching.
-
-**Invalid:**
-
-* `filter` and `filter t/` do not provide a valid tag.
-* `filter housing t/expert` contains unsupported text before the first tag prefix.
-* `filter n/Alex` uses an unsupported prefix.
-* `filter t/housing-policy`, `filter t/housing_policy`, `filter t/@expert`, and `filter t/policy/research` contain invalid tag characters.
-* `filter t/expert t/housing-policy` fails completely; ByLine does not filter using only the valid tag.
-
-On success, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!`. When no contacts match,
-ByLine also shows all available tags in alphabetical order so that you can identify the complete tag to use. Tags
-from both active and archived contacts are included. For example:
+If no contact matches, ByLine lists every tag in use, so you can pick the exact one:
 
 ```text
 0 person(s) listed!
 Available tags: economics, expert, housing policy
 ```
 
-If no contacts have any tags, ByLine shows `Available tags: none` instead.
-
-For a command-structure error, ByLine shows:
-
-`Invalid command format!`<br>
-`filter: Filters contacts that have every specified tag.`<br>
-`Parameters: t/TAG [t/TAG]...`<br>
-`Example: filter t/housing policy t/expert`
-
-For an invalid tag, ByLine shows `Tag names should contain only letters, numbers and spaces`. Invalid commands leave the displayed contacts and their ordering unchanged.
+Examples:
+* `filter t/housing policy` shows contacts tagged `housing policy`.
+* `filter t/housing policy t/expert` shows only contacts with both tags.
+* `filter t/housing` does not show contacts tagged only `housing policy`, because the tag must match completely.
 
 ### Sorting displayed contacts: `sort`
 
-Arranges the currently displayed contacts by a selected contact field. Sorting changes only the displayed order; it does not change contact details or the order stored in the address book.
+Sorts the contacts currently shown by one of their details. Only the order on screen changes; your contacts are not changed.
 
 Format: `sort FIELD [ORDER]`
 
-* `FIELD` is mandatory. Supported fields are `name`, `phone`, `email`, `address`, and `tag`.
-* `ORDER` is optional. Supported orders are `asc` and `desc`; omitting `ORDER` uses `asc`.
-* `FIELD` and `ORDER` are case-insensitive. For example, `sort NAME DESC` is valid.
-* Name, email, and address values are compared alphabetically without regard to letter case. The complete stored value is compared.
-* Phone numbers are compared numerically. Leading zeroes do not affect their numeric value, so `000123` and `123` tie on phone number.
-* For tag sorting, a contact's primary tag is the alphabetically first tag, ignoring letter case. Only that tag is used. Contacts without tags remain after tagged contacts in both ascending and descending order.
-* Contacts that tie on the selected field are ordered by name in ascending order, regardless of the selected `ORDER`. If both the selected value and name tie, their existing relative order is preserved.
-* Only the contacts currently displayed are sorted. A search or filter result remains the same subset, and the stored contact order remains unchanged.
-* Running `list`, a new `find` or `filter`, `add` or `edit` replaces the sorted display. Run `sort` again to sort the new displayed list.
-* Sorting an empty list or a list containing one contact succeeds even though its visible order does not change.
+* `FIELD` is `name`, `phone`, `email`, `address` or `tag`.
+* `ORDER` is `asc` (A to Z, smallest first) or `desc`. If you leave it out, `asc` is used.
+* Upper/lower case does not matter, so `sort NAME DESC` works.
+* Names, emails and addresses are sorted alphabetically, ignoring upper/lower case. Phone numbers are sorted as numbers, so `000123` and `123` count as equal.
+* `sort tag` uses each contact's alphabetically first tag. Contacts without tags always come last.
+* Contacts that are equal on the chosen field are sorted by name, A to Z.
+* Only the contacts currently shown are sorted, e.g. the results of a `find`. Running `list`, `find`, `filter`, `add` or `edit` afterwards shows the list unsorted again.
 
-On success, ByLine shows the following message, substituting the selected field and the full order name:
-
-`Sorted contacts by FIELD in ORDER order.`
-
-For example, `sort name desc` shows `Sorted contacts by name in descending order.`
+On success, ByLine shows, for example, `Sorted contacts by name in descending order.`
 
 ![Result of sorting contacts by name in descending order](images/sortNameDescResult.png)
 
-Invalid commands leave the displayed contact list unchanged and show one of these exact messages:
-
-* Missing `FIELD` or extra arguments:<br>
-  `Invalid command format!`<br>
-  `Usage: sort FIELD [ORDER]`
-* Unsupported `FIELD`:<br>
-  `Invalid sort field. Valid fields are name, phone, email, address, and tag.`
-* Unsupported `ORDER`:<br>
-  `Invalid sort order. ORDER must be asc or desc.`
-
-For example, an unsupported order leaves the displayed contact list unchanged:
+If the field or order is not one of the above, or there are extra words, ByLine shows an error and the order does not change:
 
 ![Result of entering an invalid sort order](images/sortInvalidOrderResult.png)
 
 Examples:
-
-**Valid:**
-
-* `sort name` sorts names in ascending order.
-* `sort phone asc` sorts phone numbers numerically in ascending order.
-* `sort email desc` sorts complete email addresses in descending order.
-* `sort tag` sorts by primary tag in ascending order and keeps untagged contacts last.
-* `sort NAME DESC` sorts names in descending order because both parameters are case-insensitive.
-
-**Invalid:**
-
-* `sort` is missing the mandatory field.
-* `sort date` uses an unsupported field.
-* `sort name upward` uses an unsupported order.
-* `sort name email` treats `email` as an invalid order.
-* `sort name asc extra` contains an extra argument.
+* `sort name` sorts by name, A to Z.
+* `sort phone desc` sorts by phone number, largest first.
+* `sort tag` sorts by first tag, with untagged contacts last.
 
 ### Deleting a contact: `delete`
 
