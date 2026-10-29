@@ -263,6 +263,12 @@ The parser constructs a `HasAllTagsPredicate` and wraps it in a `FilterCommand`.
 
 When executed, `FilterCommand` calls `Model#updateFilteredPersonList(predicate)` and reports the filtered size using `Messages#MESSAGE_PERSONS_LISTED_OVERVIEW`. Each filter evaluates the full stored address book instead of the currently displayed subset. The predicate does not inspect archive status, so matching archived contacts are included. See [Displayed-list layers](#displayed-list-layers) for how a new predicate replaces the displayed view and clears its previous sort.
 
+If no contact matches, `FilterCommand` obtains every stored contact through `Model#getAddressBook()`, flattens their
+tag sets, removes duplicate tag names, and sorts the remaining names alphabetically. The command appends this list to
+its result as `Available tags: ...`; tags from archived contacts are included because filtering also includes archived
+contacts. If the address book contains no tags, the command reports `Available tags: none`. This feedback does not
+alter the exact-match predicate or any stored data.
+
 Filtering changes only the displayed list; stored contact data never changes.
 
 #### Design considerations
@@ -857,7 +863,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 2a. No contact has every specified tag.
 
-    * 2a1. ByLine shows an empty list.
+    * 2a1. ByLine shows an empty list and reports the available tags in alphabetical order. If no tags exist, ByLine
+      reports that none are available.
 
       Use case ends.
 
@@ -1091,7 +1098,9 @@ testers are expected to do more *exploratory* testing.
       Expected: Only Alex is shown because every specified tag is required.
 
    1. Test case: `filter t/housing`<br>
-      Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result is `0 person(s) listed!`.
+      Expected: No contact is shown because `housing` is not the complete tag `housing policy`. The result reports
+      `0 person(s) listed!` followed by an alphabetical list of all available tags, including tags that belong only to
+      archived contacts.
 
    1. Test case: `filter t/EXPERT`, then `filter t/expert t/EXPERT`<br>
       Expected: Both commands show the same contacts because matching ignores case and repeated equivalent tags form one condition.

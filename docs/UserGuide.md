@@ -225,7 +225,16 @@ Examples:
 * `filter t/housing-policy`, `filter t/housing_policy`, `filter t/@expert`, and `filter t/policy/research` contain invalid tag characters.
 * `filter t/expert t/housing-policy` fails completely; ByLine does not filter using only the valid tag.
 
-On success, including when no contacts match, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!` or `0 person(s) listed!`.
+On success, ByLine shows `N person(s) listed!`, such as `2 person(s) listed!`. When no contacts match,
+ByLine also shows all available tags in alphabetical order so that you can identify the complete tag to use. Tags
+from both active and archived contacts are included. For example:
+
+```text
+0 person(s) listed!
+Available tags: economics, expert, housing policy
+```
+
+If no contacts have any tags, ByLine shows `Available tags: none` instead.
 
 For a command-structure error, ByLine shows:
 
