@@ -1010,6 +1010,95 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * The contact is changed only if all given values are valid.
 * The contact keeps its ID.
 
+**System:** ByLine<br>
+**Use case:** UC14 - Clear all contacts<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to clear all contacts
+2.  ByLine deletes every contact, including archived contacts
+
+    Use case ends.
+
+**Guarantees**
+
+* The ID counter is not reset, so the deleted contacts' IDs are not given out again.
+* The journalist can undo the clear (UC11).
+
+**System:** ByLine<br>
+**Use case:** UC15 - Export contacts to a backup file<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to export all contacts, giving a file path
+2.  ByLine saves all contacts, including archived contacts, and the ID counter to a new JSON file at that path
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No path is given.
+
+    * 1a1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. A file already exists at the path, or the folder does not exist or cannot be written to.
+
+    * 1b1. ByLine shows an error message stating that the contacts could not be exported.
+
+      Use case resumes at step 1.
+
+**Guarantees**
+
+* An existing file is never overwritten.
+* The contacts in ByLine are unchanged.
+
+**System:** ByLine<br>
+**Use case:** UC16 - Load contacts from a backup file<br>
+**Actor:** Journalist
+
+**MSS**
+
+1.  Journalist requests to load contacts from a backup file, giving its path
+2.  ByLine saves a copy of the current contacts to a new file in the same folder as the backup
+3.  ByLine replaces all contacts with the contacts in the backup and shows where the copy was saved
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No path is given.
+
+    * 1a1. ByLine shows an error message stating the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. The file does not exist or does not contain valid contact data.
+
+    * 1b1. ByLine shows an error message stating that the contacts could not be loaded.
+
+      Use case resumes at step 1.
+
+* 2a. ByLine has no contacts, or only the unchanged sample contacts.
+
+    * 2a1. ByLine does not save a copy.
+
+      Use case resumes at step 3.
+
+* 2b. The copy cannot be saved.
+
+    * 2b1. ByLine shows an error message stating that the load was cancelled.
+
+      Use case ends.
+
+**Guarantees**
+
+* If the load fails, the current contacts are unchanged.
+* The journalist can undo the load (UC11).
+
 ### Non-Functional Requirements
 
 These requirements define the quality targets and operating constraints for ByLine.
