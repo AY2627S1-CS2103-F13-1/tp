@@ -997,7 +997,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1e. The new name is the same as another contact's name.
+* 1e. Another contact already has the same name, ignoring letter case and repeated spaces.
 
     * 1e1. ByLine shows an error message stating that the contact already exists.
 
