@@ -85,7 +85,7 @@ Email `e/` | In the form `local-part@domain`, e.g. `jane@example.com`.
 Address `a/` | Any text, but not blank.
 Tag `t/` | Letters, numbers and spaces. Saved in lowercase.
 
-Two contacts can't have exactly the same name. Names are case-sensitive, so `John Doe` and `john doe` count as different contacts.
+Two contacts can't have the same name. ByLine ignores upper/lower case and extra spaces when comparing names, so `John Doe` and `john doe` count as the same contact. Names are saved exactly as you typed them.
 
 ### Viewing help: `help`
 
