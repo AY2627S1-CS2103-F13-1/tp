@@ -175,6 +175,7 @@ Format: `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG
 * The general substring searches the name, phone number, email, address and tags. It must appear within at least one of these fields or one tag.
 * Each prefixed substring searches only its corresponding field. A person must match the general substring, if supplied, and every field and tag condition.
 * Search text is matched as one consecutive substring, including internal spaces. For example, `Alex Ye` matches `Alex Yeoh`, but `Ye Alex` does not.
+* Fuzzy search also allows insertions, deletions or substitutions up to one-third of each search value's length, rounded down, across all searchable fields and tags. For example, `find n/Alx` can match `Alex Yeoh`, while one- or two-character search values require an exact substring match.
 * Put the general substring before the first prefix. Text after a prefix belongs to that prefix until the next recognised prefix or the end of the command. For example, `find example n/Alex` combines a general search for `example` with a name search for `Alex`; `find n/Alex example` searches the name for the single substring `Alex example`.
 * Prefixes may appear in any order. If `n/`, `p/`, `e/` or `a/` is repeated, only its last value is used.
 * For multiple `t/` prefixes, every tag substring must match at least one of the person's tags.
