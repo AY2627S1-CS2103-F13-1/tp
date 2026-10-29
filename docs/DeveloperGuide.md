@@ -239,6 +239,10 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 ### Find feature
 
+Syntax: `find [general_substring] [prefix_substring] [prefix_substring]...`
+- `general_substring`: optional, must be positioned first, has no prefix.
+- `prefix_substring`: optional, must be positioned after general_substring, can have any supported prefix.
+
 `AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`.
 
 The predicate combines the following conditions with AND. Matching is case-insensitive and uses consecutive substrings:
