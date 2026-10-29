@@ -523,16 +523,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 | Priority | As a …​ | I want to …​ | So that I can…​ |
 | -------- | -------- | ------------ | ---------------- |
-| `* * *` | new user | see usage instructions | refer to instructions when I forget how to use ByLine |
+| `* * *` | journalist | see a guide to the commands inside ByLine | look up a command's format without leaving the app |
 | `* * *` | journalist | add a new contact | keep track of people who may be useful for my reporting |
 | `* * *` | journalist | list my contacts | see the contacts I have saved |
 | `* * *` | journalist | delete a contact | remove contacts that I no longer need |
+| `* * *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* * *` | journalist | refer to a contact by a fixed ID | act on the right contact even after searching or sorting the list |
 | `* * *` | journalist | search for contacts by their details | quickly locate relevant contacts without going through the entire list |
 | `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
 | `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
 | `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
-| `* *` | journalist | edit a contact's details | keep my contact information accurate and up to date |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
 | `* *` | journalist | remove tags from a contact | keep a contact's tags accurate when their role or relevance changes |
 | `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
@@ -540,6 +540,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *` | journalist | view only my active or only my archived contacts | focus on the contacts I need right now |
 | `* *` | journalist | undo my last change | quickly fix a mistake such as deleting the wrong contact |
 | `* *` | journalist | redo a change I undid | get back a change I did not mean to undo |
+| `* *` | journalist | delete all my contacts at once | start afresh, e.g. after trying ByLine with the sample data |
+| `* *` | journalist | export all my contacts to a backup file | keep a copy of my sources in case my computer fails |
+| `* *` | journalist | load my contacts from a backup file | recover my contacts or move them to another computer |
 
 ### Use cases
 
