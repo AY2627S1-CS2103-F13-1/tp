@@ -239,7 +239,7 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 ### Find feature
 
-`AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`. Find no longer uses `AnyFieldContainsSubstringPredicate` or `EachFieldContainsSubstringPredicate`.
+`AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`.
 
 The predicate combines the following conditions with AND. Matching is case-insensitive and uses consecutive substrings:
 
