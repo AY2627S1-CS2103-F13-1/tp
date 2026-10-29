@@ -278,7 +278,23 @@ The parser does not reject empty input or duplicate prefixes. With no preamble o
 
 #### Design considerations
 
-[TEMP: This feature is designed with general and prefixed arguments because a teammate told me to do this shit.]
+**Aspect: substring vs whole-keyword matching**
+
+* **Alternative 1 (current choice): match if a field contains a specific substring**
+    * Pros: More specific
+    * Cons: Might not contain user's desired search result
+* **Alternative 2: match if a field contains a specific whole word**
+    * Pros: More broad
+    * Cons: Too many search results, although list would more likely contain user's desired contact, it would be harder for them to identify it.
+
+**Aspect: one combined predicate vs a separate predicate for each kind of search**
+
+* **Alternative 1 (current choice): one combined predicate**
+    * Pros: one syntax to rule them all
+    * Cons: nothing?
+* **Alternative 2: Mutliple predicates, depending on which syntax is used**
+    * Pros: Predicates have separate code for different functions
+    * Cons: The code to choose which predicate to use is dependent on the syntax the user enters, which makes things very fragmented. This code could be moved from FindCommandParser.java to a predicate class.
 
 ### Filter feature
 
