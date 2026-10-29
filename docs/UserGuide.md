@@ -91,6 +91,8 @@ Adds a person to the address book.
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
 
 * The new contact gets the next unused ID, shown in the result message and on its card. See [Contact IDs](#contact-ids).
+* ByLine rejects a contact whose name differs from an existing contact only in letter case or repeated spaces. The
+  original letter case and spacing of accepted names are preserved.
 * If every ID up to 999999 has been used, ByLine shows `Cannot add more contacts: every contact ID up to 999999 has already been used.`
 * After the contact is added, ByLine shows your active contacts, as `list` does, so the new contact is in view.
 
