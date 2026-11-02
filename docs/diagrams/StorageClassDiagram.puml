@@ -8,6 +8,7 @@ package Storage as StoragePackage {
 
 Class "<<interface>>\nStorage" as Storage
 Class StorageManager
+Class BackupStorage
 
 package "UserPrefs Storage" #F4F6F6{
 Class JsonUserPrefsStorage
@@ -22,14 +23,20 @@ Class JsonAdaptedTag
 
 }
 
+package Model <<Rectangle>> {
+Class HiddenModel #FFFFFF
+}
+
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Storage
 
 StorageManager .up.|> Storage
-StorageManager -down-> "1" JsonUserPrefsStorage
-StorageManager -down-> "1" JsonAddressBookStorage
+StorageManager -right-> "1" JsonUserPrefsStorage
+StorageManager -left-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
+BackupStorage ..> JsonSerializableAddressBook
+StoragePackage ..> Model
 JsonSerializableAddressBook --> "*" JsonAdaptedPerson
 JsonAdaptedPerson --> "*" JsonAdaptedTag
 
