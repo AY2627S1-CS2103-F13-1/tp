@@ -112,7 +112,7 @@ public class MainWindowTest extends ApplicationTest {
 
             Label guide = lookup("#commandGuide").query();
             String guideText = guide.getText().replace("\r\n", "\n");
-            assertTrue(guideText.contains("delete ID\nExample: delete 3\n\nclear"));
+            assertTrue(guideText.contains("    delete ID\n    Example: delete 3\n\n    clear"));
             assertTrue(guide.isWrapText());
         });
     }
