@@ -15,7 +15,7 @@ title: Developer Guide
 Notable uses of AI:
 
 * ChatGPT Codex was used to generate all the test classes for the Find feature.
-* The method `Search#levenshteinDistance` was generated with ChatGPT Codex, referencing the {@code levenshtein_distance_vec} implementation in [tkarabela's fuzzy text search notebook](https://github.com/tkarabela/bigpython/blob/master/003--fuzzy-text-search/fuzzy-text-search.ipynb). Adapted to Java with two-row storage and optional substring matching. The original YouTube tutorial is ["How Fuzzy Text Search Works" by Big Python](www.youtube.com/watch?v=SoZ1CVU2DdE&).
+* The method `Search#levenshteinDistance` was generated with ChatGPT Codex, referencing the `levenshtein_distance_vec` implementation in [tkarabela's fuzzy text search notebook](https://github.com/tkarabela/bigpython/blob/master/003--fuzzy-text-search/fuzzy-text-search.ipynb). It was adapted to Java with two-row storage and optional substring matching. The original YouTube tutorial is ["How Fuzzy Text Search Works" by Big Python](https://www.youtube.com/watch?v=SoZ1CVU2DdE).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -246,10 +246,6 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 ### Find feature
 
-Syntax: `find [general_substring] [prefix_substring] [prefix_substring]...`
-- `general_substring`: optional, must be positioned first, has no prefix.
-- `prefix_substring`: optional, must be positioned after general_substring, can have any supported prefix.
-
 `AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`.
 
 The predicate combines the following conditions with AND. Matching is case-insensitive and uses consecutive substrings:
@@ -266,16 +262,7 @@ Part of the command | Read as | A contact matches if
 `n/Alex` | name substring | its name contains `Alex`
 `t/fri` | tag substring | at least one of its tags contains `fri`
 
-If a general substring is used, it must be placed before any prefixed substrings. In `find n/Alex example` there is no preamble, so search returns contacts whose names contain `Alex example`, if any.
-
-Other allowed combinations of the find command include:
-* `find example`: returns contacts that contain "example" in any field.
-* `find n/Alex`: returns contacts that contain "Alex" in their name.
-* `find t/fri`: returns contacts that contain "fri" in their tags.
-* `find n/Alex t/Fri` or `find t/fri n/Alex`: returns contacts that contain "Alex" in their name and "fri" in their tags.
-* `find`: returns an empty list.
-
-The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix.
+The tokenizer trims surrounding whitespace from each value but keeps internal spaces, so the whole preamble is one substring even if it contains spaces. Text after a prefix belongs to that prefix until the next recognised prefix. For example, `find n/Alex example` has no preamble and searches names for `Alex example`.
 
 Fuzzy matching is handled by `Search.substringThenLevenshtein(text, key)` for each general, field and tag comparison. It first checks for a case-insensitive substring match, then falls back to `levenshteinDistance` with partial matching enabled, comparing the entire key against any contiguous part of the field without penalising surrounding text. Insertions, deletions and substitutions each cost one edit, and spaces count as characters; the permitted distance is `floor(TOLERANCE * key.length())`, where `Search` owns the private constant `TOLERANCE = 1.0 / 4.0`. The calculation uses two rows of the distance table to limit memory use, and the predicate still requires every supplied search condition to match.
 
@@ -550,7 +537,7 @@ This product is for journalists who have many valuable contacts to keep track of
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Journalists have the problem of not knowing who in their contacts to ask for help for their stories that they are currently writing. Our app helps journalists identify relevant contacts and keep track of interviewees to contact them for follow-up.
+**Value proposition**: Journalists often struggle to work out which of their many contacts can help with the story they are working on. ByLine lets them tag contacts by topic or expertise, find the right person quickly by typing, and keep track of interviewees for follow-up.
 
 
 ### User stories
@@ -1298,9 +1285,9 @@ testers are expected to do more *exploratory* testing.
    7. Other incorrect edit commands to try: `edit 0 p/91234567`, `edit 1 p/12ab`<br>
       Expected: Nothing is changed. An error message is shown.
 
-### Deleting a person
+### Deleting a contact
 
-1. Deleting a person by ID
+1. Deleting a contact by ID
 
    1. Prerequisites: Multiple contacts exist. Note the ID shown on one contact's card, e.g. `ID: 2`.
 
@@ -1486,7 +1473,7 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: The contact with ID 2 is archived. Run `list`.
 
    2. Test case: `edit 2 p/91234567`<br>
-      Expected: Byline switches to the archived contacts. The contact with ID 2 is shown with the new phone number and is still archived.
+      Expected: ByLine switches to the archived contacts. The contact with ID 2 is shown with the new phone number and is still archived.
 
 3. Restoring a contact
 
