@@ -49,6 +49,9 @@ ByLine is a **desktop contact manager for journalists**. It helps you keep track
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
+* A prefix, such as `n/` or `t/`, tells ByLine which detail comes next.<br>
+  For example, in `add n/John Doe p/98765432`, the name follows `n/` and the phone number follows `p/`.
+
 * Items in square brackets are optional.<br>
   For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
 
@@ -208,31 +211,28 @@ Examples:
 
 ### Finding contacts: `find`
 
-Finds contacts using part of their details. Combine one general substring with any selection of field-specific substrings, or use either kind of search on its own.
+Finds contacts using part of their details, such as part of a name or phone number.
 
-Format: `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`
+Format: `find [TEXT] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`
 
-* Searches are case-insensitive: `al` matches both `Alex` and `Balakrishnan`.
-* The general substring searches the name, phone number, email, address and tags. It must appear within at least one of these fields or one tag.
-* Each prefixed substring searches only its corresponding field. A contact must match the general substring, if supplied, and every field and tag condition.
-* Search text is matched as one consecutive substring, including internal spaces. For example, `Alex Ye` matches `Alex Yeoh`, but `Ye Alex` does not.
+* `TEXT`, typed without a prefix, is searched for in every detail: name, phone number, email, address and tags. Put it before any prefix.
+* Text after a prefix is searched for only in that detail. For example, `n/Al` searches names only.
+* A contact is shown only if it matches **everything** you give, so adding more conditions narrows the results.
+* Upper/lower case does not matter: `al` matches both `Alex` and `Balakrishnan`.
+* The text you type is matched as a whole, including spaces: `Alex Ye` matches `Alex Yeoh`, but `Ye Alex` does not.
 * Small typing mistakes are allowed: about one wrong, missing or extra character for every four characters you type. For example, `find n/Bernise` still finds `Bernice Yu`. Searches of one to three characters must match exactly.
-* Put the general substring before the first prefix. Text after a prefix belongs to that prefix until the next recognised prefix or the end of the command. For example, `find example n/Alex` combines a general search for `example` with a name search for `Alex`; `find n/Alex example` searches the name for the single substring `Alex example`.
-* Prefixes may appear in any order. If `n/`, `p/`, `e/` or `a/` is repeated, only its last value is used.
-* For multiple `t/` prefixes, every tag substring must match at least one of the contact's tags.
-* `find` without search text or prefixes shows no contacts.
-* An empty value after `n/`, `p/`, `e/` or `a/` imposes no restriction on that field. An empty `t/` value matches any contact with at least one tag.
+* Text after a prefix continues until the next prefix. So `find n/Alex example` searches names for `Alex example`. To search every detail for `example`, put it first: `find example n/Alex`.
+* Each `t/` must match one of the contact's tags. If `n/`, `p/`, `e/` or `a/` is repeated, only the last one is used.
+* `find` on its own shows no contacts. An empty prefix, such as `n/`, does not narrow the search, except that an empty `t/` shows only contacts with at least one tag.
 * Archived contacts are included in the results.
 
 Examples:
 
-* `find oak` finds contacts with `oak` anywhere in their details, such as the name `Prof Oak` or the address `Oak Street`.
+* `find oak` finds contacts with `oak` in any detail, such as the name `Prof Oak` or the address `Oak Street`.
 * `find n/Al` finds contacts whose names contain `Al`, such as `Alex Yeoh` and `Roy Balakrishnan`.
   ![Results for 'find n/Al'](images/findNameAl.png)
-* `find p/2345` finds contacts whose phone numbers contain `2345`.
-* `find n/Al e/example.com` finds contacts whose names contain `Al` and whose email addresses contain `example.com`.
-* `find example n/Al t/fri` finds contacts with `example` in any searchable field, `Al` in their name and `fri` in at least one tag.
-* `find t/fri t/col` finds contacts whose tags match **both** substrings, such as someone tagged with both `friends` and `colleagues`. Contacts tagged only with `friends` or only with `colleagues` are excluded. Adding field or tag conditions narrows the search instead of broadening it.
+* `find example n/Al t/fri` finds contacts with `example` in any detail, `Al` in their name and `fri` in one of their tags.
+* `find t/fri t/col` finds contacts with a tag containing `fri` **and** a tag containing `col`, such as Bernice Yu, who is tagged `friends` and `colleagues`. Contacts with only one of these tags are not shown.
   ![Results for 'find t/fri t/col', requiring both tag conditions to match](images/findTagsFriCol.png)
 
 ### Filtering contacts by tag: `filter`
@@ -416,7 +416,7 @@ ByLine automatically saves data after every command. You do not need to save man
 
 ### Editing the data file
 
-ByLine data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+ByLine saves your data automatically in a JSON (text) file, `data/addressbook.json`, inside the folder you started ByLine from. If you followed the [Quick start](#quick-start), this is the folder that contains `ByLine.jar`. Advanced users are welcome to update data directly by editing that data file.
 
 Each contact in the file has an `id`, and the file has a `nextPersonId`, which is the ID the next new contact will get. Do not change these. Changing them can make ByLine reuse old IDs, or make the data file invalid, for example if two contacts have the same ID or an ID is above 999999.
 
@@ -452,7 +452,7 @@ Action | Format, Examples
 **Exit** | `exit`
 **Export** | `export PATH`<br> e.g., `export C:/My Contacts/October backup`
 **Filter** | `filter t/TAG [t/TAG]…​`<br> e.g., `filter t/housing policy t/expert`
-**Find** | `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
+**Find** | `find [TEXT] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…`<br> e.g., `find oak`, `find n/Al t/fri` or `find example n/Al t/fri`
 **Help** | `help`
 **List** | `list`, `list all` or `list archive`
 **Load** | `load PATH`<br> e.g., `load C:/My Contacts/October backup`
