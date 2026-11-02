@@ -324,6 +324,38 @@ public class BackupWorkflowTest {
     }
 
     @Test
+    public void export_otherExtension_reportsJsonFormatAndFinalPath() throws Exception {
+        Path supplied = temporaryFolder.resolve("backup.csv");
+        Path expected = temporaryFolder.resolve("backup.json");
+        model.addPerson(new PersonBuilder().build());
+        AddressBook original = new AddressBook(model.getAddressBook());
+
+        String feedback = logic.execute("export " + supplied).getFeedbackToUser();
+
+        assertEquals("Exported all contacts as JSON to " + expected, feedback);
+        assertEquals(original, new BackupStorage().readAddressBook(expected));
+        assertFalse(Files.exists(supplied));
+        logic.execute("clear");
+        logic.execute("load " + expected);
+        assertEquals(original, model.getAddressBook());
+    }
+
+    @Test
+    public void export_extensionReplacement_onlyChangesFinalFilenameSuffix() throws Exception {
+        Path folder = Files.createDirectory(temporaryFolder.resolve("folder.csv"));
+        for (String[] names : new String[][] {
+            {"backup.v2.csv", "backup.v2.json"},
+            {".backup", ".backup.json"},
+            {"backup.", "backup.json"}
+        }) {
+            Path supplied = folder.resolve(names[0]);
+            Path expected = folder.resolve(names[1]);
+            logic.execute("export \"" + supplied + "\"");
+            assertEquals(model.getAddressBook(), new BackupStorage().readAddressBook(expected));
+        }
+    }
+
+    @Test
     public void parser_invalidPath_rejected() {
         String invalidPath = "bad" + (char) 0 + "path";
         assertThrows(ParseException.class, () -> logic.execute("export " + invalidPath));

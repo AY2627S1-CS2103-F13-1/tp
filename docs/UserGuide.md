@@ -376,13 +376,14 @@ Format: `export PATH`
 
 * The backup keeps every contact's details, tags and ID, so `load` can bring them back exactly.
 * `.json` is added to the file name if you leave it out, so `C:/My Contacts/October backup` saves to `C:/My Contacts/October backup.json`.
+* Other filename extensions are replaced with `.json`: `export backup.csv` saves JSON to `backup.json`. Only the final extension is replaced, so `backup.v2.csv` becomes `backup.v2.json`. Existing `.json` extensions, including `.JSON`, are kept. Use the final path shown in the result message with `load`.
 * Paths may contain spaces, with or without double quotes around the whole path.
 * The folder must already exist. ByLine never overwrites an existing file, so use a new file name for each backup.
 * A path that does not start with a drive or `/`, such as `backups/october`, is saved inside the folder you started ByLine from.
 * Every contact is saved, whatever the list currently shows. Settings such as the window size are not saved.
 
 Examples:
-* `export C:/My Contacts/October backup` saves all contacts to `C:/My Contacts/October backup.json` and shows `Exported all contacts to C:\My Contacts\October backup.json`.
+* `export C:/My Contacts/October backup` saves all contacts to `C:/My Contacts/October backup.json` and shows `Exported all contacts as JSON to C:\My Contacts\October backup.json`.
 * `export backups/october` saves to `october.json` in the `backups` folder inside the folder you started ByLine from.
 
 ### Loading a backup: `load`

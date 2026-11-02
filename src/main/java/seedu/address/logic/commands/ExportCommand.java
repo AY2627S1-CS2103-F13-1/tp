@@ -13,7 +13,9 @@ import seedu.address.storage.BackupStorage;
 public class ExportCommand extends Command {
     public static final String COMMAND_WORD = "export";
     public static final String MESSAGE_USAGE = "export PATH: Save all contacts to a new JSON file. "
-            + "Example: export backups/contacts (.json is optional; quotes are optional for spaces)";
+            + "Example: export backups/contacts (.json is optional; quotes are optional for spaces). "
+            + "Exports always use JSON. Missing extensions get .json appended; "
+            + "other extensions are replaced (contacts.csv becomes contacts.json).";
 
     private final Path path;
 
@@ -30,6 +32,6 @@ public class ExportCommand extends Command {
         } catch (IOException e) {
             throw new CommandException("Could not export contacts: " + e.getMessage(), e);
         }
-        return new CommandResult("Exported all contacts to " + path);
+        return new CommandResult("Exported all contacts as JSON to " + path);
     }
 }
