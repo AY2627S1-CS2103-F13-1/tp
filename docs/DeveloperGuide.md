@@ -556,6 +556,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
 | `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
 | `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
+| `* *` | journalist | see all of a contact's details in one place | check everything about a contact before reaching out |
+| `* *` | journalist | find contacts even if I misspell part of their details | still find a source when I am unsure of the exact spelling |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
 | `* *` | journalist | remove tags from a contact | keep a contact's tags accurate when their role or relevance changes |
 | `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
@@ -743,6 +745,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
     * 1b1. ByLine shows the contacts that have the text in any of their details.
 
       Use case ends.
+
+* 1c. The search text contains a small typing mistake, e.g. `Bernise` instead of `Bernice`.
+
+    * 1c1. ByLine treats details that differ by about one character in every four as a match.
+
+      Use case resumes at step 2.
 
 * 2a. No contacts match all the given criteria.
 
@@ -1153,13 +1161,16 @@ These requirements define the quality targets and operating constraints for ByLi
 * **Active contact**: A contact that is not archived. `list` shows only active contacts.
 * **Address book**: The internal collection that stores all contact records. This name is inherited from AB3 and is represented by the `AddressBook` class in the codebase.
 * **Archived contact**: A contact hidden with `archive`. It keeps its ID and details, is not shown by `list`, and can be brought back with `restore`.
+* **Backup file**: A JSON file holding a copy of all contacts, which `load` can read. `export` creates one, and `load` also creates one (named `before-load-…`) before replacing the contacts.
 * **ByLine**: A desktop, CLI-based contact-management application that helps journalists organise and retrieve professional contacts relevant to their reporting. Users interact with ByLine primarily by typing commands, while a GUI displays their contacts and command results.
 * **Case-insensitive matching**: Comparing text without treating uppercase and lowercase letters as different. For example, `Housing` and `housing` are considered equivalent.
 * **CLI (Command Line Interface)**: A text-based interface through which users operate ByLine by typing commands.
 * **Command**: A text instruction entered through the CLI to perform an operation, such as adding, listing, deleting, tagging, or searching for contacts.
+* **Command Guide**: The list of commands, with their formats and examples, that `help` shows in the panel on the right.
 * **Command prefix**: A marker that identifies the meaning of a command parameter, such as `n/` for a name or `t/` for a tag.
 * **Complete contact list**: All contacts stored in ByLine, regardless of the contacts currently displayed in the UI.
 * **Contact**: A person whose details a journalist stores in ByLine because the person may be relevant to current or future reporting.
+* **Contact details panel**: The panel on the right that shows all of the selected contact's details, including whether it is archived.
 * **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
 * **Displayed contact list**: The contacts currently shown. `list`, `find` and `filter` choose which contacts are shown, and `sort` sets their order.
@@ -1168,7 +1179,7 @@ These requirements define the quality targets and operating constraints for ByLi
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
 * **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
-* **Filtered contact list**: The internal list behind the displayed contact list. It holds the contacts chosen to be shown, before `sort` orders them.
+* **Fuzzy matching**: Matching that allows small typing mistakes. `find` allows about one wrong, missing or extra character for every four characters typed.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
 * **Interviewee**: A contact whom a journalist has interviewed or intends to interview.
 * **Journalist**: The target user of ByLine, who manages professional contacts for reporting purposes and prefers a command-driven desktop application.
