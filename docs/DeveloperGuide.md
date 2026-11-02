@@ -1233,6 +1233,18 @@ testers are expected to do more *exploratory* testing.
    3. Test case: With the guide shown, click any contact.<br>
       Expected: The right-hand panel shows that contact's details instead of the guide.
 
+### Viewing a contact's details
+
+1. Showing a contact's details
+
+   1. Prerequisites: Start with the sample data.
+
+   2. Test case: Click Bernice Yu's card.<br>
+      Expected: The right-hand panel shows Bernice Yu's ID, phone number, email, address and tags, and `STATUS  Active`.
+
+   3. Test case: `archive 2`, then `list all`, then click Bernice Yu's card.<br>
+      Expected: The card shows `[Archived]` after her name, and the panel shows `STATUS  Archived`.
+
 ### Adding a contact
 
 1. Adding a contact
@@ -1560,6 +1572,43 @@ testers are expected to do more *exploratory* testing.
 
    4. Test case: `undo`, then `add n/Test p/123 e/t@example.com a/Street`, then `redo`<br>
       Expected: The status message is `There is nothing to redo.` The contact with ID 2 is still there.
+
+### Exporting and loading backups
+
+1. Exporting contacts
+
+   1. Prerequisites: Start with the sample data.
+
+   2. Test case: `export test-backup`<br>
+      Expected: `test-backup.json` appears in the folder ByLine was started from. The status message is `Exported all contacts to test-backup.json`.
+
+   3. Test case: `export test-backup` again<br>
+      Expected: The existing file is not changed. The status message starts with `Could not export contacts:`.
+
+   4. Test case: `export no-such-folder/backup`<br>
+      Expected: No file is created. The status message starts with `Could not export contacts:`.
+
+   5. Test case: `export`<br>
+      Expected: The status message shows the `export` usage, starting with `export PATH:`.
+
+2. Loading contacts
+
+   1. Prerequisites: `test-backup.json` from the previous test exists. Run `delete 1`, so that the contacts differ from the backup.
+
+   2. Test case: `load test-backup`<br>
+      Expected: Alex Yeoh (ID 1) is back. The status message starts with `Loaded contacts from test-backup.json.` and ends with `Previous data is backed up at` followed by the path of a new `before-load-….json` file, which appears next to `test-backup.json`.
+
+   3. Test case: `undo` (straight after the previous test case)<br>
+      Expected: The contacts are back to how they were before the load, without Alex Yeoh.
+
+   4. Test case: Close ByLine, delete the `data` folder, relaunch ByLine, then `load test-backup`.<br>
+      Expected: The contacts are loaded. The status message ends with `No backup needed: the previous address book was empty or unchanged sample data.` No new `before-load-` file is created.
+
+   5. Test case: `load missing-file`<br>
+      Expected: The contacts are unchanged. The status message starts with `Could not load contacts:`.
+
+   6. Test case: Copy `test-backup.json` to `broken.json`. In `broken.json`, change one contact's `id` to `abc`. Then `load broken`.<br>
+      Expected: The contacts are unchanged. The status message starts with `Could not load contacts:`.
 
 ### Saving data
 
