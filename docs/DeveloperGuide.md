@@ -12,10 +12,13 @@ title: Developer Guide
 * ByLine is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org).
 * Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
 
-Notable uses of AI:
+### Use of AI tools
 
-* ChatGPT Codex was used to generate all the test classes for the Find feature.
-* The method `Search#levenshteinDistance` was generated with ChatGPT Codex, referencing the `levenshtein_distance_vec` implementation in [tkarabela's fuzzy text search notebook](https://github.com/tkarabela/bigpython/blob/master/003--fuzzy-text-search/fuzzy-text-search.ipynb). It was adapted to Java with two-row storage and optional substring matching. The original YouTube tutorial is ["How Fuzzy Text Search Works" by Big Python](https://www.youtube.com/watch?v=SoZ1CVU2DdE).
+Team members used AI tools, including ChatGPT Codex and Claude Code, throughout the project: to write and change code, to generate tests (for example, all the test classes for the Find feature), and to draft and edit documentation such as this guide and the User Guide. Team members reviewed and tested AI-generated work before adding it to the project.
+
+Reused work that AI-generated code is based on:
+
+* `Search#levenshteinDistance` was generated with ChatGPT Codex, based on the `levenshtein_distance_vec` implementation in [tkarabela's fuzzy text search notebook](https://github.com/tkarabela/bigpython/blob/master/003--fuzzy-text-search/fuzzy-text-search.ipynb), and adapted to Java with two-row storage and optional substring matching. The original YouTube tutorial is ["How Fuzzy Text Search Works" by Big Python](https://www.youtube.com/watch?v=SoZ1CVU2DdE).
 
 --------------------------------------------------------------------------------------------------------------------
 
