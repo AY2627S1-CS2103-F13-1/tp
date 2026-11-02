@@ -26,24 +26,22 @@ ByLine is designed for **journalists who manage numerous professional contacts**
 
 * **Add a contact**: Record a contact's name, phone number, email and address, with optional tags.<br>
   e.g. `add n/Jane Tan p/91234567 e/jane@example.com a/12 Kent Ridge Road t/economist`
-* **List contacts**: View all the contacts stored in ByLine.<br>
-  e.g. `list`
+* **Edit a contact**: Change any of a contact's details, using the ID shown on its card.<br>
+  e.g. `edit 2 p/98765432`
 * **Delete a contact**: Remove a contact using the ID shown on its card.<br>
   e.g. `delete 2`
-* **Tag contacts**: Add or remove tags without retyping the others (`tag`, `untag`).<br>
-  e.g. `tag 1 t/politics t/source`
-* **Search contacts**: Find contacts by name, phone, email, address or tag. Name, phone, email, address, and tags can match on part of the text. When you give several conditions, only contacts that match all of them are shown.<br>
-  e.g. `find n/Tan t/econ` shows person with fields `n/Tan Meng Cheng` and `t/economics`
-* **Filter contacts by exact tags**: Show contacts that have every specified complete tag, ignoring letter case.<br>
-  e.g. `filter t/housing policy t/expert` shows only contacts tagged with both `housing policy` and `expert`
-* **Sort contacts**: Arrange the displayed contacts by a supported field in ascending or descending order.<br>
+* **List contacts**: Show your active contacts, only archived contacts, or every contact.<br>
+  e.g. `list`, `list archive` or `list all`
+* **Tag and untag contacts**: Add or remove tags without retyping the contact's other tags.<br>
+  e.g. `tag 1 t/politics t/source`, then `untag 1 t/source`
+* **Search contacts**: Find contacts using part of any detail. Small typos are allowed, and giving more conditions narrows the results.<br>
+  e.g. `find n/Tan t/econ` finds contacts with `Tan` in their name and a tag containing `econ`, such as `economics`
+* **Filter contacts by tag**: Show only contacts that have every tag you name. Tags must match in full.<br>
+  e.g. `filter t/housing policy t/expert`
+* **Sort contacts**: Order the contacts shown by name, phone, email, address or tag.<br>
   e.g. `sort name desc`
-* **Remove tags**: Remove only the tags you name and keep the rest.<br>
-  e.g. `untag 1 t/source`
 * **Archive and restore contacts**: Hide contacts you are no longer working with, without deleting them, and bring them back later.<br>
   e.g. `archive 4`, then `restore 4`
-* **Switch list views**: Show your active contacts, only archived contacts, or every contact.<br>
-  e.g. `list archive`
 * **Undo and redo**: Reverse your last change, or redo a change you undid.<br>
   e.g. `undo`, `redo`
 * **Back up and load contacts**: Save all your contacts to a file and load them back later.<br>
