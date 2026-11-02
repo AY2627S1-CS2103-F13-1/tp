@@ -91,11 +91,13 @@ Two contacts can't have the same name **and** phone number. ByLine ignores upper
 
 Click a contact in the list to see all of its details, including whether it is archived, in the panel on the right. Until you select a contact, the panel shows "Select a contact to view details here."
 
+![The panel on the right showing Bernice Yu's details](images/contactDetails.png)
+
 ### Viewing help: `help`
 
 Shows the command guide in the panel on the right.
 
-![help message](images/helpMessage.png)
+![The command guide shown in the panel on the right](images/helpPanel.png)
 
 Format: `help`
 
@@ -225,7 +227,7 @@ Format: `find [SUBSTRING] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG
 Examples:
 
 * `find oak` finds contacts with `oak` anywhere in their details, such as the name `Prof Oak` or the address `Oak Street`.
-* `find n/Al` finds contacts whose names contain `Al`.
+* `find n/Al` finds contacts whose names contain `Al`, such as `Alex Yeoh` and `Roy Balakrishnan`.
   ![Results for 'find n/Al'](images/findNameAl.png)
 * `find p/2345` finds contacts whose phone numbers contain `2345`.
 * `find n/Al e/example.com` finds contacts whose names contain `Al` and whose email addresses contain `example.com`.
@@ -277,9 +279,7 @@ On success, ByLine shows, for example, `Sorted contacts by name in descending or
 
 ![Result of sorting contacts by name in descending order](images/sortNameDescResult.png)
 
-If the field or order is not one of the above, or there are extra words, ByLine shows an error and the order does not change:
-
-![Result of entering an invalid sort order](images/sortInvalidOrderResult.png)
+If the field or order is not one of the above, or there are extra words, ByLine shows an error and the order does not change. For example, `sort name upward` shows `Invalid sort order. ORDER must be asc or desc.`
 
 Examples:
 * `sort name` sorts by name, A to Z.
@@ -301,6 +301,9 @@ Format: `archive ID`
 
 Examples:
 * `archive 4` archives the contact with ID 4.
+* `archive 3`, then `list all`, shows every contact. The archived contact is marked `[Archived]`:
+
+  ![Charlotte Oliveiro marked as archived in the full list](images/archivedContact.png)
 
 ### Restoring an archived contact: `restore`
 
@@ -379,7 +382,7 @@ Format: `export PATH`
 * Every contact is saved, whatever the list currently shows. Settings such as the window size are not saved.
 
 Examples:
-* `export C:/My Contacts/October backup` saves all contacts to `C:/My Contacts/October backup.json`.
+* `export C:/My Contacts/October backup` saves all contacts to `C:/My Contacts/October backup.json` and shows `Exported all contacts to C:\My Contacts\October backup.json`.
 * `export backups/october` saves to `october.json` in the `backups` folder inside the folder you started ByLine from.
 
 ### Loading a backup: `load`
@@ -397,7 +400,9 @@ Format: `load PATH`
 * You can reverse a `load` with `undo`.
 
 Examples:
-* `load C:/My Contacts/October backup` replaces your contacts with those in `C:/My Contacts/October backup.json`.
+* `load C:/My Contacts/October backup` replaces your contacts with those in `C:/My Contacts/October backup.json`. The result message shows where the copy of your previous contacts was saved:
+
+  ![Result of loading a backup, showing where the previous contacts were saved](images/loadResult.png)
 
 ### Exiting the program: `exit`
 
