@@ -392,6 +392,10 @@ Other commands, such as `find`, `tag` and `delete`, treat archived contacts like
 2. `LogicManager` saves the current contacts to a new `before-load-<timestamp>-<random id>.json` file in the same folder as the backup, using `BackupStorage#backupBeforeLoad`. This is skipped if the address book is empty or equals the sample data. If the copy cannot be saved, the load is cancelled.
 3. `LogicManager` saves the loaded contacts to the main data file, copies them into the real model and calls `Model#commitAddressBook()`, so `undo` can reverse a load.
 
+The activity diagram below summarises what happens when the journalist runs `load`:
+
+<img src="images/LoadActivityDiagram.png" width="250" />
+
 The result message names the file that holds the previous contacts, so the journalist can `load` it to go back.
 
 #### Design considerations

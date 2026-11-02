@@ -1,0 +1,44 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+start
+:User executes load PATH;
+:LoadCommand reads the backup
+into a copy of the model;
+
+'Since the beta syntax does not support placing the condition outside the
+'diamond we place it as the true branch instead.
+
+if () then ([backup is valid])
+else ([else])
+    :Show error;
+    stop
+endif
+
+if () then ([copy needed])
+    :Save current contacts to
+    a before-load file;
+    if () then ([copy saved])
+    else ([else])
+        :Show "load cancelled"
+        error;
+        stop
+    endif
+else ([else])
+endif
+
+:Save loaded contacts to
+the main data file;
+if () then ([save succeeds])
+else ([else])
+    :Show error;
+    stop
+endif
+
+:Copy loaded contacts
+into the real model;
+:Model#commitAddressBook();
+:Show where the copy was saved;
+stop
+@enduml
