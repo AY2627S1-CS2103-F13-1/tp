@@ -21,13 +21,10 @@ DISCOVER
     list
     Displays all contacts.
 
-    find SUBSTRING
-    Searches all fields.
-    Example: find oak
-
-    find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
-    Searches specified fields. All conditions must match.
-    Example: find n/Al e/example.com
+    find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
+    Searches all fields with SUBSTRING and specific fields with prefixes. All conditions must match.
+    Required: at least one search condition. Put SUBSTRING before any prefixes.
+    Examples: find oak; find n/Al e/example.com; find example n/Al t/fri
 
     sort FIELD [ORDER]
     Sorts contacts by field. ORDER: asc or desc (default: asc).
@@ -52,10 +49,20 @@ ORGANISE
     Example: archive 3
 
     restore ID
-    Restores an archived contact.
+    Restores an archived contact to the active contacts.
     Example: restore 3
 
 APPLICATION
+
+    undo
+    Reverses the most recent change to contacts. Takes no parameters.
+    Undo up to 20 changes in the current session; view changes such as find and sort are skipped.
+    Example: delete 3, then undo to bring the contact back.
+
+    redo
+    Reapplies the last change you undid. Takes no parameters.
+    Making a new change clears the redo history; view changes such as find and sort do not.
+    Example: delete 3, then undo, then redo to delete the contact again.
 
     export PATH
     Exports all contacts to a JSON backup.
