@@ -92,83 +92,8 @@
 
                 <Label text="COMMAND GUIDE" styleClass="byline-detail-eyebrow" />
                 <Label text="The newsroom handbook" styleClass="byline-detail-heading" wrapText="true" />
-                <Label text="Use these commands in the input above."
-                       styleClass="byline-detail-description" wrapText="true" />
-
-                <Label text="CONTACTS" styleClass="byline-detail-eyebrow" />
-                <Label styleClass="byline-detail-description" wrapText="true">
-                  add n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...
-                  Required: name, phone, email, address.
-                  Example: add n/John Doe p/98765432 e/john@example.com a/Clementi
-
-                  edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
-                  Required: contact ID and at least one change.
-                  Example: edit 3 p/91234567
-
-                  delete ID
-                  Example: delete 3
-
-                  clear
-                  Removes all contacts.
-                </Label>
-
-                <Label text="DISCOVER" styleClass="byline-detail-eyebrow" />
-                <Label styleClass="byline-detail-description" wrapText="true">
-                  list
-                  Displays all contacts.
-
-                  find SUBSTRING
-                  Searches all fields.
-                  Example: find oak
-
-                  find [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
-                  Searches specified fields. All conditions must match.
-                  Example: find n/Al e/example.com
-
-                  sort FIELD [ORDER]
-                  Sorts contacts by field. ORDER: asc or desc (default: asc).
-                  Examples: sort name asc; sort tag desc
-
-                  filter t/TAG [t/TAG]...
-                  Shows contacts matching all specified exact tags.
-                  Example: filter t/tech t/finance
-                </Label>
-
-                <Label text="ORGANISE" styleClass="byline-detail-eyebrow" />
-                <Label styleClass="byline-detail-description" wrapText="true">
-                  tag ID t/TAG [t/TAG]...
-                  Adds tags without removing existing tags.
-                  Example: tag 3 t/housing policy t/expert
-
-                  untag ID t/TAG [t/TAG]...
-                  Removes specified tags.
-                  Example: untag 3 t/expert
-
-                  archive ID
-                  Archives a contact.
-                  Example: archive 3
-
-                  restore ID
-                  Restores an archived contact.
-                  Example: restore 3
-                </Label>
-
-                <Label text="APPLICATION" styleClass="byline-detail-eyebrow" />
-                <Label styleClass="byline-detail-description" wrapText="true">
-                  export PATH
-                  Exports all contacts to a JSON backup.
-                  Example: export backup
-
-                  load PATH
-                  Replaces current contacts with data from a JSON backup.
-                  Example: load backup.json
-
-                  help
-                  Displays this command guide.
-
-                  exit
-                  Closes ByLine.
-                </Label>
+                <Label fx:id="commandGuide" styleClass="byline-detail-description"
+                       wrapText="true" minHeight="-Infinity" />
               </VBox>
             </content>
           </ScrollPane>
