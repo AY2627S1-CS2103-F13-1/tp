@@ -34,7 +34,7 @@ ByLine is designed for **journalists who manage numerous professional contacts**
   e.g. `list`, `list archive` or `list all`
 * **Tag and untag contacts**: Add or remove tags without retyping the contact's other tags.<br>
   e.g. `tag 1 t/politics t/source`, then `untag 1 t/source`
-* **Search contacts**: Find contacts using part of any detail. Small typos are allowed, and giving more conditions narrows the results.<br>
+* **Search contacts**: Find contacts using part of a contact’s name, phone number, email, address or tags.<br>
   e.g. `find n/Tan t/econ` finds contacts with `Tan` in their name and a tag containing `econ`, such as `economics`
 * **Filter contacts by tag**: Show only contacts that have every tag you name. Tags must match in full.<br>
   e.g. `filter t/housing policy t/expert`
