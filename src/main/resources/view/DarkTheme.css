@@ -564,6 +564,7 @@
     -fx-font-family: "Segoe UI";
     -fx-font-size: 14px;
     -fx-text-fill: #5c4d4c;
+    white-space: pre-line;
 }
 
 
