@@ -110,8 +110,10 @@ public class MainWindowTest extends ApplicationTest {
             assertTrue(help.isVisible());
             assertTrue(help.isManaged());
 
-            Label guide = lookup("#commandGuide").query();
-            String guideText = guide.getText().replace("\r\n", "\n");
+            Label contactsGuide = lookup("#contactsGuide").query();
+            Label applicationGuide = lookup("#applicationGuide").query();
+            String contactsText = contactsGuide.getText().replaceAll("[ \\t]+(?=\\n)", "");
+            String applicationText = applicationGuide.getText().replaceAll("[ \\t]+(?=\\n)", "");
 
             String correctSample1 = """
                     delete ID
@@ -128,10 +130,11 @@ public class MainWindowTest extends ApplicationTest {
                     Reapplies the last change you undid. Takes no parameters.
                     Example: delete 3, then undo, then redo to delete the contact again.
                     """;
-            assertTrue(guideText.contains(correctSample1));
-            assertTrue(guideText.contains(correctSample2));
+            assertTrue(contactsText.contains(correctSample1));
+            assertTrue(applicationText.contains(correctSample2));
 
-            assertTrue(guide.isWrapText());
+            assertTrue(contactsGuide.isWrapText());
+            assertTrue(applicationGuide.isWrapText());
         });
     }
 

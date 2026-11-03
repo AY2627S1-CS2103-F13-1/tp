@@ -1,8 +1,5 @@
 package seedu.address.ui;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.logging.Logger;
@@ -34,7 +31,6 @@ import seedu.address.model.person.Person;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
-    private static final String COMMAND_GUIDE_RESOURCE = "/text/command-guide.txt";
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -51,9 +47,6 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private ScrollPane helpPanel;
-
-    @FXML
-    private Label commandGuide;
 
     @FXML
     private Label detailName;
@@ -103,21 +96,6 @@ public class MainWindow extends UiPart<Stage> {
         setWindowDefaultSize(logic.getGuiSettings());
 
         setAccelerators();
-        loadCommandGuide();
-    }
-
-    /**
-     * Loads the bundled command guide, preserving its line breaks.
-     */
-    private void loadCommandGuide() {
-        try (InputStream input = MainWindow.class.getResourceAsStream(COMMAND_GUIDE_RESOURCE)) {
-            if (input == null) {
-                throw new IllegalStateException("Missing command guide resource: " + COMMAND_GUIDE_RESOURCE);
-            }
-            commandGuide.setText(new String(input.readAllBytes(), StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to load the command guide.", e);
-        }
     }
 
     public Stage getPrimaryStage() {

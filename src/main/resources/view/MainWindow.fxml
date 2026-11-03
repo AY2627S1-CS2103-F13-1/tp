@@ -92,8 +92,86 @@
 
                 <Label text="COMMAND GUIDE" styleClass="byline-detail-eyebrow" />
                 <Label text="The newsroom handbook" styleClass="byline-detail-heading" wrapText="true" />
-                <Label fx:id="commandGuide" styleClass="byline-detail-description"
-                       wrapText="true" minHeight="-Infinity" />
+                <Label text="Use these commands in the input above."
+                       styleClass="byline-detail-description" wrapText="true" />
+
+                <Label text="CONTACTS" styleClass="byline-detail-eyebrow" />
+                <Label fx:id="contactsGuide" styleClass="byline-detail-description" wrapText="true"
+                       text="add n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...
+                       &#10;Required: name, phone, email, address.
+                       &#10;Example: add n/John Doe p/98765432 e/john@example.com a/Clementi
+                       &#10;
+                       &#10;edit ID [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
+                       &#10;Required: contact ID and at least one change.
+                       &#10;Example: edit 3 p/91234567
+                       &#10;
+                       &#10;delete ID
+                       &#10;Example: delete 3
+                       &#10;
+                       &#10;clear
+                       &#10;Removes all contacts." />
+
+                <Label text="DISCOVER" styleClass="byline-detail-eyebrow" />
+                <Label fx:id="discoverGuide" styleClass="byline-detail-description" wrapText="true"
+                       text="list [archive | all]
+                       &#10;Shows active contacts by default, archived contacts with &quot;archive&quot;, and both active and archived contacts with &quot;all&quot;.
+                       &#10;Examples: list; list archive; list all
+                       &#10;
+                       &#10;find [GENERAL_SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
+                       &#10;Searches all fields with a general substring and specific fields with some prefixed substrings.
+                       &#10;All conditions must match.
+                       &#10;If the general substring is used with prefixed substrings, the general substring must be placed first.
+                       &#10;Examples: find oak; find n/Al e/example.com; find example n/Al t/fri
+                       &#10;
+                       &#10;sort FIELD [ORDER]
+                       &#10;Sorts contacts by field. ORDER: asc or desc (default: asc).
+                       &#10;Examples: sort name asc; sort tag desc
+                       &#10;
+                       &#10;filter t/TAG [t/TAG]...
+                       &#10;Shows contacts matching all specified exact tags.
+                       &#10;Example: filter t/tech t/finance" />
+
+                <Label text="ORGANISE" styleClass="byline-detail-eyebrow" />
+                <Label fx:id="organiseGuide" styleClass="byline-detail-description" wrapText="true"
+                       text="tag ID t/TAG [t/TAG]...
+                       &#10;Adds tags without removing existing tags.
+                       &#10;Example: tag 3 t/housing policy t/expert
+                       &#10;
+                       &#10;untag ID t/TAG [t/TAG]...
+                       &#10;Removes specified tags.
+                       &#10;Example: untag 3 t/expert
+                       &#10;
+                       &#10;archive ID
+                       &#10;Archives a contact.
+                       &#10;Example: archive 3
+                       &#10;
+                       &#10;restore ID
+                       &#10;Restores an archived contact to the active contacts.
+                       &#10;Example: restore 3" />
+
+                <Label text="APPLICATION" styleClass="byline-detail-eyebrow" />
+                <Label fx:id="applicationGuide" styleClass="byline-detail-description" wrapText="true"
+                       text="undo
+                       &#10;Reverses the most recent change to contacts. Takes no parameters. Undo up to 20 changes.
+                       &#10;Example: delete 3, then undo to bring the contact back.
+                       &#10;
+                       &#10;redo
+                       &#10;Reapplies the last change you undid. Takes no parameters.
+                       &#10;Example: delete 3, then undo, then redo to delete the contact again.
+                       &#10;
+                       &#10;export PATH
+                       &#10;Exports all contacts to a JSON backup.
+                       &#10;Example: export backup
+                       &#10;
+                       &#10;load PATH
+                       &#10;Replaces current contacts with data from a JSON backup.
+                       &#10;Example: load backup.json
+                       &#10;
+                       &#10;help
+                       &#10;Displays this command guide.
+                       &#10;
+                       &#10;exit
+                       &#10;Closes ByLine." />
               </VBox>
             </content>
           </ScrollPane>
