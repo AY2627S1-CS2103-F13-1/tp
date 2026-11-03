@@ -112,7 +112,25 @@ public class MainWindowTest extends ApplicationTest {
 
             Label guide = lookup("#commandGuide").query();
             String guideText = guide.getText().replace("\r\n", "\n");
-            assertTrue(guideText.contains("    delete ID\n    Example: delete 3\n\n    clear"));
+
+            String correctSample1 = """
+                        delete ID
+                        Example: delete 3
+
+                        clear
+                    """;
+            String correctSample2 = """
+                        undo
+                        Reverses the most recent change to contacts. Takes no parameters. Undo up to 20 changes.
+                        Example: delete 3, then undo to bring the contact back.
+
+                        redo
+                        Reapplies the last change you undid. Takes no parameters.
+                        Example: delete 3, then undo, then redo to delete the contact again.
+                    """;
+            assertTrue(guideText.contains(correctSample1));
+            assertTrue(guideText.contains(correctSample2));
+
             assertTrue(guide.isWrapText());
         });
     }
