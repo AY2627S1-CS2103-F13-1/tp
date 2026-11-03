@@ -18,8 +18,9 @@ CONTACTS
 
 DISCOVER
 
-    list
-    Displays all contacts.
+    list [archive | all]
+    Shows active contacts by default, archived contacts with "archive", and both active and archived contacts with "all".
+    Examples: list; list archive; list all
 
     find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
     Searches all fields with SUBSTRING and specific fields with prefixes. All conditions must match.
