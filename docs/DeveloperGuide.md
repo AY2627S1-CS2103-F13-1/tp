@@ -385,9 +385,15 @@ Other commands, such as `find`, `tag` and `delete`, treat archived contacts like
 
 ### Export and load feature
 
-`AddressBookParser` passes the arguments of `export` and `load` to `BackupCommandParser`, which reads the whole argument as a file path. Surrounding double quotes are removed, and `.json` is added if the path does not end with it. A blank path gives the command's usage message.
+`AddressBookParser` passes the arguments of `export` and `load` to `BackupCommandParser`, which reads the whole argument as a file path. Surrounding double quotes are removed, and a blank path gives the command's usage message. For `load`, `.json` is added if the path does not end with it. For `export`, the file is always saved as JSON: a missing extension gets `.json`, and any other final extension is replaced, so `backup.csv` becomes `backup.json`.
 
-`ExportCommand` calls `BackupStorage#exportAddressBook`, which writes every contact, including archived contacts, and the ID counter to the file in the same JSON format as the main data file. The file is created with `CREATE_NEW`, so an existing file is never overwritten. `LogicManager` returns straight after `export`, without calling `Model#commitAddressBook()` or saving the main data file, because the address book has not changed.
+`ExportCommand` calls `BackupStorage#exportAddressBook`, which writes every contact, including archived contacts, and the ID counter to the file in the same JSON format as the main data file. The file is created with `CREATE_NEW`, so it never replaces an existing file by itself. `LogicManager` returns straight after `export`, without calling `Model#commitAddressBook()` or saving the main data file, because the address book has not changed.
+
+If the file already exists, `LogicManager` asks the journalist to confirm instead of showing an error:
+
+1. It catches the `CommandException` caused by the existing file, stores the destination in `pendingExportPath`, and shows a warning ending with `Proceed? (Y/N)`.
+2. While `pendingExportPath` is set, `LogicManager#execute` treats the next input as the answer instead of parsing it as a command. `N`, in either case, cancels and leaves the file unchanged. Any input other than `Y` or `N` repeats the warning.
+3. `Y` calls `BackupStorage#overwriteAddressBook`, which writes the contacts to a temporary file in the same folder and then moves it over the old file, so the old backup is kept if writing fails. As with a normal export, nothing is committed or saved to the main data file.
 
 `load` replaces the whole address book, so `LogicManager` handles it in stages to avoid losing data if something fails:
 
@@ -1083,15 +1089,36 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1b. A file already exists at the path, or the folder does not exist or cannot be written to.
+* 1b. The folder does not exist or cannot be written to.
 
     * 1b1. ByLine shows an error message stating that the contacts could not be exported.
 
       Use case resumes at step 1.
 
+* 1c. A file already exists at the path.
+
+    * 1c1. ByLine warns that the existing file will be replaced and asks the journalist to confirm.
+    * 1c2. Journalist confirms.
+    * 1c3. ByLine replaces the file with all contacts.
+
+      Use case ends.
+
+* 1c2a. Journalist declines.
+
+    * 1c2a1. ByLine cancels the export and leaves the existing file unchanged.
+
+      Use case ends.
+
+* 1c2b. Journalist enters something other than a confirmation or a refusal.
+
+    * 1c2b1. ByLine repeats the warning.
+
+      Use case resumes at step 1c2.
+
 **Guarantees**
 
-* An existing file is never overwritten.
+* An existing file is replaced only after the journalist confirms.
+* If replacing the file fails, the existing file is unchanged.
 * The contacts in ByLine are unchanged.
 
 **System:** ByLine<br>
@@ -1587,20 +1614,32 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Start with the sample data.
 
    2. Test case: `export test-backup`<br>
-      Expected: `test-backup.json` appears in the folder ByLine was started from. The status message is `Exported all contacts to test-backup.json`.
+      Expected: `test-backup.json` appears in the folder ByLine was started from. The status message is `Exported all contacts as JSON to test-backup.json`.
 
-   3. Test case: `export test-backup` again<br>
-      Expected: The existing file is not changed. The status message starts with `Could not export contacts:`.
+   3. Test case: `export csv-test.csv`<br>
+      Expected: `csv-test.json` is created, not `csv-test.csv`. The status message is `Exported all contacts as JSON to csv-test.json`.
 
-   4. Test case: `export no-such-folder/backup`<br>
+   4. Test case: `export test-backup` again<br>
+      Expected: No file is changed. The status message warns that `test-backup.json` already exists and ends with `Proceed? (Y/N)`.
+
+   5. Test case: `list` (straight after the previous test case)<br>
+      Expected: The list does not change. The status message starts with `Please enter Y or N.` and repeats the warning.
+
+   6. Test case: `n`<br>
+      Expected: The status message is `Export cancelled. The existing file has not been changed.`
+
+   7. Test case: `export second-backup`, then `delete 1`, then `export second-backup`, then `Y`<br>
+      Expected: The last status message starts with `Exported all contacts to` and ends with `second-backup.json`. The file now holds 5 contacts, without Alex Yeoh.
+
+   8. Test case: `export no-such-folder/backup`<br>
       Expected: No file is created. The status message starts with `Could not export contacts:`.
 
-   5. Test case: `export`<br>
+   9. Test case: `export`<br>
       Expected: The status message shows the `export` usage, starting with `export PATH:`.
 
 2. Loading contacts
 
-   1. Prerequisites: `test-backup.json` from the previous test exists. Run `delete 1`, so that the contacts differ from the backup.
+   1. Prerequisites: `test-backup.json` from the export tests exists, and Alex Yeoh (ID 1) has been deleted (export test 7).
 
    2. Test case: `load test-backup`<br>
       Expected: Alex Yeoh (ID 1) is back. The status message starts with `Loaded contacts from test-backup.json.` and ends with `Previous data is backed up at` followed by the path of a new `before-load-….json` file, which appears next to `test-backup.json`.
