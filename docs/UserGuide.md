@@ -378,7 +378,7 @@ Format: `export PATH`
 * `.json` is added to the file name if you leave it out, so `C:/My Contacts/October backup` saves to `C:/My Contacts/October backup.json`.
 * Other filename extensions are replaced with `.json`: `export backup.csv` saves JSON to `backup.json`. Only the final extension is replaced, so `backup.v2.csv` becomes `backup.v2.json`. Existing `.json` extensions, including `.JSON`, are kept. Use the final path shown in the result message with `load`.
 * Paths may contain spaces, with or without double quotes around the whole path.
-* The folder must already exist. ByLine never overwrites an existing file, so use a new file name for each backup.
+* The folder must already exist. If the file already exists, ByLine warns that overwriting will permanently replace the previous backup and asks `Proceed? (Y/N)`. Enter `Y` in the command box to overwrite or `N` to cancel and keep the existing file. Lowercase `y` and `n` also work. Other input repeats the prompt; answer `N` before entering a different command. Nothing is written before confirmation.
 * A path that does not start with a drive or `/`, such as `backups/october`, is saved inside the folder you started ByLine from.
 * Every contact is saved, whatever the list currently shows. Settings such as the window size are not saved.
 

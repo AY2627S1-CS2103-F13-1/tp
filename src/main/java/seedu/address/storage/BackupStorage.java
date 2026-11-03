@@ -1,8 +1,10 @@
 package seedu.address.storage;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +21,22 @@ public class BackupStorage {
     public void exportAddressBook(ReadOnlyAddressBook addressBook, Path path) throws IOException {
         String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(addressBook));
         Files.writeString(path, json, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+    }
+
+    /** Replaces a backup after confirmation, serializing fully before touching the destination. */
+    public void overwriteAddressBook(ReadOnlyAddressBook addressBook, Path path) throws IOException {
+        String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(addressBook));
+        Path temporary = Files.createTempFile(path.toAbsolutePath().getParent(), "export-", ".json");
+        try {
+            Files.writeString(temporary, json);
+            try {
+                Files.move(temporary, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
     }
 
     /** Saves a unique pre-load snapshot beside the file being loaded, retaining all earlier backups. */
