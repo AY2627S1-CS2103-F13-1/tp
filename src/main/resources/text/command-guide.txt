@@ -22,9 +22,10 @@ DISCOVER
     Shows active contacts by default, archived contacts with "archive", and both active and archived contacts with "all".
     Examples: list; list archive; list all
 
-    find [SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
-    Searches all fields with SUBSTRING and specific fields with prefixes. All conditions must match.
-    Required: Put SUBSTRING before any prefixes.
+    find [GENERAL_SUBSTRING] [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
+    Searches all fields with a general substring and specific fields with some prefixed substrings.
+    All conditions must match.
+    If the general substring is used with prefixed substrings, the general substring must be placed first.
     Examples: find oak; find n/Al e/example.com; find example n/Al t/fri
 
     sort FIELD [ORDER]
