@@ -96,8 +96,6 @@ public class MainWindow extends UiPart<Stage> {
         setWindowDefaultSize(logic.getGuiSettings());
 
         setAccelerators();
-
-
     }
 
     public Stage getPrimaryStage() {

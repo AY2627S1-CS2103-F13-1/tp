@@ -109,6 +109,32 @@ public class MainWindowTest extends ApplicationTest {
             assertFalse(details.isManaged());
             assertTrue(help.isVisible());
             assertTrue(help.isManaged());
+
+            Label contactsGuide = lookup("#contactsGuide").query();
+            Label applicationGuide = lookup("#applicationGuide").query();
+            String contactsText = contactsGuide.getText().replaceAll("[ \\t]+(?=\\n)", "");
+            String applicationText = applicationGuide.getText().replaceAll("[ \\t]+(?=\\n)", "");
+
+            String correctSample1 = """
+                    delete ID
+                    Example: delete 3
+
+                    clear
+                    """;
+            String correctSample2 = """
+                    undo
+                    Reverses the most recent change to contacts. Takes no parameters. Undo up to 20 changes.
+                    Example: delete 3, then undo to bring the contact back.
+
+                    redo
+                    Reapplies the last change you undid. Takes no parameters.
+                    Example: delete 3, then undo, then redo to delete the contact again.
+                    """;
+            assertTrue(contactsText.contains(correctSample1));
+            assertTrue(applicationText.contains(correctSample2));
+
+            assertTrue(contactsGuide.isWrapText());
+            assertTrue(applicationGuide.isWrapText());
         });
     }
 
