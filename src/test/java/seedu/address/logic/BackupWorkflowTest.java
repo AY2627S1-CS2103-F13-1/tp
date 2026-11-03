@@ -78,10 +78,75 @@ public class BackupWorkflowTest {
     }
 
     @Test
-    public void export_existingFile_isNotOverwritten() throws Exception {
+    public void export_existingFile_warnsWithoutWriting() throws Exception {
         Files.writeString(backup, "existing backup");
-        assertThrows(CommandException.class, () -> logic.execute("export " + backup));
+        String feedback = logic.execute("export " + backup).getFeedbackToUser();
+        assertEquals("Warning: " + backup.toAbsolutePath().normalize()
+                + " already exists. Overwriting it will permanently replace the previous backup. Proceed? (Y/N)",
+                feedback);
         assertEquals("existing backup", Files.readString(backup));
+        assertFalse(Files.exists(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void export_confirmYes_replacesBackupAndConsumesConfirmation() throws Exception {
+        Files.writeString(backup, "existing backup");
+        model.addPerson(new PersonBuilder().withArchiveStatus(true).build());
+        AddressBook original = new AddressBook(model.getAddressBook());
+        logic.execute("export " + backup);
+
+        assertEquals("Exported all contacts to " + backup.toAbsolutePath().normalize(),
+                logic.execute(" y ").getFeedbackToUser());
+        assertEquals(original, new BackupStorage().readAddressBook(backup));
+        assertEquals(original, model.getAddressBook());
+        assertThrows(ParseException.class, () -> logic.execute("Y"));
+        assertFalse(Files.exists(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void export_confirmNo_preservesBackupAndAllowsCommands() throws Exception {
+        Files.writeString(backup, "existing backup");
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("export " + backup);
+
+        assertEquals("Export cancelled. The existing file has not been changed.",
+                logic.execute("n").getFeedbackToUser());
+        assertEquals("existing backup", Files.readString(backup));
+        logic.execute("clear");
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+    }
+
+    @Test
+    public void export_invalidConfirmation_doesNotExecuteCommandOrWrite() throws Exception {
+        Files.writeString(backup, "existing backup");
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("export " + backup);
+
+        for (String response : new String[] {"", "yes", "clear"}) {
+            assertTrue(logic.execute(response).getFeedbackToUser().startsWith("Please enter Y or N."));
+            assertEquals("existing backup", Files.readString(backup));
+            assertEquals(1, model.getAddressBook().getPersonList().size());
+        }
+        logic.execute("N");
+    }
+
+    @Test
+    public void export_overwriteFailure_reportsErrorAndClearsConfirmation() throws Exception {
+        BackupStorage failingStorage = new BackupStorage() {
+            @Override
+            public void overwriteAddressBook(ReadOnlyAddressBook addressBook, Path path) throws IOException {
+                throw new IOException("simulated write failure");
+            }
+        };
+        Logic failingLogic = new LogicManager(model, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))), failingStorage);
+        Files.writeString(backup, "existing backup");
+        failingLogic.execute("export " + backup);
+
+        CommandException exception = assertThrows(CommandException.class, () -> failingLogic.execute("Y"));
+        assertEquals("Could not export contacts: simulated write failure", exception.getMessage());
+        assertEquals("existing backup", Files.readString(backup));
+        assertThrows(ParseException.class, () -> failingLogic.execute("Y"));
     }
 
     @Test
@@ -320,6 +385,38 @@ public class BackupWorkflowTest {
                 assertEquals(original, model.getAddressBook());
                 logic.execute("clear");
             }
+        }
+    }
+
+    @Test
+    public void export_otherExtension_reportsJsonFormatAndFinalPath() throws Exception {
+        Path supplied = temporaryFolder.resolve("backup.csv");
+        Path expected = temporaryFolder.resolve("backup.json");
+        model.addPerson(new PersonBuilder().build());
+        AddressBook original = new AddressBook(model.getAddressBook());
+
+        String feedback = logic.execute("export " + supplied).getFeedbackToUser();
+
+        assertEquals("Exported all contacts as JSON to " + expected, feedback);
+        assertEquals(original, new BackupStorage().readAddressBook(expected));
+        assertFalse(Files.exists(supplied));
+        logic.execute("clear");
+        logic.execute("load " + expected);
+        assertEquals(original, model.getAddressBook());
+    }
+
+    @Test
+    public void export_extensionReplacement_onlyChangesFinalFilenameSuffix() throws Exception {
+        Path folder = Files.createDirectory(temporaryFolder.resolve("folder.csv"));
+        for (String[] names : new String[][] {
+            {"backup.v2.csv", "backup.v2.json"},
+            {".backup", ".backup.json"},
+            {"backup.", "backup.json"}
+        }) {
+            Path supplied = folder.resolve(names[0]);
+            Path expected = folder.resolve(names[1]);
+            logic.execute("export \"" + supplied + "\"");
+            assertEquals(model.getAddressBook(), new BackupStorage().readAddressBook(expected));
         }
     }
 
