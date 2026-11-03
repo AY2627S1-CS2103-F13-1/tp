@@ -71,6 +71,12 @@ deactivate CommandResult
 DeleteCommand --> LogicManager : r
 deactivate DeleteCommand
 
+LogicManager -> Model : commitAddressBook()
+activate Model
+
+Model --> LogicManager
+deactivate Model
+
 [<--LogicManager
 deactivate LogicManager
 @enduml

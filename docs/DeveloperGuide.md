@@ -12,10 +12,13 @@ title: Developer Guide
 * ByLine is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org).
 * Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
 
-Notable uses of AI:
+### Use of AI tools
 
-* ChatGPT Codex was used to generate all the test classes for the Find feature.
-* The method `Search#levenshteinDistance` was generated with ChatGPT Codex, referencing the {@code levenshtein_distance_vec} implementation in [tkarabela's fuzzy text search notebook](https://github.com/tkarabela/bigpython/blob/master/003--fuzzy-text-search/fuzzy-text-search.ipynb). Adapted to Java with two-row storage and optional substring matching. The original YouTube tutorial is ["How Fuzzy Text Search Works" by Big Python](www.youtube.com/watch?v=SoZ1CVU2DdE&).
+Team members used AI tools, including ChatGPT Codex and Claude Code, throughout the project: to write and change code, to generate tests (for example, all the test classes for the Find feature), and to draft and edit documentation such as this guide and the User Guide. Team members reviewed and tested AI-generated work before adding it to the project.
+
+Reused work that AI-generated code is based on:
+
+* `Search#levenshteinDistance` was generated with ChatGPT Codex, based on the `levenshtein_distance_vec` implementation in [tkarabela's fuzzy text search notebook](https://github.com/tkarabela/bigpython/blob/master/003--fuzzy-text-search/fuzzy-text-search.ipynb), and adapted to Java with two-row storage and optional substring matching. The original YouTube tutorial is ["How Fuzzy Text Search Works" by Big Python](https://www.youtube.com/watch?v=SoZ1CVU2DdE).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -81,7 +84,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts. `MainWindow` also holds the contact details panel and the Command Guide panel, both defined in `MainWindow.fxml`.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103-F13-1/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -132,7 +135,7 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object), in a `VersionedAddressBook`: an `AddressBook` that also keeps the undo/redo history (see [Undo/redo feature](#undoredo-feature)).
 * considers two `Person` objects duplicates when they have the same phone number and their names match after letter
   case is ignored and each run of spaces is treated as one space. The name is otherwise stored exactly as entered.
 * gives every `Person` a `PersonId` when it is added, using a counter of the next ID to give out (see [Contact ID feature](#contact-id-feature)).
@@ -246,10 +249,6 @@ Unlike `edit t/…`, which replaces all of a contact's tags, `tag` and `untag` c
 
 ### Find feature
 
-Syntax: `find [general_substring] [prefix_substring] [prefix_substring]...`
-- `general_substring`: optional, must be positioned first, has no prefix.
-- `prefix_substring`: optional, must be positioned after general_substring, can have any supported prefix.
-
 `AddressBookParser` delegates `find` arguments to `FindCommandParser`. The parser tokenises all supported prefixes (`n/`, `p/`, `e/`, `a/` and `t/`) with `ArgumentTokenizer`, then passes the resulting `ArgumentMultimap` to a single `MatchPersonPredicate`.
 
 The predicate combines the following conditions with AND. Matching is case-insensitive and uses consecutive substrings:
@@ -266,16 +265,7 @@ Part of the command | Read as | A contact matches if
 `n/Alex` | name substring | its name contains `Alex`
 `t/fri` | tag substring | at least one of its tags contains `fri`
 
-If a general substring is used, it must be placed before any prefixed substrings. In `find n/Alex example` there is no preamble, so search returns contacts whose names contain `Alex example`, if any.
-
-Other allowed combinations of the find command include:
-* `find example`: returns contacts that contain "example" in any field.
-* `find n/Alex`: returns contacts that contain "Alex" in their name.
-* `find t/fri`: returns contacts that contain "fri" in their tags.
-* `find n/Alex t/Fri` or `find t/fri n/Alex`: returns contacts that contain "Alex" in their name and "fri" in their tags.
-* `find`: returns an empty list.
-
-The tokenizer trims surrounding whitespace from each value but preserves internal whitespace. The entire preamble is one substring, even when it contains spaces. Text after a prefix remains part of that prefix's value until the next recognised prefix.
+The tokenizer trims surrounding whitespace from each value but keeps internal spaces, so the whole preamble is one substring even if it contains spaces. Text after a prefix belongs to that prefix until the next recognised prefix. For example, `find n/Alex example` has no preamble and searches names for `Alex example`.
 
 Fuzzy matching is handled by `Search.substringThenLevenshtein(text, key)` for each general, field and tag comparison. It first checks for a case-insensitive substring match, then falls back to `levenshteinDistance` with partial matching enabled, comparing the entire key against any contiguous part of the field without penalising surrounding text. Insertions, deletions and substitutions each cost one edit, and spaces count as characters; the permitted distance is `floor(TOLERANCE * key.length())`, where `Search` owns the private constant `TOLERANCE = 1.0 / 4.0`. The calculation uses two rows of the distance table to limit memory use, and the predicate still requires every supplied search condition to match.
 
@@ -395,15 +385,25 @@ Other commands, such as `find`, `tag` and `delete`, treat archived contacts like
 
 ### Export and load feature
 
-`AddressBookParser` passes the arguments of `export` and `load` to `BackupCommandParser`, which reads the whole argument as a file path. Surrounding double quotes are removed, and `.json` is added if the path does not end with it. A blank path gives the command's usage message.
+`AddressBookParser` passes the arguments of `export` and `load` to `BackupCommandParser`, which reads the whole argument as a file path. Surrounding double quotes are removed, and a blank path gives the command's usage message. For `load`, `.json` is added if the path does not end with it. For `export`, the file is always saved as JSON: a missing extension gets `.json`, and any other final extension is replaced, so `backup.csv` becomes `backup.json`.
 
-`ExportCommand` calls `BackupStorage#exportAddressBook`, which writes every contact, including archived contacts, and the ID counter to the file in the same JSON format as the main data file. The file is created with `CREATE_NEW`, so an existing file is never overwritten. `LogicManager` returns straight after `export`, without calling `Model#commitAddressBook()` or saving the main data file, because the address book has not changed.
+`ExportCommand` calls `BackupStorage#exportAddressBook`, which writes every contact, including archived contacts, and the ID counter to the file in the same JSON format as the main data file. The file is created with `CREATE_NEW`, so it never replaces an existing file by itself. `LogicManager` returns straight after `export`, without calling `Model#commitAddressBook()` or saving the main data file, because the address book has not changed.
+
+If the file already exists, `LogicManager` asks the journalist to confirm instead of showing an error:
+
+1. It catches the `CommandException` caused by the existing file, stores the destination in `pendingExportPath`, and shows a warning ending with `Proceed? (Y/N)`.
+2. While `pendingExportPath` is set, `LogicManager#execute` treats the next input as the answer instead of parsing it as a command. `N`, in either case, cancels and leaves the file unchanged. Any input other than `Y` or `N` repeats the warning.
+3. `Y` calls `BackupStorage#overwriteAddressBook`, which writes the contacts to a temporary file in the same folder and then moves it over the old file, so the old backup is kept if writing fails. As with a normal export, nothing is committed or saved to the main data file.
 
 `load` replaces the whole address book, so `LogicManager` handles it in stages to avoid losing data if something fails:
 
 1. `LoadCommand` runs on a copy of the model. It reads and checks the backup with `BackupStorage#readAddressBook` and puts the loaded contacts in the copy. If the file cannot be read or contains invalid data, the command throws a `CommandException` and the real model is unchanged.
 2. `LogicManager` saves the current contacts to a new `before-load-<timestamp>-<random id>.json` file in the same folder as the backup, using `BackupStorage#backupBeforeLoad`. This is skipped if the address book is empty or equals the sample data. If the copy cannot be saved, the load is cancelled.
 3. `LogicManager` saves the loaded contacts to the main data file, copies them into the real model and calls `Model#commitAddressBook()`, so `undo` can reverse a load.
+
+The activity diagram below summarises what happens when the journalist runs `load`:
+
+<img src="images/LoadActivityDiagram.png" width="250" />
 
 The result message names the file that holds the previous contacts, so the journalist can `load` it to go back.
 
@@ -428,7 +428,7 @@ The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `Ad
 
 These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively, along with `Model#canUndoAddressBook()` and `Model#canRedoAddressBook()`.
 
-`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully, except `export`, which changes no data. Individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
+`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully, except `export`, which changes no data. For `load`, this happens only after the backup copy and the data file are saved (see [Export and load feature](#export-and-load-feature)). Individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
 
 Each saved state is a copy made with `new AddressBook(...)`, which includes the ID counter `nextPersonId`. Undoing an `add` therefore also rolls the counter back, so the next contact added gets the undone contact's ID. The history keeps the initial state plus at most `VersionedAddressBook.HISTORY_LIMIT` (20) changes. When a commit would exceed this, the oldest state is removed.
 
@@ -490,7 +490,7 @@ Step 6. The user executes `clear`. When `LogicManager` calls `Model#commitAddres
 
 The following activity diagram summarizes what happens when a user executes a new command:
 
-<img src="images/CommitActivityDiagram.png" width="250" />
+<img src="images/CommitActivityDiagram.png" width="450" />
 
 #### Design considerations
 
@@ -550,7 +550,7 @@ This product is for journalists who have many valuable contacts to keep track of
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Journalists have the problem of not knowing who in their contacts to ask for help for their stories that they are currently writing. Our app helps journalists identify relevant contacts and keep track of interviewees to contact them for follow-up.
+**Value proposition**: Journalists often struggle to work out which of their many contacts can help with the story they are working on. ByLine lets them tag contacts by topic or expertise, find the right person quickly by typing, and keep track of interviewees for follow-up.
 
 
 ### User stories
@@ -569,6 +569,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | journalist | assign tags to contacts | organise contacts based on information relevant to my work |
 | `* * *` | journalist | filter contacts by tag | quickly identify contacts relevant to a particular topic or need |
 | `* * *` | journalist | sort the displayed contacts by a selected field and order | review a large result list in a useful sequence without changing stored data |
+| `* *` | journalist | see all of a contact's details in one place | check everything about a contact before reaching out |
+| `* *` | journalist | find contacts even if I misspell part of their details | still find a source when I am unsure of the exact spelling |
 | `* *` | journalist | assign multiple tags to a contact | categorise the same contact in multiple useful ways |
 | `* *` | journalist | remove tags from a contact | keep a contact's tags accurate when their role or relevance changes |
 | `* *` | journalist | archive a contact I am no longer working with | keep my active contacts short without losing anyone's details |
@@ -756,6 +758,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
     * 1b1. ByLine shows the contacts that have the text in any of their details.
 
       Use case ends.
+
+* 1c. The search text contains a small typing mistake, e.g. `Bernise` instead of `Bernice`.
+
+    * 1c1. ByLine treats details that differ by about one character in every four as a match.
+
+      Use case resumes at step 2.
 
 * 2a. No contacts match all the given criteria.
 
@@ -1081,15 +1089,36 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1b. A file already exists at the path, or the folder does not exist or cannot be written to.
+* 1b. The folder does not exist or cannot be written to.
 
     * 1b1. ByLine shows an error message stating that the contacts could not be exported.
 
       Use case resumes at step 1.
 
+* 1c. A file already exists at the path.
+
+    * 1c1. ByLine warns that the existing file will be replaced and asks the journalist to confirm.
+    * 1c2. Journalist confirms.
+    * 1c3. ByLine replaces the file with all contacts.
+
+      Use case ends.
+
+* 1c2a. Journalist declines.
+
+    * 1c2a1. ByLine cancels the export and leaves the existing file unchanged.
+
+      Use case ends.
+
+* 1c2b. Journalist enters something other than a confirmation or a refusal.
+
+    * 1c2b1. ByLine repeats the warning.
+
+      Use case resumes at step 1c2.
+
 **Guarantees**
 
-* An existing file is never overwritten.
+* An existing file is replaced only after the journalist confirms.
+* If replacing the file fails, the existing file is unchanged.
 * The contacts in ByLine are unchanged.
 
 **System:** ByLine<br>
@@ -1166,13 +1195,16 @@ These requirements define the quality targets and operating constraints for ByLi
 * **Active contact**: A contact that is not archived. `list` shows only active contacts.
 * **Address book**: The internal collection that stores all contact records. This name is inherited from AB3 and is represented by the `AddressBook` class in the codebase.
 * **Archived contact**: A contact hidden with `archive`. It keeps its ID and details, is not shown by `list`, and can be brought back with `restore`.
+* **Backup file**: A JSON file holding a copy of all contacts, which `load` can read. `export` creates one, and `load` also creates one (named `before-load-…`) before replacing the contacts.
 * **ByLine**: A desktop, CLI-based contact-management application that helps journalists organise and retrieve professional contacts relevant to their reporting. Users interact with ByLine primarily by typing commands, while a GUI displays their contacts and command results.
 * **Case-insensitive matching**: Comparing text without treating uppercase and lowercase letters as different. For example, `Housing` and `housing` are considered equivalent.
 * **CLI (Command Line Interface)**: A text-based interface through which users operate ByLine by typing commands.
 * **Command**: A text instruction entered through the CLI to perform an operation, such as adding, listing, deleting, tagging, or searching for contacts.
+* **Command Guide**: The list of commands, with their formats and examples, that `help` shows in the panel on the right.
 * **Command prefix**: A marker that identifies the meaning of a command parameter, such as `n/` for a name or `t/` for a tag.
 * **Complete contact list**: All contacts stored in ByLine, regardless of the contacts currently displayed in the UI.
 * **Contact**: A person whose details a journalist stores in ByLine because the person may be relevant to current or future reporting.
+* **Contact details panel**: The panel on the right that shows all of the selected contact's details, including whether it is archived.
 * **Contact ID**: The number shown as `ID: 3` on a contact's card. A contact gets the next unused ID when it is added and keeps it permanently. IDs are never reused. Commands that act on one contact select it by this ID.
 * **Contact record**: The complete set of information stored about one contact, including their name, phone number, email address, address, and tags.
 * **Displayed contact list**: The contacts currently shown. `list`, `find` and `filter` choose which contacts are shown, and `sort` sets their order.
@@ -1181,7 +1213,7 @@ These requirements define the quality targets and operating constraints for ByLi
 * **Duplicate tag**: A tag that is already assigned to a contact or is repeated within the same command, ignoring letter case.
 * **Exact tag match**: A match in which the requested tag equals a complete stored tag value, ignoring letter case. A requested tag `policy` does not exactly match `housing policy`.
 * **Expert**: A contact with specialist knowledge relevant to a story or topic.
-* **Filtered contact list**: The internal list behind the displayed contact list. It holds the contacts chosen to be shown, before `sort` orders them.
+* **Fuzzy matching**: Matching that allows small typing mistakes. `find` allows about one wrong, missing or extra character for every four characters typed.
 * **GUI (Graphical User Interface)**: The visual interface that displays the command box, contact list, command results, and other application information.
 * **Interviewee**: A contact whom a journalist has interviewed or intends to interview.
 * **Journalist**: The target user of ByLine, who manages professional contacts for reporting purposes and prefers a command-driven desktop application.
@@ -1234,6 +1266,18 @@ testers are expected to do more *exploratory* testing.
 
    3. Test case: With the guide shown, click any contact.<br>
       Expected: The right-hand panel shows that contact's details instead of the guide.
+
+### Viewing a contact's details
+
+1. Showing a contact's details
+
+   1. Prerequisites: Start with the sample data.
+
+   2. Test case: Click Bernice Yu's card.<br>
+      Expected: The right-hand panel shows Bernice Yu's ID, phone number, email, address and tags, and `STATUS  Active`.
+
+   3. Test case: `archive 2`, then `list all`, then click Bernice Yu's card.<br>
+      Expected: The card shows `[Archived]` after her name, and the panel shows `STATUS  Archived`.
 
 ### Adding a contact
 
@@ -1298,9 +1342,9 @@ testers are expected to do more *exploratory* testing.
    7. Other incorrect edit commands to try: `edit 0 p/91234567`, `edit 1 p/12ab`<br>
       Expected: Nothing is changed. An error message is shown.
 
-### Deleting a person
+### Deleting a contact
 
-1. Deleting a person by ID
+1. Deleting a contact by ID
 
    1. Prerequisites: Multiple contacts exist. Note the ID shown on one contact's card, e.g. `ID: 2`.
 
@@ -1486,7 +1530,7 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: The contact with ID 2 is archived. Run `list`.
 
    2. Test case: `edit 2 p/91234567`<br>
-      Expected: Byline switches to the archived contacts. The contact with ID 2 is shown with the new phone number and is still archived.
+      Expected: ByLine switches to the archived contacts. The contact with ID 2 is shown with the new phone number and is still archived.
 
 3. Restoring a contact
 
@@ -1562,6 +1606,55 @@ testers are expected to do more *exploratory* testing.
 
    4. Test case: `undo`, then `add n/Test p/123 e/t@example.com a/Street`, then `redo`<br>
       Expected: The status message is `There is nothing to redo.` The contact with ID 2 is still there.
+
+### Exporting and loading backups
+
+1. Exporting contacts
+
+   1. Prerequisites: Start with the sample data.
+
+   2. Test case: `export test-backup`<br>
+      Expected: `test-backup.json` appears in the folder ByLine was started from. The status message is `Exported all contacts as JSON to test-backup.json`.
+
+   3. Test case: `export csv-test.csv`<br>
+      Expected: `csv-test.json` is created, not `csv-test.csv`. The status message is `Exported all contacts as JSON to csv-test.json`.
+
+   4. Test case: `export test-backup` again<br>
+      Expected: No file is changed. The status message warns that `test-backup.json` already exists and ends with `Proceed? (Y/N)`.
+
+   5. Test case: `list` (straight after the previous test case)<br>
+      Expected: The list does not change. The status message starts with `Please enter Y or N.` and repeats the warning.
+
+   6. Test case: `n`<br>
+      Expected: The status message is `Export cancelled. The existing file has not been changed.`
+
+   7. Test case: `export second-backup`, then `delete 1`, then `export second-backup`, then `Y`<br>
+      Expected: The last status message starts with `Exported all contacts to` and ends with `second-backup.json`. The file now holds 5 contacts, without Alex Yeoh.
+
+   8. Test case: `export no-such-folder/backup`<br>
+      Expected: No file is created. The status message starts with `Could not export contacts:`.
+
+   9. Test case: `export`<br>
+      Expected: The status message shows the `export` usage, starting with `export PATH:`.
+
+2. Loading contacts
+
+   1. Prerequisites: `test-backup.json` from the export tests exists, and Alex Yeoh (ID 1) has been deleted (export test 7).
+
+   2. Test case: `load test-backup`<br>
+      Expected: Alex Yeoh (ID 1) is back. The status message starts with `Loaded contacts from test-backup.json.` and ends with `Previous data is backed up at` followed by the path of a new `before-load-….json` file, which appears next to `test-backup.json`.
+
+   3. Test case: `undo` (straight after the previous test case)<br>
+      Expected: The contacts are back to how they were before the load, without Alex Yeoh.
+
+   4. Test case: Close ByLine, delete the `data` folder, relaunch ByLine, then `load test-backup`.<br>
+      Expected: The contacts are loaded. The status message ends with `No backup needed: the previous address book was empty or unchanged sample data.` No new `before-load-` file is created.
+
+   5. Test case: `load missing-file`<br>
+      Expected: The contacts are unchanged. The status message starts with `Could not load contacts:`.
+
+   6. Test case: Copy `test-backup.json` to `broken.json`. In `broken.json`, change one contact's `id` to `abc`. Then `load broken`.<br>
+      Expected: The contacts are unchanged. The status message starts with `Could not load contacts:`.
 
 ### Saving data
 

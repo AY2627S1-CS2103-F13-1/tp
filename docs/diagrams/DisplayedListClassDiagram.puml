@@ -15,7 +15,7 @@ end note
 }
 
 package "JavaFX collections" as JavaFxCollections <<Rectangle>> {
-Interface ObservableList
+Class "<<interface>>\nObservableList" as ObservableList
 Class FilteredList
 Class SortedList
 
@@ -42,7 +42,7 @@ ModelManager -right-> "1" VersionedAddressBook
 ModelManager -down-> "1" FilteredList
 ModelManager -down-> "1" SortedList
 
-SortedList -left-> "1" FilteredList : wraps and reorders >
+SortedList -down-> "1" FilteredList : wraps and reorders >
 
 FilteredList ..|> ObservableList
 SortedList ..|> ObservableList

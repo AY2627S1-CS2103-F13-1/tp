@@ -8,9 +8,15 @@ start
 'Since the beta syntax does not support placing the condition outside the
 'diamond we place it as the true branch instead.
 
-if () then ([command succeeds])
+if () then ([command succeeds
+and is not export])
     :LogicManager calls
     Model#commitAddressBook();
+    note right
+      For load, this happens only after
+      the backup copy and the data file
+      are saved (see the load activity diagram)
+    end note
     if () then ([AddressBook changed])
         :Purge redundant states;
         :Save AddressBook to
@@ -21,7 +27,7 @@ if () then ([command succeeds])
         endif
     else ([else])
     endif
-else ([command fails])
+else ([else])
 endif
 stop
 @enduml
