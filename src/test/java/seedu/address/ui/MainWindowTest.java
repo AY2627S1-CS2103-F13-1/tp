@@ -114,19 +114,19 @@ public class MainWindowTest extends ApplicationTest {
             String guideText = guide.getText().replace("\r\n", "\n");
 
             String correctSample1 = """
-                        delete ID
-                        Example: delete 3
+                    delete ID
+                    Example: delete 3
 
-                        clear
+                    clear
                     """;
             String correctSample2 = """
-                        undo
-                        Reverses the most recent change to contacts. Takes no parameters. Undo up to 20 changes.
-                        Example: delete 3, then undo to bring the contact back.
+                    undo
+                    Reverses the most recent change to contacts. Takes no parameters. Undo up to 20 changes.
+                    Example: delete 3, then undo to bring the contact back.
 
-                        redo
-                        Reapplies the last change you undid. Takes no parameters.
-                        Example: delete 3, then undo, then redo to delete the contact again.
+                    redo
+                    Reapplies the last change you undid. Takes no parameters.
+                    Example: delete 3, then undo, then redo to delete the contact again.
                     """;
             assertTrue(guideText.contains(correctSample1));
             assertTrue(guideText.contains(correctSample2));
