@@ -12,6 +12,11 @@ if () then ([command succeeds
 and is not export])
     :LogicManager calls
     Model#commitAddressBook();
+    note right
+      For load, this happens only after
+      the backup copy and the data file
+      are saved (see the load activity diagram)
+    end note
     if () then ([AddressBook changed])
         :Purge redundant states;
         :Save AddressBook to

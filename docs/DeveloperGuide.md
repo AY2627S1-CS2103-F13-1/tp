@@ -422,7 +422,7 @@ The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `Ad
 
 These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively, along with `Model#canUndoAddressBook()` and `Model#canRedoAddressBook()`.
 
-`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully, except `export`, which changes no data. Individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
+`LogicManager#execute` calls `Model#commitAddressBook()` after every command that executes successfully, except `export`, which changes no data. For `load`, this happens only after the backup copy and the data file are saved (see [Export and load feature](#export-and-load-feature)). Individual commands never call it. Because `commit()` ignores a state equal to the current saved state, only commands that changed the address book add a state. New commands that change data are therefore undoable without any extra code.
 
 Each saved state is a copy made with `new AddressBook(...)`, which includes the ID counter `nextPersonId`. Undoing an `add` therefore also rolls the counter back, so the next contact added gets the undone contact's ID. The history keeps the initial state plus at most `VersionedAddressBook.HISTORY_LIMIT` (20) changes. When a commit would exceed this, the oldest state is removed.
 
@@ -484,7 +484,7 @@ Step 6. The user executes `clear`. When `LogicManager` calls `Model#commitAddres
 
 The following activity diagram summarizes what happens when a user executes a new command:
 
-<img src="images/CommitActivityDiagram.png" width="250" />
+<img src="images/CommitActivityDiagram.png" width="450" />
 
 #### Design considerations
 
