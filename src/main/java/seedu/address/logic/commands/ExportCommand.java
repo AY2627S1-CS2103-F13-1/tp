@@ -14,7 +14,7 @@ public class ExportCommand extends Command {
     public static final String COMMAND_WORD = "export";
     public static final String MESSAGE_USAGE = "export PATH: Save all contacts to a new JSON file. "
             + "Example: export backups/contacts (.json is optional; quotes are optional for spaces). "
-            + "If the file exists, enter Y to overwrite it or N to cancel when prompted.";
+            + "If the file exists, enter Y to overwrite it or N to cancel when prompted. "
             + "Exports always use JSON. Missing extensions get .json appended; "
             + "other extensions are replaced (contacts.csv becomes contacts.json).";
 
